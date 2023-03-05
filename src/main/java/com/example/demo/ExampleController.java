@@ -12,9 +12,10 @@ import java.sql.SQLException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
-@RequestMapping()
+@RequestMapping
 public class ExampleController {
 
   public static final String OUTPUT_PATH = "/Users/Mike_Home/Desktop/output_temp";
@@ -24,41 +25,35 @@ public class ExampleController {
     return "example";
   }
 
-  // This is an example of creating vanilla ER schema, export to JSON, image, using external library
-  // created by the other group of students.
+  // This is an example of creating "person-department one many relation",
+  // using external library created by the other group of students.
   @GetMapping("/er")
-  public String er() throws SQLException, ParseException {
+  @ResponseBody
+  public String exampleER() throws SQLException, ParseException {
     // initialize the in-memory database to store ER schema
     ER.initialize();
-    // you could also specify your own database
-    // ER.initialize(RDBMSType.POSTGRESQL, "hostname", "port", "database", "user", "password");
 
-    Schema example = ER.createSchema("Vanilla");
+    Schema example = ER.createSchema("Person_Department");
 
-    Entity branch = example.addEntity("branch");
-    branch.addPrimaryKey("sortcode", DataType.INT);
-    branch.addAttribute("bname", DataType.VARCHAR, AttributeType.Mandatory);
-    branch.addAttribute("cash", DataType.DOUBLE, AttributeType.Mandatory);
+    Entity person = example.addEntity("person");
+    person.addPrimaryKey("salary_number", DataType.INT);
+    person.addAttribute("name", DataType.VARCHAR, AttributeType.Mandatory);
+    person.addAttribute("bonus", DataType.DOUBLE, AttributeType.Optional);
 
-    Entity account = example.addEntity("account");
-    account.addPrimaryKey("no", DataType.INT);
-    account.addAttribute("type", DataType.CHAR, AttributeType.Mandatory);
-    account.addAttribute("cname", DataType.VARCHAR, AttributeType.Mandatory);
-    account.addAttribute("rate", DataType.DOUBLE, AttributeType.Mandatory);
+    Entity department = example.addEntity("department");
+    department.addPrimaryKey("dname", DataType.VARCHAR);
 
-    Entity movement = example.addEntity("movement");
-    movement.addPrimaryKey("mid", DataType.INT);
-    movement.addAttribute("amount", DataType.DOUBLE, AttributeType.Mandatory);
-    movement.addAttribute("tdate", DataType.DATETIME, AttributeType.Mandatory);
-
-    Relationship holds = example.createRelationship("holds", account, branch, Cardinality.OneToOne, Cardinality.ZeroToMany);
-    Relationship has = example.createRelationship("has", account, movement, Cardinality.ZeroToMany, Cardinality.OneToOne);
+    Relationship worksIn = example.createRelationship("works_in", person, department,
+        Cardinality.OneToOne, Cardinality.ZeroToMany);
 
     // export the ER schema to a JSON format
-    String result = example.toJSON();
+    String jsonString = example.toJSON();
 
     // save your ER schema as image
-    // example.renderAsImage(String.format(OUTPUT_PATH, example.getName()));
-    return result;
+    // example.renderAsImage(String.format(outputImagePath, example.getName()));
+
+    // transform your ER schema to DDL
+    String DDL = example.generateSqlStatement();
+    return jsonString;
   }
 }
