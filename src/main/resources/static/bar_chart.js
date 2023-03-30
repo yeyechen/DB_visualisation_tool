@@ -1,16 +1,8 @@
-// Set the dimensions of the chart
-var margin = {top: 20, right: 100, bottom: 70, left: 40},
-    width = 960 - margin.left - margin.right,
-    height = 600 - margin.top - margin.bottom;
-
-var svg = d3.select("body").append("svg")
-  .attr("width", width + margin.left + margin.right)
-  .attr("height", height + margin.top + margin.bottom)
-  .append("g")
-  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+import { margin, width, height, createSvg } from "./common.js";
+const svg = createSvg();
 
 // Load the data from the server
-d3.json("/mondial/economy3")
+d3.json("/mondial/main")
   .then(function(data) {
 
     // Extract the primary key name and attribute name (x-axis data and y-axis data)

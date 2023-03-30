@@ -1,8 +1,5 @@
-// Set the dimensions of the chart
-var margin = {top: 20, right: 100, bottom: 70, left: 40},
-    width = 960 - margin.left - margin.right,
-    height = 600 - margin.top - margin.bottom;
-
+import { margin, width, height, createSvg } from "../common.js";
+const svg = createSvg();
 // Define the scales for the x-axis, y-axis, and circle size
 var x = d3.scaleLog().range([0, width]);
 var y = d3.scaleLog().range([height, 0]);
@@ -10,14 +7,6 @@ var radius = d3.scaleLinear().range([1, 20]); // set the range of the circle rad
 
 // Define the color scale for the circles
 var color = d3.scaleOrdinal(d3.schemeCategory10);
-
-// Define the SVG container for the chart
-var svg = d3.select("body").append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform",
-          "translate(" + margin.left + "," + margin.top + ")");
 
 // Load the data from the server
 d3.json("/mondial/economy2")

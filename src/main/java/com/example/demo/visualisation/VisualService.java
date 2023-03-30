@@ -20,4 +20,11 @@ public class VisualService {
     return jdbc.queryForList(query);
   }
 
+  public List<Map<String, Object>> queryScatterDiagram(Entity entityName, String primaryKey,
+      Attribute attribute1, Attribute attribute2) {
+    String query =
+        "SELECT " + primaryKey + ", " + attribute1.getName() + ", " + attribute2.getName()
+            + " FROM " + entityName.getName();
+    return jdbc.queryForList(query);
+  }
 }

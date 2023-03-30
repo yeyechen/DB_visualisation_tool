@@ -13,4 +13,8 @@ public class VisualController {
     return "bar_chart";
   }
 
+  @GetMapping("/scatter")
+  public String scatter() {
+    return "scatter_diagram";
+  }
 }

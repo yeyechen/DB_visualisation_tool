@@ -1,17 +1,9 @@
+import { margin, width, height, createSvg } from "../common.js";
+const svg = createSvg();
+
 // Load the data from the /mondial/economy endpoint
 d3.json("/mondial/economy")
   .then(function(data) {
-    // Define the margin, width, and height of the plot
-    var margin = {top: 20, right: 20, bottom: 60, left: 60},
-        width = 960 - margin.left - margin.right,
-        height = 600 - margin.top - margin.bottom;
-
-    // Create the SVG element and append it to the body
-    var svg = d3.select("body").append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     // Define the scales for the x-axis and y-axis
     var x = d3.scaleLinear()

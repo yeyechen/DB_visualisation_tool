@@ -1,4 +1,5 @@
 package com.example.demo.mondial;
+
 import com.example.demo.visualisation.VisualService;
 import io.github.MigadaTang.Attribute;
 import io.github.MigadaTang.ER;
@@ -62,9 +63,11 @@ public class MondialController {
   }
 
   // example of pattern matching of the very basic entity visualisation.
-  @GetMapping("/economy3")
+  @GetMapping("/main")
   public List<Map<String, Object>> simpleFlowExample()
       throws SQLException, ParseException, DBConnectionException {
+
+    System.out.println("Start processing...");
 
     /*-------- User input --------*/
 
@@ -75,11 +78,6 @@ public class MondialController {
     String databaseName = "mondial";
     String userName = "Mikeee";
     String password = "";
-
-    // simulate user selection
-    String selectedTable = "country";
-    String selectedAttribute1 = "population";
-    String selectedAttribute2 = "";
 
     /*-------- reverse engineering to ER schema --------*/
 
@@ -95,6 +93,11 @@ public class MondialController {
     Schema schema = reverse.relationSchemasToERModel(databaseType, hostname, portNum,
         "sub_mondial", userName, password);
 
+    // simulate user selection
+    String selectedTable = "country";
+    String attr1 = "population";
+    String attr2 = "area";
+
     /*-------- pattern matching (not quite)--------*/
 
     Entity selectedEntity = null;
@@ -107,25 +110,38 @@ public class MondialController {
     }
     assert selectedEntity != null;
 
-    Attribute selectedAttr = null;
+    Attribute selectedAttr1 = null;
+    Attribute selectedAttr2 = null;
     for (Attribute attribute : selectedEntity.getAttributeList()) {
       // sanity check
-      if (attribute.getName().equals(selectedAttribute1)) {
-        selectedAttr = attribute;
-        break;
+      if (attribute.getName().equals(attr1)) {
+        selectedAttr1 = attribute;
+      }
+      if (attribute.getName().equals(attr2)) {
+        selectedAttr2 = attribute;
       }
     }
-    assert selectedAttr != null;
+    assert selectedAttr1 != null;
+    assert selectedAttr2 != null;
 
     // API does not provide function to get primary key, hardcode
+    // todo: support acquire of primary key of an entity
     String primaryKey = "code";
 
     /*-------- generate visualisation --------*/
 
-    String query = "SELECT " + selectedAttr.getName() + ", " + primaryKey + " FROM "
-        + selectedEntity.getName();
+    System.out.println("Finished");
 
-    return jdbc.queryForList(query);
+    List<Map<String, Object>> result;
+
+    // user chose Bar chart
+    // result = visualService.queryBarChart(selectedEntity, primaryKey, selectedAttr1);
+
+    // user chose Scatter diagram
+    result = visualService.queryScatterDiagram(selectedEntity, primaryKey, selectedAttr1,
+        selectedAttr2);
+
+    return result;
   }
 
 }

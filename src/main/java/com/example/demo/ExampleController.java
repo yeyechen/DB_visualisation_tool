@@ -20,11 +20,6 @@ public class ExampleController {
 
   public static final String OUTPUT_PATH = "/Users/Mike_Home/Desktop/output_temp";
 
-  @GetMapping("/d3")
-  public String d3() {
-    return "example";
-  }
-
   // This is an example of creating "person-department one many relation",
   // using external library created by the other group of students.
   @GetMapping("/er")
