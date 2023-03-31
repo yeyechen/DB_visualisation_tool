@@ -3,6 +3,7 @@ package com.example.demo.mondial;
 import com.example.demo.visualisation.VisualService;
 import io.github.MigadaTang.Attribute;
 import io.github.MigadaTang.ER;
+import io.github.MigadaTang.ERBaseObj;
 import io.github.MigadaTang.Entity;
 import io.github.MigadaTang.Schema;
 import io.github.MigadaTang.common.RDBMSType;
@@ -11,8 +12,10 @@ import io.github.MigadaTang.exception.ParseException;
 import io.github.MigadaTang.transform.Reverse;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -67,8 +70,6 @@ public class MondialController {
   public List<Map<String, Object>> simpleFlowExample()
       throws SQLException, ParseException, DBConnectionException {
 
-    System.out.println("Start processing...");
-
     /*-------- User input --------*/
 
     // database info
@@ -79,6 +80,7 @@ public class MondialController {
     String userName = "Mikeee";
     String password = "";
 
+    System.out.println("Start processing...");
     /*-------- reverse engineering to ER schema --------*/
 
     ER.initialize();
@@ -93,36 +95,51 @@ public class MondialController {
     Schema schema = reverse.relationSchemasToERModel(databaseType, hostname, portNum,
         "sub_mondial", userName, password);
 
-    // simulate user selection
-    String selectedTable = "country";
-    String attr1 = "population";
-    String attr2 = "area";
+    // display entities
+    for (Entity entity : schema.getEntityList()) {
+      System.out.println("\ntable: \n\t" + entity.getName() + " id: " + entity.getID());
+      System.out.println("attributes: ");
+      for (Attribute attribute : entity.getAttributeList()) {
+        System.out.println("\t" + attribute.getName() + " id: " + attribute.getID());
+      }
+    }
+
+    // user selection
+    Scanner scanner = new Scanner(System.in);
+    System.out.println("Please enter the first table id you want to visualise: ");
+    Entity selectedEntity = Entity.queryByID(scanner.nextLong());
+    System.out.println("selected table: " + selectedEntity.getName());
+
+    System.out.println(
+        "Please enter the second table id you want to visualise (0 if only single table): ");
+    long secondId = scanner.nextLong();
+    Entity selectedEntity2 = secondId == 0 ? null : Entity.queryByID(secondId);
+    String secondTableName = secondId == 0 ? "none" : selectedEntity2.getName();
+    System.out.println("selected table: " + secondTableName);
+
+    List<Attribute> selectedAttributesList = new ArrayList<>();
+    System.out.println("Please enter attributes id you want to visualise (0 to stop): ");
+
+    while (true) {
+      long input = scanner.nextLong();
+
+      if (input == 0) {
+        break;
+      }
+      Attribute att = Attribute.queryByID(input);
+      System.out.println("attribute " + att.getName() + " added");
+      selectedAttributesList.add(att);
+    }
+    System.out.println("List of attributes: ");
+    selectedAttributesList.stream().map(
+        ERBaseObj::getName).forEach(System.out::println);
+
+    // note: one working example is country -> population, area
+    Attribute selectedAttr1 = selectedAttributesList.get(0);
+    Attribute selectedAttr2 = selectedAttributesList.get(1);
 
     /*-------- pattern matching (not quite)--------*/
 
-    Entity selectedEntity = null;
-    for (Entity entity : schema.getEntityList()) {
-      // sanity check
-      if (entity.getName().equals(selectedTable)) {
-        selectedEntity = entity;
-        break;
-      }
-    }
-    assert selectedEntity != null;
-
-    Attribute selectedAttr1 = null;
-    Attribute selectedAttr2 = null;
-    for (Attribute attribute : selectedEntity.getAttributeList()) {
-      // sanity check
-      if (attribute.getName().equals(attr1)) {
-        selectedAttr1 = attribute;
-      }
-      if (attribute.getName().equals(attr2)) {
-        selectedAttr2 = attribute;
-      }
-    }
-    assert selectedAttr1 != null;
-    assert selectedAttr2 != null;
 
     // API does not provide function to get primary key, hardcode
     // todo: support acquire of primary key of an entity
