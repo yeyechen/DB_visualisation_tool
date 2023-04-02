@@ -22,6 +22,8 @@ public class TestObject {
   private Relationship provincePartOf;
   private Relationship countryPopPartOf;
   private Relationship encompasses;
+  private Entity religion;
+  private Relationship believe;
 
   public void setup() throws Exception {
     ER.initialize();
@@ -55,5 +57,11 @@ public class TestObject {
     continent = mondialSchema.addEntity("continent");
     encompasses = mondialSchema.createRelationship("encompasses", continent, country,
         Cardinality.ZeroToMany, Cardinality.OneToOne); // should be (1:2), but for test purposes
+
+    religion = mondialSchema.addEntity("religion");
+    religion.addPrimaryKey("name", DataType.VARCHAR);
+    believe = mondialSchema.createRelationship("believe", country, religion,
+        Cardinality.ZeroToMany, Cardinality.OneToMany);
+    believe.addAttribute("percent", DataType.DOUBLE, AttributeType.Mandatory);
   }
 }

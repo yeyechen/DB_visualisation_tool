@@ -19,9 +19,9 @@ public class ReflexiveRelationshipTest {
   }
 
   @Test
-  public void mondialEncompassesTest() {
-    ModelType modelType = PatternMatch.patternMatching(testObject.getCountry(),
-        testObject.getContinent(), testObject.getMondialSchema());
-    assertEquals(modelType, ModelType.ONE_MANY_RELATIONSHIP);
+  public void mondialCountryTest() {
+    ModelType modelType = PatternMatch.patternMatching(testObject.getCountry(), null,
+        testObject.getMondialSchema());
+    assertEquals(modelType, ModelType.REFLEXIVE_RELATIONSHIP);
   }
 }

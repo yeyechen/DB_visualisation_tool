@@ -8,7 +8,7 @@ import com.example.demo.models.PatternMatch;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class OneManyRelationshipTest {
+public class ManyManyRelationshipTest {
 
   static TestObject testObject;
 
@@ -19,10 +19,10 @@ public class OneManyRelationshipTest {
   }
 
   @Test
-  public void mondialEncompassesTest() {
+  public void mondialBelieveTest() {
     ModelType modelType = PatternMatch.patternMatching(testObject.getCountry(),
-        testObject.getContinent(), testObject.getMondialSchema());
-    assertEquals(modelType, ModelType.ONE_MANY_RELATIONSHIP);
+        testObject.getReligion(), testObject.getMondialSchema());
+    assertEquals(modelType, ModelType.MANY_MANY_RELATIONSHIP);
   }
 
 }
