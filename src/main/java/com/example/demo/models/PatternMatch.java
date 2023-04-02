@@ -7,6 +7,7 @@ import io.github.MigadaTang.Relationship;
 import io.github.MigadaTang.RelationshipEdge;
 import io.github.MigadaTang.Schema;
 import io.github.MigadaTang.common.BelongObjType;
+import io.github.MigadaTang.common.Cardinality;
 import io.github.MigadaTang.common.EntityType;
 
 public class PatternMatch {
@@ -38,8 +39,38 @@ public class PatternMatch {
         }
       }
       return BASIC_ENTITY;
-    } else { // todo: two entities are selected
-      return ONE_MANY_RELATIONSHIP;
+    } else { // two entities are selected
+      for (Relationship relationship : schema.getRelationshipList()) {
+        // flags here are to capture the first occurrence of the edge cardinality
+        boolean manyFlag = false;
+        boolean oneFlag = false;
+        for (RelationshipEdge edge : relationship.getEdgeList()) {
+          if (edge.getConnObj() != entity1 && edge.getConnObj() != entity2) {
+            break;
+          }
+          // check cardinality information
+          if (edge.getCardinality() == Cardinality.ZeroToMany
+              || edge.getCardinality() == Cardinality.OneToMany) {
+            if (manyFlag) {
+              return MANY_MANY_RELATIONSHIP;
+            } else if (oneFlag) {
+              return ONE_MANY_RELATIONSHIP;
+            } else {
+              manyFlag = true;
+            }
+          } else if (edge.getCardinality() == Cardinality.ZeroToOne
+              || edge.getCardinality() == Cardinality.OneToOne) {
+            if (manyFlag) {
+              return ONE_MANY_RELATIONSHIP;
+            } else if (oneFlag) {
+              return UNKNOWN; // One-One relationship, don't consider
+            } else {
+              oneFlag = true;
+            }
+          }
+        }
+      }
+      return UNKNOWN;
     }
   }
 }
