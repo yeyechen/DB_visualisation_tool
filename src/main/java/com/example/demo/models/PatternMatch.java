@@ -44,10 +44,20 @@ public class PatternMatch {
         // flags here are to capture the first occurrence of the edge cardinality
         boolean manyFlag = false;
         boolean oneFlag = false;
+        Entity curr = null;
         for (RelationshipEdge edge : relationship.getEdgeList()) {
+          if (edge.getConnObjType() != BelongObjType.ENTITY) {
+            break;
+          }
           if (edge.getConnObj() != entity1 && edge.getConnObj() != entity2) {
             break;
           }
+          // to avoid mixing with Reflexive Relationship (have to be different entities)
+          if (curr == edge.getConnObj()) {
+            break;
+          }
+          curr = (Entity) edge.getConnObj();
+
           // check cardinality information
           if (edge.getCardinality() == Cardinality.ZeroToMany
               || edge.getCardinality() == Cardinality.OneToMany) {

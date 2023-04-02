@@ -1,14 +1,14 @@
 package com.example.demo.patternMatchingTests;
 
+import static org.junit.Assert.assertEquals;
+
 import com.example.demo.TestObject;
 import com.example.demo.models.ModelType;
 import com.example.demo.models.PatternMatch;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
-public class ReflexiveRelationshipTest {
+public class OneManyRelationshipTest {
 
   static TestObject testObject;
 
@@ -19,9 +19,10 @@ public class ReflexiveRelationshipTest {
   }
 
   @Test
-  public void mondialEncompassesTest() {
-    ModelType modelType = PatternMatch.patternMatching(testObject.getCountry(),
-        testObject.getContinent(), testObject.getMondialSchema());
-    assertEquals(modelType, ModelType.ONE_MANY_RELATIONSHIP);
+  public void mondialCountryTest() {
+    ModelType modelType = PatternMatch.patternMatching(testObject.getCountry(), null,
+        testObject.getMondialSchema());
+    assertEquals(modelType, ModelType.REFLEXIVE_RELATIONSHIP);
   }
+
 }
