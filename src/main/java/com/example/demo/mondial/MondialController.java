@@ -13,6 +13,7 @@ import io.github.MigadaTang.transform.Reverse;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -97,7 +98,7 @@ public class MondialController {
 
     // display entities
     for (Entity entity : schema.getEntityList()) {
-      System.out.println("\ntable: \n\t" + entity.getName() + " id: " + entity.getID());
+      System.out.println("\ntable: \n\t" + entity.getName());
       System.out.println("attributes: ");
       for (Attribute attribute : entity.getAttributeList()) {
         System.out.println("\t" + attribute.getName() + " id: " + attribute.getID());
@@ -134,11 +135,12 @@ public class MondialController {
     selectedAttributesList.stream().map(
         ERBaseObj::getName).forEach(System.out::println);
 
+
+    /*-------- pattern matching (not quite)--------*/
+
     // note: one working example is country -> population, area
     Attribute selectedAttr1 = selectedAttributesList.get(0);
     Attribute selectedAttr2 = selectedAttributesList.get(1);
-
-    /*-------- pattern matching (not quite)--------*/
 
 
     // API does not provide function to get primary key, hardcode
@@ -153,7 +155,6 @@ public class MondialController {
 
     // user chose Bar chart
     // result = visualService.queryBarChart(selectedEntity, primaryKey, selectedAttr1);
-
     // user chose Scatter diagram
     result = visualService.queryScatterDiagram(selectedEntity, primaryKey, selectedAttr1,
         selectedAttr2);
@@ -161,4 +162,9 @@ public class MondialController {
     return result;
   }
 
+  @GetMapping("/options")
+  public List<String> getOptions() {
+    List<String> options = Arrays.asList("Option 1", "Option 2", "Option 3");
+    return options;
+  }
 }
