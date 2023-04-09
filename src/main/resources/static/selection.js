@@ -1,5 +1,5 @@
 $(document).ready(function() {
-  $.get("mondial/options", function(tableData) {
+  $.get("/options", function(tableData) {
     // Generate the checkboxes for each table
     $.each(tableData, function(index, table) {
       var $tableListItem = $("<li></li>").appendTo("#table-list");
@@ -19,8 +19,8 @@ $(document).ready(function() {
       selectedAttributes.push($(this).val());
     });
 
-    $.post("mondial/selection", { attributes: JSON.stringify(selectedAttributes) }, function(data) {
-      alert("You selected: " + data);
+    $.post("/selection", { attributes: JSON.stringify(selectedAttributes) }, function(data) {
+      alert("status " + data);
     });
   });
 });

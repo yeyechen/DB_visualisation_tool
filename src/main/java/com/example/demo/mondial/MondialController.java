@@ -13,17 +13,13 @@ import io.github.MigadaTang.transform.Reverse;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -163,28 +159,5 @@ public class MondialController {
         selectedAttr2);
 
     return result;
-  }
-
-  @GetMapping("/options")
-  public List<Map<String, Object>> getOptions() throws Exception {
-    ER.initialize();
-    Reverse reverse = new Reverse();
-    Schema schema = reverse.relationSchemasToERModel(RDBMSType.POSTGRESQL, "localhost", "5432",
-        "sub_mondial", "Mikeee", "");
-
-    List<Map<String, Object>> tables = new ArrayList<>();
-    for (Entity entity : schema.getEntityList()) {
-      Map<String, Object> table = new HashMap<>();
-      table.put("name", entity.getName());
-      table.put("attributes", entity.getAttributeList().stream().map(ERBaseObj::getName));
-      tables.add(table);
-    }
-    return tables;
-  }
-
-  @PostMapping("/selection")
-  @ResponseBody
-  public String handleSelection(@RequestParam("attributes") List<String> selectedAttributes) {
-    return String.join(", ", selectedAttributes);
   }
 }
