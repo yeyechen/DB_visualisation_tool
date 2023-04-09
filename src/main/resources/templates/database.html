@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Database Info</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: 150px auto;
+      grid-gap: 10px;
+    }
+
+    label {
+      text-align: right;
+    }
+
+    input, select {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border-radius: 5px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #3e8e41;
+    }
+
+    h1 {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<h1>Database Info</h1>
+
+<form id="database-form" method="post">
+  <label for="db-type">Database Type:</label>
+  <select name="db-type" id="db-type">
+    <option value="postgresql">PostgreSQL</option>
+    <option value="mysql">MySQL</option>
+    <option value="oracle">Oracle</option>
+    <option value="sqlserver">SQL Server</option>
+  </select>
+
+  <label for="host">Hostname:</label>
+  <input type="text" name="host" id="host" required>
+
+  <label for="port">Port Number:</label>
+  <input type="number" name="port" id="port" required>
+
+  <label for="database-name">Database Name:</label>
+  <input type="text" name="database-name" id="database-name" required>
+
+  <label for="username">Username:</label>
+  <input type="text" name="username" id="username" required>
+
+  <label for="password">Password:</label>
+  <input type="password" name="password" id="password">
+
+  <button type="submit">Submit</button>
+</form>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="database.js"></script>
+</body>
+</html>

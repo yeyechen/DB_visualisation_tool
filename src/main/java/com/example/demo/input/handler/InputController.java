@@ -1,4 +1,4 @@
-package com.example.demo.selection;
+package com.example.demo.input.handler;
 
 import com.google.gson.Gson;
 import io.github.MigadaTang.Attribute;
@@ -13,16 +13,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
+@Controller
 @RequestMapping
-public class SelectionController {
+public class InputController {
+
+  @GetMapping("/input")
+  public String databaseInfo() {
+    return "database";
+  }
+
+  @PostMapping("/database-info")
+  public String processDatabaseInfo(@RequestBody Map<String, String> formData) {
+    // todo: proper process of user input
+    return "redirect:/options";
+  }
 
   @GetMapping("/options")
   public List<Map<String, Object>> getOptions() throws Exception {
@@ -46,7 +58,8 @@ public class SelectionController {
   @ResponseBody
   public String submitSelection(@RequestParam("attributes") String selectedAttributesJSON) throws Exception {
     List<String> selectedAttributes = new Gson().fromJson(selectedAttributesJSON, List.class);
-    System.out.println(selectedAttributes+"!!!!");
+
+    // todo: needs refactor
     ER.initialize();
     Reverse reverse = new Reverse();
     Schema schema = reverse.relationSchemasToERModel(RDBMSType.POSTGRESQL, "localhost", "5432",
@@ -74,7 +87,6 @@ public class SelectionController {
       }
     }
 
-    return "success!";
+    return selectedAttributes.toString();
   }
-
 }
