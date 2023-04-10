@@ -8,6 +8,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping
 public class VisualController {
 
+  @GetMapping("/input")
+  public String databaseInfo() {
+    return "database";
+  }
+
   @GetMapping("/selection")
   public String select() {
     return "selection";
