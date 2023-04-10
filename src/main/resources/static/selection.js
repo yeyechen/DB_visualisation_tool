@@ -19,7 +19,7 @@ $(document).ready(function() {
       selectedAttributes.push($(this).val());
     });
 
-    $.post("/selection", { attributes: JSON.stringify(selectedAttributes) }, function(data) {
+    $.post("/process-selection", { attributes: JSON.stringify(selectedAttributes) }, function(data) {
       alert("status " + data);
     });
   });

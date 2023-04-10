@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.view.RedirectView;
 
 @Controller
 @RequestMapping
@@ -31,17 +30,16 @@ public class InputController {
   InputService service;
 
   @PostMapping("/database-info")
-  public RedirectView processDatabaseInfo(@RequestBody Map<String, String> formData)
+  public String processDatabaseInfo(@RequestBody Map<String, String> formData)
       throws DBConnectionException, ParseException, SQLException {
     service.initialiseSchema(formData);
-    // todo: fails to redirect the page
-    return new RedirectView("/selection");
+    return "redirect:/selection";
   }
 
   @GetMapping("/options")
+  @ResponseBody
   public List<Map<String, Object>> getOptions() {
     Schema schema = service.getSchema();
-
     List<Map<String, Object>> tables = new ArrayList<>();
     for (Entity entity : schema.getEntityList()) {
       Map<String, Object> table = new HashMap<>();
@@ -52,9 +50,9 @@ public class InputController {
     return tables;
   }
 
-  @PostMapping("/selection")
+  @PostMapping("/process-selection")
   @ResponseBody
-  public String submitSelection(@RequestParam("attributes") String selectedAttributesJSON) {
+  public String processSelection(@RequestParam("attributes") String selectedAttributesJSON) {
     List<String> selectedAttributes = new Gson().fromJson(selectedAttributesJSON, List.class);
 
     Schema schema = service.getSchema();

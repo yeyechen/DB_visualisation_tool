@@ -16,8 +16,9 @@ $(document).ready(function() {
 			type: "POST",
 			contentType: "application/json",
 			data: JSON.stringify(formData),
-			success: function(response) {
-				alert(response.message);
+			success: function() {
+				window.history.pushState(null, null, "/selection");
+				location.reload();
 			},
 			error: function(xhr, status, error) {
 				alert(xhr.responseText);
