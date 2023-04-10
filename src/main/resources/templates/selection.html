@@ -2,11 +2,45 @@
 <html>
 <head>
   <title>Attribute Selector</title>
+  <style>
+    th, td {
+      padding: 5px;
+      text-align: left;
+      border: 1px solid black;
+    }
+    th {
+      font-weight: bold;
+    }
+
+    button {
+      padding: 10px 20px;
+      border-radius: 5px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #3e8e41;
+    }
+  </style>
 </head>
 <body>
 <h2>Select attributes:</h2>
 <form id="attribute-form">
-  <ul id="table-list"></ul>
+  <table id="table-list">
+    <thead>
+    <tr>
+      <th>Table Name</th>
+      <th>PK</th>
+      <th>Attributes</th>
+    </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+  <br>
   <button type="submit">Submit</button>
 </form>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>

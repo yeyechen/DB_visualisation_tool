@@ -44,7 +44,10 @@ public class InputController {
     for (Entity entity : schema.getEntityList()) {
       Map<String, Object> table = new HashMap<>();
       table.put("name", entity.getName());
-      table.put("attributes", entity.getAttributeList().stream().map(ERBaseObj::getName));
+      table.put("pKey", entity.getAttributeList().stream().filter(Attribute::getIsPrimary)
+          .map(ERBaseObj::getName));
+      table.put("attributes", entity.getAttributeList().stream().filter(a -> !a.getIsPrimary())
+          .map(ERBaseObj::getName));
       tables.add(table);
     }
     return tables;
