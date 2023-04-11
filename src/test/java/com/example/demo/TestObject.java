@@ -18,11 +18,11 @@ public class TestObject {
   private Entity province;
   private Entity countryPop;
   private Entity continent;
+  private Entity religion;
   private Relationship borders;
   private Relationship provincePartOf;
   private Relationship countryPopPartOf;
   private Relationship encompasses;
-  private Entity religion;
   private Relationship believe;
 
   public void setup() throws Exception {
@@ -35,10 +35,12 @@ public class TestObject {
     country.addAttribute("population", DataType.INT, AttributeType.Mandatory);
     country.addAttribute("area", DataType.DOUBLE, AttributeType.Mandatory);
 
+    // Reflexive Relationship
     borders = mondialSchema.createRelationship("borders", country,
         country, Cardinality.OneToMany, Cardinality.OneToMany);
     borders.addAttribute("length", DataType.DOUBLE, AttributeType.Mandatory);
 
+    // Weak Entities
     ImmutablePair<Entity, Relationship> provincePartOfPair = mondialSchema.addWeakEntity("province",
         country, "partOf", Cardinality.OneToOne, Cardinality.ZeroToMany);
     province = provincePartOfPair.left;
@@ -54,10 +56,12 @@ public class TestObject {
     countryPop.addPrimaryKey("year", DataType.VARCHAR);
     countryPop.addPrimaryKey("population", DataType.INT);
 
+    // One-Many Relationship
     continent = mondialSchema.addEntity("continent");
     encompasses = mondialSchema.createRelationship("encompasses", continent, country,
         Cardinality.ZeroToMany, Cardinality.OneToOne); // should be (1:2), but for test purposes
 
+    // Many-Many Relationship
     religion = mondialSchema.addEntity("religion");
     religion.addPrimaryKey("name", DataType.VARCHAR);
     believe = mondialSchema.createRelationship("believe", country, religion,

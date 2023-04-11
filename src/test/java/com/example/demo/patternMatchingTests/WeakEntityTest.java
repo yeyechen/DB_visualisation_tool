@@ -20,14 +20,14 @@ public class WeakEntityTest {
 
   @Test
   public void mondialProvinceTest() {
-    ModelType modelType = PatternMatch.patternMatching(testObject.getProvince(), null,
+    ModelType modelType = PatternMatch.patternMatching(testObject.getProvince(),
         testObject.getMondialSchema());
     assertEquals(modelType, ModelType.WEAK_ENTITY);
   }
 
   @Test
   public void mondialCountryPopTest() {
-    ModelType modelType = PatternMatch.patternMatching(testObject.getCountryPop(), null,
+    ModelType modelType = PatternMatch.patternMatching(testObject.getCountryPop(),
         testObject.getMondialSchema());
     assertEquals(modelType, ModelType.WEAK_ENTITY);
   }

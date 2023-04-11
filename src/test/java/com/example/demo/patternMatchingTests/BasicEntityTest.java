@@ -20,7 +20,7 @@ public class BasicEntityTest {
 
   @Test
   public void mondialContinentTest() {
-    ModelType modelType = PatternMatch.patternMatching(testObject.getContinent(), null,
+    ModelType modelType = PatternMatch.patternMatching(testObject.getContinent(),
         testObject.getMondialSchema());
     assertEquals(modelType, ModelType.BASIC_ENTITY);
   }

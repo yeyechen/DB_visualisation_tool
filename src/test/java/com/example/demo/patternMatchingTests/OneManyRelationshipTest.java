@@ -21,7 +21,7 @@ public class OneManyRelationshipTest {
   @Test
   public void mondialEncompassesTest() {
     ModelType modelType = PatternMatch.patternMatching(testObject.getCountry(),
-        testObject.getContinent(), testObject.getMondialSchema());
+        testObject.getMondialSchema());
     assertEquals(modelType, ModelType.ONE_MANY_RELATIONSHIP);
   }
 

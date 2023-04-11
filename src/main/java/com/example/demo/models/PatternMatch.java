@@ -1,12 +1,17 @@
 package com.example.demo.models;
 
-import static com.example.demo.models.ModelType.*;
+import static com.example.demo.models.ModelType.BASIC_ENTITY;
+import static com.example.demo.models.ModelType.MANY_MANY_RELATIONSHIP;
+import static com.example.demo.models.ModelType.ONE_MANY_RELATIONSHIP;
+import static com.example.demo.models.ModelType.REFLEXIVE_RELATIONSHIP;
+import static com.example.demo.models.ModelType.UNKNOWN;
+import static com.example.demo.models.ModelType.WEAK_ENTITY;
 
+import io.github.MigadaTang.ERConnectableObj;
 import io.github.MigadaTang.Entity;
 import io.github.MigadaTang.Relationship;
 import io.github.MigadaTang.RelationshipEdge;
 import io.github.MigadaTang.Schema;
-import io.github.MigadaTang.common.BelongObjType;
 import io.github.MigadaTang.common.Cardinality;
 import io.github.MigadaTang.common.EntityType;
 
@@ -15,72 +20,61 @@ public class PatternMatch {
   /**
    * The function pattern matches current user selection to one of the five ER models.
    */
-  public static ModelType patternMatching(Entity entity1, Entity entity2, Schema schema) {
-    assert entity1 != null; // we need at least one entity to match the Basic Entity
+  public static ModelType patternMatching(ERConnectableObj object, Schema schema) {
+    assert object != null;
 
-    // only one entity is selected
-    if (entity2 == null) {
-      if (entity1.getEntityType() == EntityType.WEAK) {
+    // two situations: user selected table is an Entity or a Relationship
+    if (object instanceof Entity entity) {
+      if (entity.getEntityType() == EntityType.WEAK) {
         return WEAK_ENTITY;
       }
-      // Checking Reflexive Relationship
-      // brute force: check all relationship edges whether there exist two edges that have the same
-      // relationship object and the same entity object (in our case "entity1").
+      // Checking One-Many Relationship: brute force
       for (Relationship relationship : schema.getRelationshipList()) {
-        boolean flag = false;
+        boolean cond1 = false;
+        boolean cond2 = false;
         for (RelationshipEdge edge : relationship.getEdgeList()) {
-          if (edge.getConnObjType() == BelongObjType.ENTITY && edge.getConnObj() == entity1) {
-            if (flag) {
-              return REFLEXIVE_RELATIONSHIP;
-            } else {
-              flag = true;
-            }
+          if (edge.getConnObj() == entity && (edge.getCardinality() == Cardinality.OneToOne)
+              || edge.getCardinality() == Cardinality.ZeroToOne) {
+
+            cond1 = true;
+          } else if (edge.getConnObj() != entity
+              && (edge.getCardinality() == Cardinality.OneToMany
+              || edge.getCardinality() == Cardinality.ZeroToMany)) {
+            cond2 = true;
           }
+        }
+        if (cond1 && cond2) {
+          return ONE_MANY_RELATIONSHIP;
         }
       }
       return BASIC_ENTITY;
-    } else { // two entities are selected
-      for (Relationship relationship : schema.getRelationshipList()) {
-        // flags here are to capture the first occurrence of the edge cardinality
-        boolean manyFlag = false;
-        boolean oneFlag = false;
-        Entity curr = null;
-        for (RelationshipEdge edge : relationship.getEdgeList()) {
-          if (edge.getConnObjType() != BelongObjType.ENTITY) {
-            break;
-          }
-          if (edge.getConnObj() != entity1 && edge.getConnObj() != entity2) {
-            break;
-          }
-          // to avoid mixing with Reflexive Relationship (have to be different entities)
-          if (curr == edge.getConnObj()) {
-            break;
-          }
-          curr = (Entity) edge.getConnObj();
-
-          // check cardinality information
-          if (edge.getCardinality() == Cardinality.ZeroToMany
-              || edge.getCardinality() == Cardinality.OneToMany) {
-            if (manyFlag) {
-              return MANY_MANY_RELATIONSHIP;
-            } else if (oneFlag) {
-              return ONE_MANY_RELATIONSHIP;
-            } else {
-              manyFlag = true;
-            }
-          } else if (edge.getCardinality() == Cardinality.ZeroToOne
-              || edge.getCardinality() == Cardinality.OneToOne) {
-            if (manyFlag) {
-              return ONE_MANY_RELATIONSHIP;
-            } else if (oneFlag) {
-              return UNKNOWN; // One-One relationship, don't consider
-            } else {
-              oneFlag = true;
-            }
+    } else if (object instanceof Relationship relationship) {
+      Entity entity = null;
+      boolean cond1 = false;
+      boolean cond2 = false;
+      boolean sameEntity = false;
+      for (RelationshipEdge edge : relationship.getEdgeList()) {
+        if (edge.getCardinality() == Cardinality.OneToMany
+            || edge.getCardinality() == Cardinality.ZeroToMany) {
+          if (!cond1) {
+            cond1 = true;
+          } else {
+            cond2 = true;
           }
         }
+        if (entity == null) {
+          entity = (Entity) edge.getConnObj();
+        } else {
+          sameEntity = edge.getConnObj() == entity;
+        }
+      }
+      if (cond2 && sameEntity) {
+        return REFLEXIVE_RELATIONSHIP;
+      } else if (cond2) {
+        return MANY_MANY_RELATIONSHIP;
       }
       return UNKNOWN;
     }
+    return UNKNOWN;
   }
 }
