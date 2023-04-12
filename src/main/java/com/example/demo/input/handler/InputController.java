@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import io.github.MigadaTang.Attribute;
 import io.github.MigadaTang.ERBaseObj;
 import io.github.MigadaTang.Entity;
+import io.github.MigadaTang.Relationship;
 import io.github.MigadaTang.Schema;
 import io.github.MigadaTang.exception.DBConnectionException;
 import io.github.MigadaTang.exception.ParseException;
@@ -49,6 +50,17 @@ public class InputController {
       table.put("attributes", entity.getAttributeList().stream().filter(a -> !a.getIsPrimary())
           .map(ERBaseObj::getName));
       tables.add(table);
+    }
+    for (Relationship relationship : schema.getRelationshipList()) {
+      if (relationship.getAttributeList().size() > 0) {
+        Map<String, Object> table = new HashMap<>();
+        table.put("name", relationship.getName());
+        table.put("pKey", relationship.getAttributeList().stream().filter(Attribute::getIsPrimary)
+            .map(ERBaseObj::getName));
+        table.put("attributes", relationship.getAttributeList().stream().filter(a -> !a.getIsPrimary())
+            .map(ERBaseObj::getName));
+        tables.add(table);
+      }
     }
     return tables;
   }
