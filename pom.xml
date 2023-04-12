@@ -37,11 +37,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>io.github.MigadaTang</groupId>
-			<artifactId>amazing-er</artifactId>
-			<version>1.0.2</version>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-thymeleaf</artifactId>
 		</dependency>
