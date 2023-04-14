@@ -25,7 +25,7 @@ $(document).ready(function() {
     return $("input[name^='" + table + "']:checked").length;
   }
 
-  $.get("/options", function(tableData) {
+  $.get("/attr-options", function(tableData) {
     // Generate the checkboxes for each table
     $.each(tableData, function(index, table) {
       var $tableListItem = $("<tr></tr>").appendTo("#table-list tbody");
@@ -63,8 +63,23 @@ $(document).ready(function() {
       selectedAttributes.push($(this).val());
     });
 
-    $.post("/process-selection", { attributes: JSON.stringify(selectedAttributes) }, function(data) {
-      alert("status " + data);
-    });
+//    $.post("/process-selection", { attributes: JSON.stringify(selectedAttributes) }, function(data) {
+//      alert("status " + data);
+//    });
+
+		$.ajax({
+			url: "/process-selection",
+			type: "POST",
+			contentType: "application/json",
+			data: JSON.stringify(selectedAttributes),
+			success: function(data) {
+			  alert("status " + data);
+				$("<script>").attr("type", "module").attr("src", "select_vis.js").appendTo("body");
+			},
+			error: function(xhr, status, error) {
+				alert(xhr.responseText);
+			}
+		});
+
   });
 });

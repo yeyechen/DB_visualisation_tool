@@ -11,6 +11,7 @@ import io.github.MigadaTang.exception.DBConnectionException;
 import io.github.MigadaTang.exception.ParseException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +22,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
@@ -38,7 +38,7 @@ public class InputController {
     return "redirect:/selection";
   }
 
-  @GetMapping("/options")
+  @GetMapping("/attr-options")
   @ResponseBody
   public List<Map<String, Object>> getOptions() {
     Schema schema = service.getSchema();
@@ -66,9 +66,43 @@ public class InputController {
     return tables;
   }
 
+  @GetMapping("/vis-options")
+  @ResponseBody
+  public Map<String, Object> getOptionsVis() {
+    Map<String, Object> table = new HashMap<>();
+    List<String> options;
+    switch (service.getModelType()) {
+      case BASIC_ENTITY -> {
+        options = Arrays.asList("Bar Chart", "Calendar", "Scatter Diagram",
+            "Bubble Chart");
+        table.put("option", options);
+      }
+      case WEAK_ENTITY -> {
+        options = Arrays.asList("Line Chart", "Stacked Bar Chart", "Spider Chart");
+        table.put("option", options);
+      }
+      case ONE_MANY_RELATIONSHIP -> {
+        options = Arrays.asList("Tree Map", "Hierarchy Tree");
+        table.put("option", options);
+      }
+      case MANY_MANY_RELATIONSHIP -> {
+        options = Arrays.asList("Sankey", "Chord");
+        table.put("option", options);
+      }
+      case REFLEXIVE_RELATIONSHIP -> {
+        options = List.of("Chord");
+        table.put("option", options);
+      }
+      case UNKNOWN -> {
+        //todo: handel UNKNOWN case
+      }
+    }
+    return table;
+  }
+
   @PostMapping("/process-selection")
   @ResponseBody
-  public String processSelection(@RequestParam("attributes") String selectedAttributesJSON) {
+  public String processSelection(@RequestBody String selectedAttributesJSON) {
     List<String> selectedAttributes = new Gson().fromJson(selectedAttributesJSON, List.class);
 
     Schema schema = service.getSchema();
