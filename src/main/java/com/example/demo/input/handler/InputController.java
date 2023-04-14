@@ -3,6 +3,7 @@ package com.example.demo.input.handler;
 import com.google.gson.Gson;
 import io.github.MigadaTang.Attribute;
 import io.github.MigadaTang.ERBaseObj;
+import io.github.MigadaTang.ERConnectableObj;
 import io.github.MigadaTang.Entity;
 import io.github.MigadaTang.Relationship;
 import io.github.MigadaTang.Schema;
@@ -72,19 +73,20 @@ public class InputController {
 
     Schema schema = service.getSchema();
 
-    Map<Entity, List<Attribute>> selectionInfo = new HashMap<>();
+    Map<ERConnectableObj, List<Attribute>> selectionInfo = new HashMap<>();
     List<Attribute> selectedAttrs = new ArrayList<>();
 
     for (String attribute : selectedAttributes) {
       String[] parts = attribute.split("\\.");
-      String entityName = parts[0];
+      String tableName = parts[0];
+      int hashCode = attribute.hashCode();
 
       Optional<Entity> entity = schema.getEntityList().stream()
-          .filter(e -> e.getName().equals(entityName))
+          .filter(e -> e.getName().equals(tableName))
           .findFirst();
+      // select table could be an entity or a relationship
       if (entity.isPresent()) {
         // compare hashcode for entity-attr combination, to avoid collision
-        int hashCode = attribute.hashCode();
         for (Attribute attr : entity.get().getAttributeList()) {
           if ((entity.get().getName() + "." + attr.getName()).hashCode() == hashCode) {
             selectedAttrs.add(attr);
@@ -92,9 +94,23 @@ public class InputController {
           }
         }
         selectionInfo.put(entity.get(), selectedAttrs);
+      } else {
+        Optional<Relationship> relationship = schema.getRelationshipList().stream()
+            .filter(e -> e.getName().equals(tableName))
+            .findFirst();
+        if (relationship.isPresent()) {
+          for (Attribute attr : relationship.get().getAttributeList()) {
+            if ((relationship.get().getName() + "." + attr.getName()).hashCode() == hashCode) {
+              selectedAttrs.add(attr);
+              break;
+            }
+          }
+          selectionInfo.put(relationship.get(), selectedAttrs);
+        }
       }
     }
-
+    // selectionInfo is not null for sure
+    service.patternMatchBasedOnSelection(selectionInfo);
     return selectedAttributes.toString();
   }
 }

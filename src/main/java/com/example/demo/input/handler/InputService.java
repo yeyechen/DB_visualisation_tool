@@ -1,12 +1,17 @@
 package com.example.demo.input.handler;
 
+import com.example.demo.models.ModelType;
+import com.example.demo.models.PatternMatch;
+import io.github.MigadaTang.Attribute;
 import io.github.MigadaTang.ER;
+import io.github.MigadaTang.ERConnectableObj;
 import io.github.MigadaTang.Schema;
 import io.github.MigadaTang.common.RDBMSType;
 import io.github.MigadaTang.exception.DBConnectionException;
 import io.github.MigadaTang.exception.ParseException;
 import io.github.MigadaTang.transform.Reverse;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 import lombok.Getter;
 import org.springframework.stereotype.Service;
@@ -16,6 +21,7 @@ import org.springframework.stereotype.Service;
 public class InputService {
 
   private Schema schema;
+  private ModelType modelType;
 
   public void initialiseSchema(Map<String, String> formData)
       throws DBConnectionException, ParseException, SQLException {
@@ -41,4 +47,7 @@ public class InputService {
         password);
   }
 
+  public void patternMatchBasedOnSelection(Map<ERConnectableObj, List<Attribute>> selectionInfo) {
+    modelType = PatternMatch.patternMatching(selectionInfo.keySet().iterator().next(), schema);
+  }
 }
