@@ -1,8 +1,20 @@
 <!DOCTYPE html>
 <html>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
 <head>
   <title>Attribute Selector</title>
   <style>
+    .column {
+    float: left;
+    width: 50%;
+    }
+
+    .row:after {
+    content: "";
+    display: table;
+    clear: both;
+    }
+
     th, td {
       padding: 5px;
       text-align: left;
@@ -27,23 +39,29 @@
   </style>
 </head>
 <body>
-<h2>Select attributes:</h2>
-<form id="attribute-form">
-  <table id="table-list">
-    <thead>
-    <tr>
-      <th>Table Name</th>
-      <th>PK</th>
-      <th>Attributes</th>
-    </tr>
-    </thead>
-    <tbody>
-    </tbody>
-  </table>
-  <br>
-  <button type="submit">Submit</button>
-</form>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
-<script type="module" src="select_attr.js"></script>
+<div class="row">
+  <div id="left" class="column">
+    <h2>Select attributes:</h2>
+    <form id="attribute-form">
+      <table id="table-list">
+        <thead>
+        <tr>
+          <th>Table Name</th>
+          <th>PK</th>
+          <th>Attributes</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+      <br>
+      <button type="submit">Submit</button>
+    </form>
+    <script type="module" src="select_attr.js"></script>
+  </div>
+  <div id="right" class="column">
+
+  </div>
+</div>
 </body>
 </html>
