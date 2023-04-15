@@ -100,9 +100,9 @@ public class InputController {
     return table;
   }
 
-  @PostMapping("/process-selection")
+  @PostMapping("/process-attr-selection")
   @ResponseBody
-  public String processSelection(@RequestBody String selectedAttributesJSON) {
+  public String processAttrSelection(@RequestBody String selectedAttributesJSON) {
     List<String> selectedAttributes = new Gson().fromJson(selectedAttributesJSON, List.class);
 
     Schema schema = service.getSchema();
@@ -146,5 +146,11 @@ public class InputController {
     // selectionInfo is not null for sure
     service.patternMatchBasedOnSelection(selectionInfo);
     return selectedAttributes.toString();
+  }
+
+  @PostMapping("/process-vis-selection")
+  @ResponseBody
+  public String processVisSelection(@RequestBody String selectedAttributesJSON) {
+    return selectedAttributesJSON;
   }
 }

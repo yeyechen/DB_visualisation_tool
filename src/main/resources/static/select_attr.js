@@ -64,16 +64,16 @@ $(document).ready(function() {
     });
 
 		$.ajax({
-			url: "/process-selection",
+			url: "/process-attr-selection",
 			type: "POST",
 			contentType: "application/json",
 			data: JSON.stringify(selectedAttributes),
 			success: function(data) {
 			  alert("status " + data);
-			  if ($("#right").children().length > 0) {
-			    $("#right").empty();
+			  if ($("#vis-form").children().length > 0) {
+			    $("#vis-form").empty();
 			  }
-			  $("<h2>").text("Select visualisation").appendTo("#right");
+			  $("<h2>").text("Select visualisation").appendTo("#vis-form");
 				$("<script>").attr("type", "module").attr("src", "select_vis.js?v=" + new Date().getTime()).appendTo("#right");
 			},
 			error: function(xhr, status, error) {
