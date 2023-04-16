@@ -22,6 +22,11 @@ public class InputService {
 
   private Schema schema;
   private ModelType modelType;
+  private static Map<ERConnectableObj, List<Attribute>> selectionInfo;
+
+  public static Map<ERConnectableObj, List<Attribute>> getSelectionInfo() {
+    return selectionInfo;
+  }
 
   public void initialiseSchema(Map<String, String> formData)
       throws DBConnectionException, ParseException, SQLException {
@@ -49,5 +54,6 @@ public class InputService {
 
   public void patternMatchBasedOnSelection(Map<ERConnectableObj, List<Attribute>> selectionInfo) {
     modelType = PatternMatch.patternMatching(selectionInfo.keySet().iterator().next(), schema);
+    InputService.selectionInfo = selectionInfo;
   }
 }

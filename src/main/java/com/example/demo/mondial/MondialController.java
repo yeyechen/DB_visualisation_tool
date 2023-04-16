@@ -150,13 +150,13 @@ public class MondialController {
 
     System.out.println("Finished");
 
-    List<Map<String, Object>> result;
+    List<Map<String, Object>> result = null;
 
     // user chose Bar chart
-    // result = visualService.queryBarChart(selectedEntity, primaryKey, selectedAttr1);
+    // result = visualService.queryBarChart(selectedEntity, selectedAttr1);
     // user chose Scatter diagram
-    result = visualService.queryScatterDiagram(selectedEntity, primaryKey, selectedAttr1,
-        selectedAttr2);
+    // result = visualService.queryScatterDiagram(selectedEntity, primaryKey, selectedAttr1,
+    //     selectedAttr2);
 
     return result;
   }

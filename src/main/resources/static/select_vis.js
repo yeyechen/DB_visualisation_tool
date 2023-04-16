@@ -18,7 +18,8 @@ $(document).ready(function() {
       contentType: "application/json",
       data: JSON.stringify(selectedVis),
       success: function(data) {
-        alert("status " + data);
+				window.history.pushState(null, null, data);
+				location.reload();
       },
       error: function(xhr, status, error) {
         alert(xhr.responseText);

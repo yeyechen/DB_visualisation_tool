@@ -2,7 +2,7 @@ import { margin, width, height, createSvg } from "./common.js";
 const svg = createSvg();
 
 // Load the data from the server
-d3.json("/mondial/main")
+d3.json("/bar_chart_data")
   .then(function(data) {
 
     // Extract the primary key name and attribute name (x-axis data and y-axis data)

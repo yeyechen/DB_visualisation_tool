@@ -58,8 +58,9 @@ public class InputController {
         table.put("name", relationship.getName());
         table.put("pKey", relationship.getAttributeList().stream().filter(Attribute::getIsPrimary)
             .map(ERBaseObj::getName));
-        table.put("attributes", relationship.getAttributeList().stream().filter(a -> !a.getIsPrimary())
-            .map(ERBaseObj::getName));
+        table.put("attributes",
+            relationship.getAttributeList().stream().filter(a -> !a.getIsPrimary())
+                .map(ERBaseObj::getName));
         tables.add(table);
       }
     }
@@ -151,6 +152,8 @@ public class InputController {
   @PostMapping("/process-vis-selection")
   @ResponseBody
   public String processVisSelection(@RequestBody String selectedAttributesJSON) {
-    return selectedAttributesJSON;
+    String formattedString = selectedAttributesJSON.toLowerCase().replace(" ", "_")
+        .replace("\"", "");
+    return "/"+formattedString;
   }
 }
