@@ -47,6 +47,10 @@ public class PatternMatch {
           return ONE_MANY_RELATIONSHIP;
         }
       }
+      if (entity.getEntityType() == EntityType.SUBSET
+          || entity.getEntityType() == EntityType.UNKNOWN) {
+        return UNKNOWN;
+      }
       return BASIC_ENTITY;
     } else if (object instanceof Relationship relationship) {
       Entity entity = null;

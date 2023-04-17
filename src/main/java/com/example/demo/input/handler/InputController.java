@@ -7,6 +7,8 @@ import io.github.MigadaTang.ERConnectableObj;
 import io.github.MigadaTang.Entity;
 import io.github.MigadaTang.Relationship;
 import io.github.MigadaTang.Schema;
+import io.github.MigadaTang.common.DataType;
+import io.github.MigadaTang.common.EntityType;
 import io.github.MigadaTang.exception.DBConnectionException;
 import io.github.MigadaTang.exception.ParseException;
 import java.sql.SQLException;
@@ -96,6 +98,16 @@ public class InputController {
       }
       case UNKNOWN -> {
         //todo: handel UNKNOWN case
+        ERConnectableObj obj = InputService.getSelectionInfo().keySet().iterator().next();
+        // handle Subset case, treat Subset the same as Basic Entity, with extra pk from the main entity
+        if (obj instanceof Entity && ((Entity) obj).getEntityType() == EntityType.SUBSET) {
+          options = Arrays.asList("Bar Chart", "Calendar", "Scatter Diagram",
+              "Bubble Chart");
+          table.put("option", options);
+
+          ((Entity) obj).addPrimaryKey(((Entity) obj).getBelongStrongEntity().getName(),
+              DataType.TEXT);
+        }
       }
     }
     return table;
