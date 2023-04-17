@@ -28,6 +28,11 @@ public class VisualController {
     return visualService.queryScatterDiagram(InputService.getSelectionInfo());
   }
 
+  @GetMapping("/bubble_chart_data")
+  @ResponseBody
+  public List<Map<String, Object>> bubbleChartData() {
+    return visualService.queryBubbleChart(InputService.getSelectionInfo());
+  }
     /*-----------------------------------------*/
   @GetMapping("/input")
   public String databaseInfo() {
@@ -48,5 +53,10 @@ public class VisualController {
   @GetMapping("/scatter_diagram")
   public String scatter() {
     return "scatter_diagram";
+  }
+
+  @GetMapping("/bubble_chart")
+  public String bubble() {
+    return "bubble_chart";
   }
 }

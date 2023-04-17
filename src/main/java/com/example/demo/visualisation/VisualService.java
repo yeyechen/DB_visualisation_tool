@@ -38,7 +38,8 @@ public class VisualService {
     return InputService.getJdbc().queryForList(query);
   }
 
-  public List<Map<String, Object>> queryScatterDiagram(Map<ERConnectableObj, List<Attribute>> selectionInfo) {
+  public List<Map<String, Object>> queryScatterDiagram(
+      Map<ERConnectableObj, List<Attribute>> selectionInfo) {
     initialise(selectionInfo);
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
@@ -46,6 +47,29 @@ public class VisualService {
     String query =
         "SELECT " + tablePK.getName() + ", " + attribute1.getName() + ", " + attribute2.getName()
             + " FROM " + table.getName();
+    return InputService.getJdbc().queryForList(query);
+  }
+
+  public List<Map<String, Object>> queryBubbleChart(
+      Map<ERConnectableObj, List<Attribute>> selectionInfo) {
+    initialise(selectionInfo);
+    Iterator<Attribute> iterator = attributes.iterator();
+    Attribute attribute1 = iterator.next();
+    Attribute attribute2 = iterator.next();
+    Attribute attribute3 = iterator.next();
+    Attribute optional = iterator.hasNext() ? iterator.next() : null;
+    String query;
+    if (optional != null) {
+      query =
+          "SELECT " + tablePK.getName() + ", " + attribute1.getName() + ", " + attribute2.getName()
+              + ", " + attribute3.getName() + ", " + optional.getName() + " FROM "
+              + table.getName();
+    } else {
+      query =
+          "SELECT " + tablePK.getName() + ", " + attribute1.getName() + ", " + attribute2.getName()
+              + ", " + attribute3.getName()
+              + " FROM " + table.getName();
+    }
     return InputService.getJdbc().queryForList(query);
   }
 }
