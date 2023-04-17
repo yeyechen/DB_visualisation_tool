@@ -1,59 +1,125 @@
-import { margin, width, height, createSvg } from "./common.js";
-const svg = createSvg();
+import { margin, width, height } from "./common.js";
 
-d3.json("/mondial/main")
+function Scatterplot(data, {
+  x = ([x]) => x, // given d in data, returns the (quantitative) x-value
+  y = ([, y]) => y, // given d in data, returns the (quantitative) y-value
+  r = 3, // (fixed) radius of dots, in pixels
+  title, // given d in data, returns the title
+  marginTop = 20, // top margin, in pixels
+  marginRight = 30, // right margin, in pixels
+  marginBottom = 30, // bottom margin, in pixels
+  marginLeft = 100, // left margin, in pixels
+  inset = r * 2, // inset the default range, in pixels
+  insetTop = inset, // inset the default y-range
+  insetRight = inset, // inset the default x-range
+  insetBottom = inset, // inset the default y-range
+  insetLeft = inset, // inset the default x-range
+  xType = d3.scaleLinear, // type of x-scale
+  xDomain, // [xmin, xmax]
+  xRange = [marginLeft + insetLeft, width - marginRight - insetRight], // [left, right]
+  yType = d3.scaleLinear, // type of y-scale
+  yDomain, // [ymin, ymax]
+  yRange = [height - marginBottom - insetBottom, marginTop + insetTop], // [bottom, top]
+  xLabel, // a label for the x-axis
+  yLabel, // a label for the y-axis
+  xFormat, // a format specifier string for the x-axis
+  yFormat, // a format specifier string for the y-axis
+  fill = "none", // fill color for dots
+  stroke = "currentColor", // stroke color for the dots
+  strokeWidth = 1.5, // stroke width for dots
+  halo = "#fff", // color of label halo
+  haloWidth = 3 // padding around the labels
+} = {}) {
+  // Compute values.
+  const X = d3.map(data, x);
+  const Y = d3.map(data, y);
+  const T = title == null ? null : d3.map(data, title);
+  const I = d3.range(X.length).filter(i => !isNaN(X[i]) && !isNaN(Y[i]));
+
+  // Compute default domains.
+  if (xDomain === undefined) xDomain = d3.extent(X);
+  if (yDomain === undefined) yDomain = d3.extent(Y);
+
+  // Construct scales and axes.
+  const xScale = xType(xDomain, xRange);
+  const yScale = yType(yDomain, yRange);
+  const xAxis = d3.axisBottom(xScale).ticks(width / 80, xFormat);
+  const yAxis = d3.axisLeft(yScale).ticks(height / 50, yFormat);
+
+  const svg = d3.create("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .attr("viewBox", [0, 0, width, height])
+      .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
+
+  svg.append("g")
+      .attr("transform", `translate(0,${height - marginBottom})`)
+      .call(xAxis)
+      .call(g => g.select(".domain").remove())
+      .call(g => g.selectAll(".tick line").clone()
+          .attr("y2", marginTop + marginBottom - height)
+          .attr("stroke-opacity", 0.1))
+      .call(g => g.append("text")
+          .attr("x", width)
+          .attr("y", marginBottom - 4)
+          .attr("fill", "currentColor")
+          .attr("text-anchor", "end")
+          .text(xLabel));
+
+  svg.append("g")
+      .attr("transform", `translate(${marginLeft},0)`)
+      .call(yAxis)
+      .call(g => g.select(".domain").remove())
+      .call(g => g.selectAll(".tick line").clone()
+          .attr("x2", width - marginLeft - marginRight)
+          .attr("stroke-opacity", 0.1))
+      .call(g => g.append("text")
+          .attr("x", -marginLeft)
+          .attr("y", 10)
+          .attr("fill", "currentColor")
+          .attr("text-anchor", "start")
+          .text(yLabel));
+
+  if (T) svg.append("g")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", 10)
+      .attr("stroke-linejoin", "round")
+      .attr("stroke-linecap", "round")
+    .selectAll("text")
+    .data(I)
+    .join("text")
+      .attr("dx", 7)
+      .attr("dy", "0.35em")
+      .attr("x", i => xScale(X[i]))
+      .attr("y", i => yScale(Y[i]))
+      .text(i => T[i])
+      .call(text => text.clone(true))
+      .attr("fill", "none")
+      .attr("stroke", halo)
+      .attr("stroke-width", haloWidth);
+
+  svg.append("g")
+      .attr("fill", fill)
+      .attr("stroke", stroke)
+      .attr("stroke-width", strokeWidth)
+    .selectAll("circle")
+    .data(I)
+    .join("circle")
+      .attr("cx", i => xScale(X[i]))
+      .attr("cy", i => yScale(Y[i]))
+      .attr("r", r);
+
+  return svg.node();
+}
+d3.json("/scatter_diagram_data")
   .then(function(data) {
-
-    // Extract attribute names
-    var keys = Object.keys(data[0]);
-
-    // Define the scales for the x-axis and y-axis
-    var x = d3.scaleLinear()
-        .domain([0, d3.max(data, function(d) { return d[keys[1]];})])
-        .range([0, width]);
-
-    var y = d3.scaleLinear()
-        .domain([0, d3.max(data, function(d) { return d[keys[2]]; })])
-        .range([height, 0]);
-
-    // Define the axes for the x-axis and y-axis
-    var xAxis = d3.axisBottom(x);
-
-    var yAxis = d3.axisLeft(y);
-
-    // Add the x-axis and y-axis to the SVG element
-    svg.append("g")
-        .attr("transform", "translate(0," + height + ")")
-        .call(xAxis);
-
-    svg.append("g")
-        .call(yAxis);
-
-    // Add labels to both x-axis and y-axis
-    svg.append("text")
-        .attr("text-anchor", "middle")
-        .attr("x", width / 2)
-        .attr("y", height + margin.bottom / 2)
-        .text(Object.keys(data[0])[0]);
-
-    svg.append("text")
-        .attr("text-anchor", "middle")
-        .attr("transform", "rotate(-90)")
-        .attr("x", -height / 2)
-        .attr("y", -margin.left / 2)
-        .text(Object.keys(data[0])[1]);
-
-    // Add the dots to the SVG element
-    svg.selectAll(".dot")
-        .data(data)
-        .enter().append("circle")
-        .attr("class", "dot")
-        .attr("r", 5)
-        .attr("cx", function(d) { return x(d[keys[1]]); })
-        .attr("cy", function(d) { return y(d[keys[2]]); })
-        .attr("fill", "none")
-        .attr("stroke", "steelblue");
+  var keys = Object.keys(data[0]);
+  const svg = Scatterplot(data, {
+    x: d => d[keys[1]],
+    y: d => d[keys[2]],
+    xLabel: keys[1],
+    yLabel: keys[2],
+    stroke: "steelblue",
   })
-  .catch(function(error) {
-    console.error(error); // handle errors
-  });
+  d3.select("body").append(() => svg);
+  })

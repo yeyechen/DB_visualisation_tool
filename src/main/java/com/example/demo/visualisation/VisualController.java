@@ -22,9 +22,16 @@ public class VisualController {
     return visualService.queryBarChart(InputService.getSelectionInfo());
   }
 
-  /*-----------------------------------------*/
+  @GetMapping("/scatter_diagram_data")
+  @ResponseBody
+  public List<Map<String, Object>> scatterDiagramData() {
+    return visualService.queryScatterDiagram(InputService.getSelectionInfo());
+  }
+
+    /*-----------------------------------------*/
   @GetMapping("/input")
   public String databaseInfo() {
+
     return "database";
   }
 
