@@ -34,7 +34,7 @@ public class InputController {
   @PostMapping("/database-info")
   public String processDatabaseInfo(@RequestBody Map<String, String> formData)
       throws DBConnectionException, ParseException, SQLException {
-    service.initialiseSchema(formData);
+    service.initialise(formData);
     return "redirect:/selection";
   }
 
