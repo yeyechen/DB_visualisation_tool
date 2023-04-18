@@ -11,6 +11,7 @@ d3.json("/bar_chart_data")
     // display attribute value in descending order
     data.sort((a, b) => (b[keys[1]] - a[keys[1]]));
 
+    // todo: let user decide
     var topN = 10;
     // first n result
     data = data.slice(0, topN);

@@ -69,7 +69,6 @@ $(document).ready(function() {
 			contentType: "application/json",
 			data: JSON.stringify(selectedAttributes),
 			success: function(data) {
-			  alert("status " + data);
 			  if ($("#vis-form").children().length > 0) {
 			    $("#vis-form").empty();
 			  }

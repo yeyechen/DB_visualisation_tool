@@ -40,6 +40,12 @@ public class VisualController {
     return visualService.queryLineChart(InputService.getSelectionInfo());
   }
 
+  @GetMapping("/stacked_bar_chart_data")
+  @ResponseBody
+  public List<Map<String, Object>> stackedBarChartData() {
+    return visualService.queryStackedBarChart(InputService.getSelectionInfo());
+  }
+
   /*-----------------------------------------*/
   @GetMapping("/input")
   public String databaseInfo() {
@@ -69,6 +75,11 @@ public class VisualController {
   @GetMapping("/line_chart")
   public String line() {
     return "line_chart";
+  }
+
+  @GetMapping("/stacked_bar_chart")
+  public String stacked() {
+    return "stacked_bar_chart";
   }
 
 }
