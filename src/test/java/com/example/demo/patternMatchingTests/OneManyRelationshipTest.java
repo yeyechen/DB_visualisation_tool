@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.example.demo.TestObject;
 import com.example.demo.models.ModelType;
-import com.example.demo.models.PatternMatch;
+import com.example.demo.models.ModelUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -20,7 +20,7 @@ public class OneManyRelationshipTest {
 
   @Test
   public void mondialEncompassesTest() {
-    ModelType modelType = PatternMatch.patternMatching(testObject.getCountry(),
+    ModelType modelType = ModelUtil.patternMatching(testObject.getCountry(),
         testObject.getMondialSchema());
     assertEquals(modelType, ModelType.ONE_MANY_RELATIONSHIP);
   }

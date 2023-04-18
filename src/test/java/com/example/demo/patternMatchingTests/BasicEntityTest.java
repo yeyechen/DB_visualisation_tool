@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.example.demo.TestObject;
 import com.example.demo.models.ModelType;
-import com.example.demo.models.PatternMatch;
+import com.example.demo.models.ModelUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -20,7 +20,7 @@ public class BasicEntityTest {
 
   @Test
   public void mondialContinentTest() {
-    ModelType modelType = PatternMatch.patternMatching(testObject.getContinent(),
+    ModelType modelType = ModelUtil.patternMatching(testObject.getContinent(),
         testObject.getMondialSchema());
     assertEquals(modelType, ModelType.BASIC_ENTITY);
   }

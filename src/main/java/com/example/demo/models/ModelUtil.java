@@ -15,7 +15,7 @@ import io.github.MigadaTang.Schema;
 import io.github.MigadaTang.common.Cardinality;
 import io.github.MigadaTang.common.EntityType;
 
-public class PatternMatch {
+public class ModelUtil {
 
   /**
    * The function pattern matches current user selection to one of the five ER models.
@@ -80,5 +80,23 @@ public class PatternMatch {
       return UNKNOWN;
     }
     return UNKNOWN;
+  }
+
+  // helper function to find the strong entity which relate to a given weak entity
+  public static Entity getRelatedStrongEntity(Entity weakEntity, Schema schema) {
+    assert weakEntity.getEntityType() == EntityType.WEAK;
+    for (Relationship relationship : schema.getRelationshipList()) {
+      boolean flag = false;
+      for (RelationshipEdge edge : relationship.getEdgeList()) {
+        Entity tempEntity = (Entity) edge.getConnObj();
+        if (flag) {
+          return tempEntity;
+        }
+        if (tempEntity == weakEntity) {
+          flag = true;
+        }
+      }
+    }
+    return null;
   }
 }

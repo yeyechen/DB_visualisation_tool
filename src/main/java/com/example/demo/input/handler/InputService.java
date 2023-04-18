@@ -1,7 +1,7 @@
 package com.example.demo.input.handler;
 
 import com.example.demo.models.ModelType;
-import com.example.demo.models.PatternMatch;
+import com.example.demo.models.ModelUtil;
 import io.github.MigadaTang.Attribute;
 import io.github.MigadaTang.ER;
 import io.github.MigadaTang.ERConnectableObj;
@@ -34,11 +34,16 @@ public class InputService {
   private String dbPassword;
 
 
-  private Schema schema;
   private ModelType modelType;
-  private static Map<ERConnectableObj, List<Attribute>> selectionInfo;
 
+  private static Schema schema;
+
+  private static Map<ERConnectableObj, List<Attribute>> selectionInfo;
   private static JdbcTemplate jdbc;
+
+  public static Schema getSchema() {
+    return schema;
+  }
 
   public static Map<ERConnectableObj, List<Attribute>> getSelectionInfo() {
     return selectionInfo;
@@ -89,7 +94,7 @@ public class InputService {
   }
 
   public void patternMatchBasedOnSelection(Map<ERConnectableObj, List<Attribute>> selectionInfo) {
-    modelType = PatternMatch.patternMatching(selectionInfo.keySet().iterator().next(), schema);
+    modelType = ModelUtil.patternMatching(selectionInfo.keySet().iterator().next(), schema);
     InputService.selectionInfo = selectionInfo;
   }
 }

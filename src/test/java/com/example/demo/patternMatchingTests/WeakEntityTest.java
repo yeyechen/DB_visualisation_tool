@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.example.demo.TestObject;
 import com.example.demo.models.ModelType;
-import com.example.demo.models.PatternMatch;
+import com.example.demo.models.ModelUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -20,14 +20,14 @@ public class WeakEntityTest {
 
   @Test
   public void mondialProvinceTest() {
-    ModelType modelType = PatternMatch.patternMatching(testObject.getProvince(),
+    ModelType modelType = ModelUtil.patternMatching(testObject.getProvince(),
         testObject.getMondialSchema());
     assertEquals(modelType, ModelType.WEAK_ENTITY);
   }
 
   @Test
   public void mondialCountryPopTest() {
-    ModelType modelType = PatternMatch.patternMatching(testObject.getCountryPop(),
+    ModelType modelType = ModelUtil.patternMatching(testObject.getCountryPop(),
         testObject.getMondialSchema());
     assertEquals(modelType, ModelType.WEAK_ENTITY);
   }

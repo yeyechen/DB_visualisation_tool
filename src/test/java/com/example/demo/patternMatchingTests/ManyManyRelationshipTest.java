@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.example.demo.TestObject;
 import com.example.demo.models.ModelType;
-import com.example.demo.models.PatternMatch;
+import com.example.demo.models.ModelUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -20,7 +20,7 @@ public class ManyManyRelationshipTest {
 
   @Test
   public void mondialBelieveTest() {
-    ModelType modelType = PatternMatch.patternMatching(testObject.getBelieve(),
+    ModelType modelType = ModelUtil.patternMatching(testObject.getBelieve(),
         testObject.getMondialSchema());
     assertEquals(modelType, ModelType.MANY_MANY_RELATIONSHIP);
   }

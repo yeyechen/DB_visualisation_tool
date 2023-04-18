@@ -33,10 +33,16 @@ public class VisualController {
   public List<Map<String, Object>> bubbleChartData() {
     return visualService.queryBubbleChart(InputService.getSelectionInfo());
   }
-    /*-----------------------------------------*/
+
+  @GetMapping("/line_chart_data")
+  @ResponseBody
+  public List<Map<String, Object>> lineChartData() {
+    return visualService.queryLineChart(InputService.getSelectionInfo());
+  }
+
+  /*-----------------------------------------*/
   @GetMapping("/input")
   public String databaseInfo() {
-
     return "database";
   }
 
@@ -59,4 +65,10 @@ public class VisualController {
   public String bubble() {
     return "bubble_chart";
   }
+
+  @GetMapping("/line_chart")
+  public String line() {
+    return "line_chart";
+  }
+
 }

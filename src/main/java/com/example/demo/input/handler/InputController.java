@@ -43,7 +43,7 @@ public class InputController {
   @GetMapping("/attr-options")
   @ResponseBody
   public List<Map<String, Object>> getOptions() {
-    Schema schema = service.getSchema();
+    Schema schema = InputService.getSchema();
     List<Map<String, Object>> tables = new ArrayList<>();
     for (Entity entity : schema.getEntityList()) {
       Map<String, Object> table = new HashMap<>();
@@ -118,7 +118,7 @@ public class InputController {
   public String processAttrSelection(@RequestBody String selectedAttributesJSON) {
     List<String> selectedAttributes = new Gson().fromJson(selectedAttributesJSON, List.class);
 
-    Schema schema = service.getSchema();
+    Schema schema = InputService.getSchema();
 
     Map<ERConnectableObj, List<Attribute>> selectionInfo = new HashMap<>();
     List<Attribute> selectedAttrs = new ArrayList<>();
