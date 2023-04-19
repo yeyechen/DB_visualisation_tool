@@ -133,4 +133,28 @@ public class VisualService {
         + primaryKey1.get().getName();
     return InputService.getJdbc().queryForList(query);
   }
+
+  // todo: same as query stacked bar chart, needs refactor
+  public List<Map<String, Object>> querySpiderChart(
+      Map<ERConnectableObj, List<Attribute>> selectionInfo) {
+    initialise(selectionInfo);
+    Iterator<Attribute> iterator = attributes.iterator();
+    Attribute attribute1 = iterator.next();
+    Entity strongEntity = ModelUtil.getRelatedStrongEntity((Entity) table,
+        InputService.getSchema());
+    assert strongEntity != null;
+    // primaryKey1 is k1, tablePK is k2
+    Optional<Attribute> primaryKey1 = strongEntity.getAttributeList().stream()
+        .filter(Attribute::getIsPrimary)
+        .findFirst();
+    assert primaryKey1.isPresent();
+    String unambiguityPrefix = table.getName() + ".";
+    String query = "SELECT " + primaryKey1.get().getName() + ", " + tablePK.getName() + ", "
+        + unambiguityPrefix + attribute1.getName() + " FROM " + table.getName()
+        + " INNER JOIN " + strongEntity.getName()
+        + " ON " + table.getName() + "." + strongEntity.getName() + " = "
+        + strongEntity.getName() + "."
+        + primaryKey1.get().getName();
+    return InputService.getJdbc().queryForList(query);
+  }
 }

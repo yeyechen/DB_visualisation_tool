@@ -46,6 +46,12 @@ public class VisualController {
     return visualService.queryStackedBarChart(InputService.getSelectionInfo());
   }
 
+  @GetMapping("spider_chart_data")
+  @ResponseBody
+  public List<Map<String, Object>> spiderChartData() {
+    return visualService.querySpiderChart(InputService.getSelectionInfo());
+  }
+
   /*-----------------------------------------*/
   @GetMapping("/input")
   public String databaseInfo() {
@@ -82,4 +88,8 @@ public class VisualController {
     return "stacked_bar_chart";
   }
 
+  @GetMapping("/spider_chart")
+  public String spider() {
+    return "spider_chart";
+  }
 }
