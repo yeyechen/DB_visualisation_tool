@@ -112,7 +112,7 @@ function StackedBarChart(data, {
   return Object.assign(svg.node(), {scales: {color}});
 }
 
-d3.json("/line_chart_data")
+d3.json("/stacked_bar_chart_data")
   .then(function(data) {
 
   var keys = Object.keys(data[0]); // index: 0->k1, 1->k2, 2->a1

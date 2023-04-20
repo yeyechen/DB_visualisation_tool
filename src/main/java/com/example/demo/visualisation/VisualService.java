@@ -128,6 +128,8 @@ public class VisualService {
     String query = "SELECT " + primaryKey1.get().getName() + ", " + tablePK.getName() + ", "
         + unambiguityPrefix + attribute1.getName() + " FROM " + table.getName()
         + " INNER JOIN " + strongEntity.getName()
+        // todo: when accessing the column when join, there is risk using strongEntity.getName()
+        //  needs proper foreign key info!
         + " ON " + table.getName() + "." + strongEntity.getName() + " = "
         + strongEntity.getName() + "."
         + primaryKey1.get().getName();
@@ -155,6 +157,41 @@ public class VisualService {
         + " ON " + table.getName() + "." + strongEntity.getName() + " = "
         + strongEntity.getName() + "."
         + primaryKey1.get().getName();
+    return InputService.getJdbc().queryForList(query);
+  }
+
+  public List<Map<String, Object>> queryTreeMapData(
+      Map<ERConnectableObj, List<Attribute>> selectionInfo) {
+    initialise(selectionInfo);
+    Iterator<Attribute> iterator = attributes.iterator();
+    Attribute attribute1 = iterator.next();
+    Attribute optional = iterator.hasNext() ? iterator.next() : null;
+
+    Entity parentEntity = ModelUtil.getParentEntity((Entity) table,
+        InputService.getSchema());
+    assert parentEntity != null;
+    Optional<Attribute> parentKey = parentEntity.getAttributeList().stream()
+        .filter(Attribute::getIsPrimary)
+        .findFirst();
+    assert parentKey.isPresent();
+    String unambiguityPrefix = table.getName() + ".";
+    String query;
+    if (optional != null) {
+      query = "SELECT " + parentKey.get().getName() + ", " + tablePK.getName() + ", "
+          + unambiguityPrefix + attribute1.getName() + unambiguityPrefix + optional.getName()
+          + " FROM " + table.getName()
+          + " INNER JOIN " + parentEntity.getName()
+          + " ON " + table.getName() + "." + parentEntity.getName() + " = "
+          + parentEntity.getName() + "."
+          + parentKey.get().getName();
+    } else {
+      query = "SELECT " + parentKey.get().getName() + ", " + tablePK.getName() + ", "
+          + unambiguityPrefix + attribute1.getName() + " FROM " + table.getName()
+          + " INNER JOIN " + parentEntity.getName()
+          + " ON " + table.getName() + "." + parentEntity.getName() + " = "
+          + parentEntity.getName() + "."
+          + parentKey.get().getName();
+    }
     return InputService.getJdbc().queryForList(query);
   }
 }

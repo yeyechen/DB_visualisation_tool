@@ -52,6 +52,11 @@ public class VisualController {
     return visualService.querySpiderChart(InputService.getSelectionInfo());
   }
 
+  @GetMapping("tree_map_data")
+  @ResponseBody
+  public List<Map<String, Object>> treeMapData() {
+    return visualService.queryTreeMapData(InputService.getSelectionInfo());
+  }
   /*-----------------------------------------*/
   @GetMapping("/input")
   public String databaseInfo() {
@@ -92,4 +97,11 @@ public class VisualController {
   public String spider() {
     return "spider_chart";
   }
+
+  @GetMapping("/tree_map")
+  public String tree() {
+    return "tree_map";
+  }
+
+
 }

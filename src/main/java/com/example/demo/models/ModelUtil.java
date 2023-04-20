@@ -33,13 +33,14 @@ public class ModelUtil {
         boolean cond1 = false;
         boolean cond2 = false;
         for (RelationshipEdge edge : relationship.getEdgeList()) {
-          if (edge.getConnObj() == entity && (edge.getCardinality() == Cardinality.OneToOne)
-              || edge.getCardinality() == Cardinality.ZeroToOne) {
+          Cardinality cardinality = edge.getCardinality();
+          if (edge.getConnObj() == entity && (cardinality == Cardinality.OneToOne
+              || cardinality == Cardinality.ZeroToOne)) {
 
             cond1 = true;
           } else if (edge.getConnObj() != entity
-              && (edge.getCardinality() == Cardinality.OneToMany
-              || edge.getCardinality() == Cardinality.ZeroToMany)) {
+              && (cardinality == Cardinality.OneToMany
+              || cardinality == Cardinality.ZeroToMany)) {
             cond2 = true;
           }
         }
@@ -95,6 +96,27 @@ public class ModelUtil {
         if (tempEntity == weakEntity) {
           flag = true;
         }
+      }
+    }
+    return null;
+  }
+
+  // helper function to find the entity of the many side in a One-Many relationship
+  public static Entity getParentEntity(Entity childEntity, Schema schema) {
+    assert childEntity.getEntityType() == EntityType.STRONG;
+    for (Relationship relationship : schema.getRelationshipList()) {
+      boolean flag = false;
+      Entity manySideEntity = null;
+      for (RelationshipEdge edge : relationship.getEdgeList()) {
+        Cardinality cardinality = edge.getCardinality();
+        if (cardinality == Cardinality.OneToOne || cardinality == Cardinality.ZeroToOne) {
+          flag = true;
+        } else if (cardinality == Cardinality.OneToMany || cardinality == Cardinality.ZeroToMany) {
+          manySideEntity = (Entity) edge.getConnObj();
+        }
+      }
+      if (flag && manySideEntity != null) {
+        return manySideEntity;
       }
     }
     return null;
