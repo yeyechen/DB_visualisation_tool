@@ -31,7 +31,7 @@ function Treemap(data, { // data is either tabular (array of objects) or hierarc
   round = true, // whether to round to exact pixels
   colors = d3.schemeTableau10, // array of colors
   zDomain, // array of values for the color scale
-  fill = "#ccc", // fill for node rects (if no group color encoding)
+  fill = "#4682B4", // fill for node rects (if no group color encoding)
   fillOpacity = group == null ? null : 0.6, // fill opacity for node rects
   stroke, // stroke for node rects
   strokeWidth, // stroke width for node rects
@@ -44,21 +44,19 @@ function Treemap(data, { // data is either tabular (array of objects) or hierarc
   // specified as an object {children} with nested objects (a.k.a. the “flare.json”
   // format), and use d3.hierarchy.
 
-//  const root = path != null ? d3.stratify().path(path)(data)
-//      : id != null || parentId != null ? d3.stratify().id(id).parentId(parentId)(data)
-//      : d3.hierarchy(data, children);
-
   const root = d3.hierarchy(data, children);
 
   // Compute the values of internal nodes by aggregating from the leaves.
   value == null ? root.count() : root.sum(d => Math.max(0, value(d)));
-
   // Prior to sorting, if a group channel is specified, construct an ordinal color scale.
   const leaves = root.leaves();
   const G = group == null ? null : leaves.map(d => group(d.data, d));
   if (zDomain === undefined) zDomain = G;
   zDomain = new d3.InternSet(zDomain);
-  const color = group == null ? null : d3.scaleOrdinal(zDomain, colors);
+
+//  const color = group == null ? null : d3.scaleOrdinal(zDomain, colors);
+  // set color to a single color for now (fill= #ccc), group not working properly
+  const color = null;
 
   // Compute labels and titles.
   const L = label == null ? null : leaves.map(d => label(d.data, d));
@@ -136,15 +134,14 @@ d3.json("/tree_map_data")
   .then(function(data) {
 
   var keys = Object.keys(data[0]); // index: 0->k_p, 1->k_c, 2->a1, 3->optional
-  console.log(data);
 
   const groupedData = data.reduce((acc, curr) => {
-    const code = curr.code;
-    const existingGroup = acc.children.find(group => group.code === code);
+    const name = curr[keys[0]];
+    const existingGroup = acc.children.find(group => group[keys[0]] === name);
     if (existingGroup) {
-      existingGroup.children.push({ "name": curr.iata_code, "value": curr.elevation });
+      existingGroup.children.push({ "name": curr[keys[1]], "size": curr[keys[2]] });
     } else {
-      acc.children.push({ "code": code, "children": [{ "name": curr.iata_code, "value": curr.elevation }] });
+      acc.children.push({ "name": name, "children": [{ "name": curr[keys[1]], "size": curr[keys[2]] }] });
     }
     return acc;
   }, { name: "data", children: [] });
@@ -152,12 +149,10 @@ d3.json("/tree_map_data")
   const svg = Treemap(groupedData, {
     value: d => d.size, // size of each node (file); null for internal nodes (folders)
     group: (d, n) => n.ancestors().slice(-2)[0].data.name, // e.g., "animate" in flare/animate/Easing; color
-    label: (d, n) => [...d.name.split(/(?=[A-Z][a-z])/g), n.value.toLocaleString("en")].join("\n"),
-    title: (d, n) => `${n.ancestors().reverse().map(d => d.data.name).join(".")}\n${n.value.toLocaleString("en")}`,
-    link: (d, n) => `https://github.com/prefuse/Flare/blob/master/flare/src/${n.ancestors().reverse().map(d => d.data.name).join("/")}.as`,
+    label: (d, n) => [d.name.split(/(?=[A-Z][a-z])/g), n.value.toLocaleString("en")].join("\n"),
+    title: (d, n) => `${n.ancestors().reverse().map(d => d.data.name).join(".")}\n`+keys[2]+`: ${n.value.toLocaleString("en")}`,
     width: 1152,
     height: 1152
   })
   d3.select("body").append(() => svg);
-  console.log(groupedData);
 })
