@@ -57,6 +57,12 @@ public class VisualController {
   public List<Map<String, Object>> treeMapData() {
     return visualService.queryTreeMapData(InputService.getSelectionInfo());
   }
+
+  @GetMapping("hierarchy_tree_data")
+  @ResponseBody
+  public List<Map<String, Object>> hierarchyTreeData() {
+    return visualService.queryHierarchyTreeData(InputService.getSelectionInfo());
+  }
   /*-----------------------------------------*/
   @GetMapping("/input")
   public String databaseInfo() {
@@ -99,9 +105,12 @@ public class VisualController {
   }
 
   @GetMapping("/tree_map")
-  public String tree() {
+  public String treeMap() {
     return "tree_map";
   }
 
-
+  @GetMapping("/hierarchy_tree")
+  public String HierarchyTree() {
+    return "hierarchy_tree";
+  }
 }

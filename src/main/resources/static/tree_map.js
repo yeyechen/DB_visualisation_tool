@@ -54,9 +54,9 @@ function Treemap(data, { // data is either tabular (array of objects) or hierarc
   if (zDomain === undefined) zDomain = G;
   zDomain = new d3.InternSet(zDomain);
 
-//  const color = group == null ? null : d3.scaleOrdinal(zDomain, colors);
+  const color = group == null ? null : d3.scaleOrdinal(zDomain, colors);
   // set color to a single color for now (fill= #ccc), group not working properly
-  const color = null;
+//  const color = null;
 
   // Compute labels and titles.
   const L = label == null ? null : leaves.map(d => label(d.data, d));
@@ -136,18 +136,20 @@ d3.json("/tree_map_data")
   var keys = Object.keys(data[0]); // index: 0->k_p, 1->k_c, 2->a1, 3->optional
 
   const groupedData = data.reduce((acc, curr) => {
-    const name = curr[keys[0]];
-    const existingGroup = acc.children.find(group => group[keys[0]] === name);
+    const code = curr[keys[0]];
+    const existingGroup = acc.children.find(group => group.name === code);
     if (existingGroup) {
-      existingGroup.children.push({ "name": curr[keys[1]], "size": curr[keys[2]] });
+      existingGroup.children.push({ "name": curr[keys[1]], "value": curr[keys[2]] });
     } else {
-      acc.children.push({ "name": name, "children": [{ "name": curr[keys[1]], "size": curr[keys[2]] }] });
+      acc.children.push({ "name": code, "children": [{ "name": curr[keys[1]], "value": curr[keys[2]] }] });
     }
     return acc;
   }, { name: "data", children: [] });
 
+  console.log(groupedData);
+
   const svg = Treemap(groupedData, {
-    value: d => d.size, // size of each node (file); null for internal nodes (folders)
+    value: d => d.value, // size of each node (file); null for internal nodes (folders)
     group: (d, n) => n.ancestors().slice(-2)[0].data.name, // e.g., "animate" in flare/animate/Easing; color
     label: (d, n) => [d.name.split(/(?=[A-Z][a-z])/g), n.value.toLocaleString("en")].join("\n"),
     title: (d, n) => `${n.ancestors().reverse().map(d => d.data.name).join(".")}\n`+keys[2]+`: ${n.value.toLocaleString("en")}`,

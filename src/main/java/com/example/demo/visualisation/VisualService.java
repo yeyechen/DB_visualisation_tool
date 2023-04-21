@@ -194,4 +194,26 @@ public class VisualService {
     }
     return InputService.getJdbc().queryForList(query);
   }
+
+  public List<Map<String, Object>> queryHierarchyTreeData(
+      Map<ERConnectableObj, List<Attribute>> selectionInfo) {
+    initialise(selectionInfo);
+    Iterator<Attribute> iterator = attributes.iterator();
+    Attribute attribute1 = iterator.next();
+    Entity parentEntity = ModelUtil.getParentEntity((Entity) table,
+        InputService.getSchema());
+    assert parentEntity != null;
+    Optional<Attribute> parentKey = parentEntity.getAttributeList().stream()
+        .filter(Attribute::getIsPrimary)
+        .findFirst();
+    assert parentKey.isPresent();
+    String unambiguityPrefix = table.getName() + ".";
+    String query = "SELECT " + parentKey.get().getName() + ", " + tablePK.getName() + ", "
+        + unambiguityPrefix + attribute1.getName() + " FROM " + table.getName()
+        + " INNER JOIN " + parentEntity.getName()
+        + " ON " + table.getName() + "." + parentEntity.getName() + " = "
+        + parentEntity.getName() + "."
+        + parentKey.get().getName();
+    return InputService.getJdbc().queryForList(query);
+  }
 }
