@@ -63,6 +63,13 @@ public class VisualController {
   public List<Map<String, Object>> hierarchyTreeData() {
     return visualService.queryHierarchyTreeData(InputService.getSelectionInfo());
   }
+
+  @GetMapping("sankey_diagram_data")
+  @ResponseBody
+  public List<Map<String, Object>> sankey_diagram_data() {
+    return visualService.querySankeyDiagramData(InputService.getSelectionInfo());
+  }
+
   /*-----------------------------------------*/
   @GetMapping("/input")
   public String databaseInfo() {
@@ -110,7 +117,12 @@ public class VisualController {
   }
 
   @GetMapping("/hierarchy_tree")
-  public String HierarchyTree() {
+  public String hierarchyTree() {
     return "hierarchy_tree";
+  }
+
+  @GetMapping("/sankey_diagram")
+  public String sankey() {
+    return "sankey_diagram";
   }
 }

@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -214,6 +215,44 @@ public class VisualService {
         + " ON " + table.getName() + "." + parentEntity.getName() + " = "
         + parentEntity.getName() + "."
         + parentKey.get().getName();
+    return InputService.getJdbc().queryForList(query);
+  }
+
+  public List<Map<String, Object>> querySankeyDiagramData(
+      Map<ERConnectableObj, List<Attribute>> selectionInfo) {
+    initialise(selectionInfo);
+    Iterator<Attribute> iterator = attributes.iterator();
+    Attribute attribute1 = iterator.next();
+    Attribute optional = iterator.hasNext() ? iterator.next() : null;
+    Set<Entity> entities = ModelUtil.getManyManyEntities((Relationship) table);
+    // todo: Reflexive case
+    String query = null;
+    if (entities.size() == 1) {
+
+    } else {
+      Iterator<Entity> entityIterator = entities.iterator();
+      Entity entity1 = entityIterator.next();
+      Entity entity2 = entityIterator.next();
+
+      Optional<Attribute> entity1PK = entity1.getAttributeList().stream()
+          .filter(Attribute::getIsPrimary)
+          .findFirst();
+      assert entity1PK.isPresent();
+
+      Optional<Attribute> entity2PK = entity2.getAttributeList().stream()
+          .filter(Attribute::getIsPrimary)
+          .findFirst();
+      assert entity2PK.isPresent();
+      query =
+          "SELECT " + entity1PK.get().getName() + ", " + entity1.getName() + "." + entity2PK.get()
+              .getName() + ", " + attribute1.getName()
+              + " FROM " + entity1.getName() + " INNER JOIN " + table.getName() + " ON "
+              + entity1.getName() + "." + entity1PK.get().getName() + " = " + table.getName() + "."
+              + entity1.getName() + " INNER JOIN " + entity2.getName() + " ON " + table.getName()
+              + "."
+              + entity2.getName() + " = " + entity2.getName() + "." + entity2PK.get().getName();
+    }
+    assert query != null;
     return InputService.getJdbc().queryForList(query);
   }
 }

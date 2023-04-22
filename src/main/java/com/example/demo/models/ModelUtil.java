@@ -14,6 +14,8 @@ import io.github.MigadaTang.RelationshipEdge;
 import io.github.MigadaTang.Schema;
 import io.github.MigadaTang.common.Cardinality;
 import io.github.MigadaTang.common.EntityType;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ModelUtil {
 
@@ -120,5 +122,15 @@ public class ModelUtil {
       }
     }
     return null;
+  }
+
+  // helper function to find entities of a Many-Many Relationship given the relationship
+  // note that the function returns a set with only one element when the relationship is Reflexive
+  public static Set<Entity> getManyManyEntities(Relationship relationship) {
+    Set<Entity> entities = new HashSet<>();
+    for (RelationshipEdge edge : relationship.getEdgeList()) {
+      entities.add((Entity) edge.getConnObj());
+    }
+    return entities;
   }
 }
