@@ -244,7 +244,8 @@ public class VisualService {
           .findFirst();
       assert entity2PK.isPresent();
       query =
-          "SELECT " + entity1PK.get().getName() + ", " + entity1.getName() + "." + entity2PK.get()
+          "SELECT " + entity1.getName() + "." + entity1PK.get().getName() + ", " + entity2.getName()
+              + "." + entity2PK.get()
               .getName() + ", " + attribute1.getName()
               + " FROM " + entity1.getName() + " INNER JOIN " + table.getName() + " ON "
               + entity1.getName() + "." + entity1PK.get().getName() + " = " + table.getName() + "."
