@@ -113,7 +113,8 @@ public class VisualService {
     String fkStrongEntity = getForeignKeyName(table.getName(), strongEntity.getName());
     if (optional != null) {
       query = "SELECT " + strongEntity.getName() + "." + primaryKey1.get().getName() + ", "
-          + tablePK.getName() + ", " + table.getName() + "." + attribute1.getName() + ", "
+          + table.getName() + "." + tablePK.getName() + ", "
+          + table.getName() + "." + attribute1.getName() + ", "
           + table.getName() + "." + optional.getName() + " FROM " + table.getName()
           + " INNER JOIN " + strongEntity.getName()
           + " ON " + table.getName() + "." + fkStrongEntity + " = "
@@ -121,7 +122,7 @@ public class VisualService {
           + primaryKey1.get().getName();
     } else {
       query = "SELECT " + strongEntity.getName() + "." + primaryKey1.get().getName() + ", "
-          + tablePK.getName()
+          + table.getName() + "." + tablePK.getName()
           + ", " + table.getName() + "." + attribute1.getName() + " FROM " + table.getName()
           + " INNER JOIN " + strongEntity.getName()
           + " ON " + table.getName() + "." + fkStrongEntity + " = "
@@ -146,7 +147,7 @@ public class VisualService {
     assert primaryKey1.isPresent();
     String fkStrongEntity = getForeignKeyName(table.getName(), strongEntity.getName());
     String query = "SELECT " + strongEntity.getName() + "." + primaryKey1.get().getName() + ", "
-        + tablePK.getName() + ", "
+        + table.getName() + "." + tablePK.getName() + ", "
         + table.getName() + "." + attribute1.getName() + " FROM " + table.getName()
         + " INNER JOIN " + strongEntity.getName()
         + " ON " + table.getName() + "." + fkStrongEntity + " = "
@@ -170,7 +171,7 @@ public class VisualService {
     assert primaryKey1.isPresent();
     String fkStrongEntity = getForeignKeyName(table.getName(), strongEntity.getName());
     String query = "SELECT " + strongEntity.getName() + "." + primaryKey1.get().getName() + ", "
-        + tablePK.getName() + ", "
+        + table.getName() + "." + tablePK.getName() + ", "
         + table.getName() + "." + attribute1.getName() + " FROM " + table.getName()
         + " INNER JOIN " + strongEntity.getName()
         + " ON " + table.getName() + "." + fkStrongEntity + " = "
@@ -197,8 +198,9 @@ public class VisualService {
     String query;
     if (optional != null) {
       query = "SELECT " + parentEntity.getName() + "." + parentKey.get().getName() + ", "
-          + tablePK.getName() + ", "
-          + table.getName() + "." + attribute1.getName() + table.getName() + "." + optional.getName()
+          + table.getName() + "." + tablePK.getName() + ", "
+          + table.getName() + "." + attribute1.getName() + ", "
+          + table.getName() + "." + optional.getName()
           + " FROM " + table.getName()
           + " INNER JOIN " + parentEntity.getName()
           + " ON " + table.getName() + "." + fkParentEntity + " = "
@@ -206,7 +208,7 @@ public class VisualService {
           + parentKey.get().getName();
     } else {
       query = "SELECT " + parentEntity.getName() + "." + parentKey.get().getName() + ", "
-          + tablePK.getName() + ", "
+          + table.getName() + "." + tablePK.getName() + ", "
           + table.getName() + "." + attribute1.getName() + " FROM " + table.getName()
           + " INNER JOIN " + parentEntity.getName()
           + " ON " + table.getName() + "." + fkParentEntity + " = "
@@ -230,7 +232,7 @@ public class VisualService {
     assert parentKey.isPresent();
     String fkParentEntity = getForeignKeyName(table.getName(), parentEntity.getName());
     String query = "SELECT " + parentEntity.getName() + "." + parentKey.get().getName() + ", "
-        + tablePK.getName() + ", "
+        + table.getName() + "." + tablePK.getName() + ", "
         + table.getName() + "." + attribute1.getName() + " FROM " + table.getName()
         + " INNER JOIN " + parentEntity.getName()
         + " ON " + table.getName() + "." + fkParentEntity + " = "
@@ -270,7 +272,7 @@ public class VisualService {
       query =
           "SELECT " + entity1.getName() + "." + entity1PK.get().getName() + ", " + entity2.getName()
               + "." + entity2PK.get()
-              .getName() + ", " + attribute1.getName()
+              .getName() + ", " + table.getName() + "." + attribute1.getName()
               + " FROM " + entity1.getName() + " INNER JOIN " + table.getName() + " ON "
               + entity1.getName() + "." + entity1PK.get().getName() + " = " + table.getName() + "."
               + fkEntity1 + " INNER JOIN " + entity2.getName() + " ON " + table.getName()
