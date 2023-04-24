@@ -1,6 +1,7 @@
 package com.example.demo.visualisation;
 
 import com.example.demo.input.handler.InputService;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,37 +37,37 @@ public class VisualController {
 
   @GetMapping("/line_chart_data")
   @ResponseBody
-  public List<Map<String, Object>> lineChartData() {
+  public List<Map<String, Object>> lineChartData() throws SQLException {
     return visualService.queryLineChart(InputService.getSelectionInfo());
   }
 
   @GetMapping("/stacked_bar_chart_data")
   @ResponseBody
-  public List<Map<String, Object>> stackedBarChartData() {
+  public List<Map<String, Object>> stackedBarChartData() throws SQLException {
     return visualService.queryStackedBarChart(InputService.getSelectionInfo());
   }
 
   @GetMapping("spider_chart_data")
   @ResponseBody
-  public List<Map<String, Object>> spiderChartData() {
+  public List<Map<String, Object>> spiderChartData() throws SQLException {
     return visualService.querySpiderChart(InputService.getSelectionInfo());
   }
 
   @GetMapping("tree_map_data")
   @ResponseBody
-  public List<Map<String, Object>> treeMapData() {
+  public List<Map<String, Object>> treeMapData() throws SQLException {
     return visualService.queryTreeMapData(InputService.getSelectionInfo());
   }
 
   @GetMapping("hierarchy_tree_data")
   @ResponseBody
-  public List<Map<String, Object>> hierarchyTreeData() {
+  public List<Map<String, Object>> hierarchyTreeData() throws SQLException {
     return visualService.queryHierarchyTreeData(InputService.getSelectionInfo());
   }
 
   @GetMapping("sankey_diagram_data")
   @ResponseBody
-  public List<Map<String, Object>> sankey_diagram_data() {
+  public List<Map<String, Object>> sankey_diagram_data() throws SQLException {
     return visualService.querySankeyDiagramData(InputService.getSelectionInfo());
   }
 

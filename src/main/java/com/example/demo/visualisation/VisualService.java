@@ -6,9 +6,13 @@ import io.github.MigadaTang.Attribute;
 import io.github.MigadaTang.ERConnectableObj;
 import io.github.MigadaTang.Entity;
 import io.github.MigadaTang.Relationship;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Service;
@@ -20,8 +24,7 @@ public class VisualService {
   private List<Attribute> attributes;
   private Attribute tablePK;
 
-  // todo: need somehow get the k2 as well (Many-Many relationship)
-  public void initialise(Map<ERConnectableObj, List<Attribute>> selectionInfo) {
+  private void initialise(Map<ERConnectableObj, List<Attribute>> selectionInfo) {
     table = selectionInfo.keySet().iterator().next();
     attributes = selectionInfo.get(table);
     Optional<Attribute> pk = table instanceof Entity ? ((Entity) table).getAttributeList().stream()
@@ -29,6 +32,21 @@ public class VisualService {
         : ((Relationship) table).getAttributeList().stream().filter(Attribute::getIsPrimary)
             .findFirst();
     pk.ifPresent(attribute -> tablePK = attribute);
+  }
+
+  private String getForeignKeyName(String foreignKeyTableName, String primaryKeyTableName)
+      throws SQLException {
+    DatabaseMetaData metaData = Objects.requireNonNull(InputService.getJdbc().getDataSource())
+        .getConnection().getMetaData();
+    ResultSet foreignKeys = metaData.getImportedKeys(null, null, foreignKeyTableName);
+    while (foreignKeys.next()) {
+      String fkColumnName = foreignKeys.getString("FKCOLUMN_NAME");
+      String pkTableName = foreignKeys.getString("PKTABLE_NAME");
+      if (pkTableName.equals(primaryKeyTableName)) {
+        return fkColumnName;
+      }
+    }
+    return "";
   }
 
   public List<Map<String, Object>> queryBarChart(
@@ -76,7 +94,7 @@ public class VisualService {
   }
 
   public List<Map<String, Object>> queryLineChart(
-      Map<ERConnectableObj, List<Attribute>> selectionInfo) {
+      Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
@@ -91,21 +109,22 @@ public class VisualService {
         .filter(Attribute::getIsPrimary)
         .findFirst();
     assert primaryKey1.isPresent();
-    String unambiguityPrefix = table.getName() + ".";
     String query;
+    String fkStrongEntity = getForeignKeyName(table.getName(), strongEntity.getName());
     if (optional != null) {
-      query = "SELECT " + primaryKey1.get().getName() + ", " + tablePK.getName() + ", "
-          + unambiguityPrefix + attribute1.getName() + ", " + unambiguityPrefix + optional.getName()
-          + " FROM " + table.getName()
+      query = "SELECT " + strongEntity.getName() + "." + primaryKey1.get().getName() + ", "
+          + tablePK.getName() + ", " + table.getName() + "." + attribute1.getName() + ", "
+          + table.getName() + "." + optional.getName() + " FROM " + table.getName()
           + " INNER JOIN " + strongEntity.getName()
-          + " ON " + table.getName() + "." + strongEntity.getName() + " = "
+          + " ON " + table.getName() + "." + fkStrongEntity + " = "
           + strongEntity.getName() + "."
           + primaryKey1.get().getName();
     } else {
-      query = "SELECT " + primaryKey1.get().getName() + ", " + tablePK.getName() + ", "
-          + unambiguityPrefix + attribute1.getName() + " FROM " + table.getName()
+      query = "SELECT " + strongEntity.getName() + "." + primaryKey1.get().getName() + ", "
+          + tablePK.getName()
+          + ", " + table.getName() + "." + attribute1.getName() + " FROM " + table.getName()
           + " INNER JOIN " + strongEntity.getName()
-          + " ON " + table.getName() + "." + strongEntity.getName() + " = "
+          + " ON " + table.getName() + "." + fkStrongEntity + " = "
           + strongEntity.getName() + "."
           + primaryKey1.get().getName();
     }
@@ -113,7 +132,7 @@ public class VisualService {
   }
 
   public List<Map<String, Object>> queryStackedBarChart(
-      Map<ERConnectableObj, List<Attribute>> selectionInfo) {
+      Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
@@ -125,21 +144,19 @@ public class VisualService {
         .filter(Attribute::getIsPrimary)
         .findFirst();
     assert primaryKey1.isPresent();
-    String unambiguityPrefix = table.getName() + ".";
-    String query = "SELECT " + primaryKey1.get().getName() + ", " + tablePK.getName() + ", "
-        + unambiguityPrefix + attribute1.getName() + " FROM " + table.getName()
+    String fkStrongEntity = getForeignKeyName(table.getName(), strongEntity.getName());
+    String query = "SELECT " + strongEntity.getName() + "." + primaryKey1.get().getName() + ", "
+        + tablePK.getName() + ", "
+        + table.getName() + "." + attribute1.getName() + " FROM " + table.getName()
         + " INNER JOIN " + strongEntity.getName()
-        // todo: when accessing the column when join, there is risk using strongEntity.getName()
-        //  needs proper foreign key info!
-        + " ON " + table.getName() + "." + strongEntity.getName() + " = "
+        + " ON " + table.getName() + "." + fkStrongEntity + " = "
         + strongEntity.getName() + "."
         + primaryKey1.get().getName();
     return InputService.getJdbc().queryForList(query);
   }
 
-  // todo: same as query stacked bar chart, needs refactor
   public List<Map<String, Object>> querySpiderChart(
-      Map<ERConnectableObj, List<Attribute>> selectionInfo) {
+      Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
@@ -151,18 +168,19 @@ public class VisualService {
         .filter(Attribute::getIsPrimary)
         .findFirst();
     assert primaryKey1.isPresent();
-    String unambiguityPrefix = table.getName() + ".";
-    String query = "SELECT " + primaryKey1.get().getName() + ", " + tablePK.getName() + ", "
-        + unambiguityPrefix + attribute1.getName() + " FROM " + table.getName()
+    String fkStrongEntity = getForeignKeyName(table.getName(), strongEntity.getName());
+    String query = "SELECT " + strongEntity.getName() + "." + primaryKey1.get().getName() + ", "
+        + tablePK.getName() + ", "
+        + table.getName() + "." + attribute1.getName() + " FROM " + table.getName()
         + " INNER JOIN " + strongEntity.getName()
-        + " ON " + table.getName() + "." + strongEntity.getName() + " = "
+        + " ON " + table.getName() + "." + fkStrongEntity + " = "
         + strongEntity.getName() + "."
         + primaryKey1.get().getName();
     return InputService.getJdbc().queryForList(query);
   }
 
   public List<Map<String, Object>> queryTreeMapData(
-      Map<ERConnectableObj, List<Attribute>> selectionInfo) {
+      Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
@@ -175,21 +193,23 @@ public class VisualService {
         .filter(Attribute::getIsPrimary)
         .findFirst();
     assert parentKey.isPresent();
-    String unambiguityPrefix = table.getName() + ".";
+    String fkParentEntity = getForeignKeyName(table.getName(), parentEntity.getName());
     String query;
     if (optional != null) {
-      query = "SELECT " + parentKey.get().getName() + ", " + tablePK.getName() + ", "
-          + unambiguityPrefix + attribute1.getName() + unambiguityPrefix + optional.getName()
+      query = "SELECT " + parentEntity.getName() + "." + parentKey.get().getName() + ", "
+          + tablePK.getName() + ", "
+          + table.getName() + "." + attribute1.getName() + table.getName() + "." + optional.getName()
           + " FROM " + table.getName()
           + " INNER JOIN " + parentEntity.getName()
-          + " ON " + table.getName() + "." + parentEntity.getName() + " = "
+          + " ON " + table.getName() + "." + fkParentEntity + " = "
           + parentEntity.getName() + "."
           + parentKey.get().getName();
     } else {
-      query = "SELECT " + parentKey.get().getName() + ", " + tablePK.getName() + ", "
-          + unambiguityPrefix + attribute1.getName() + " FROM " + table.getName()
+      query = "SELECT " + parentEntity.getName() + "." + parentKey.get().getName() + ", "
+          + tablePK.getName() + ", "
+          + table.getName() + "." + attribute1.getName() + " FROM " + table.getName()
           + " INNER JOIN " + parentEntity.getName()
-          + " ON " + table.getName() + "." + parentEntity.getName() + " = "
+          + " ON " + table.getName() + "." + fkParentEntity + " = "
           + parentEntity.getName() + "."
           + parentKey.get().getName();
     }
@@ -197,7 +217,7 @@ public class VisualService {
   }
 
   public List<Map<String, Object>> queryHierarchyTreeData(
-      Map<ERConnectableObj, List<Attribute>> selectionInfo) {
+      Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
@@ -208,21 +228,23 @@ public class VisualService {
         .filter(Attribute::getIsPrimary)
         .findFirst();
     assert parentKey.isPresent();
-    String unambiguityPrefix = table.getName() + ".";
-    String query = "SELECT " + parentKey.get().getName() + ", " + tablePK.getName() + ", "
-        + unambiguityPrefix + attribute1.getName() + " FROM " + table.getName()
+    String fkParentEntity = getForeignKeyName(table.getName(), parentEntity.getName());
+    String query = "SELECT " + parentEntity.getName() + "." + parentKey.get().getName() + ", "
+        + tablePK.getName() + ", "
+        + table.getName() + "." + attribute1.getName() + " FROM " + table.getName()
         + " INNER JOIN " + parentEntity.getName()
-        + " ON " + table.getName() + "." + parentEntity.getName() + " = "
+        + " ON " + table.getName() + "." + fkParentEntity + " = "
         + parentEntity.getName() + "."
         + parentKey.get().getName();
     return InputService.getJdbc().queryForList(query);
   }
 
   public List<Map<String, Object>> querySankeyDiagramData(
-      Map<ERConnectableObj, List<Attribute>> selectionInfo) {
+      Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
+    // todo: handle optional attributes
     Attribute optional = iterator.hasNext() ? iterator.next() : null;
     Set<Entity> entities = ModelUtil.getManyManyEntities((Relationship) table);
     // todo: Reflexive case
@@ -243,15 +265,17 @@ public class VisualService {
           .filter(Attribute::getIsPrimary)
           .findFirst();
       assert entity2PK.isPresent();
+      String fkEntity1 = getForeignKeyName(table.getName(), entity1.getName());
+      String fkEntity2 = getForeignKeyName(table.getName(), entity2.getName());
       query =
           "SELECT " + entity1.getName() + "." + entity1PK.get().getName() + ", " + entity2.getName()
               + "." + entity2PK.get()
               .getName() + ", " + attribute1.getName()
               + " FROM " + entity1.getName() + " INNER JOIN " + table.getName() + " ON "
               + entity1.getName() + "." + entity1PK.get().getName() + " = " + table.getName() + "."
-              + entity1.getName() + " INNER JOIN " + entity2.getName() + " ON " + table.getName()
+              + fkEntity1 + " INNER JOIN " + entity2.getName() + " ON " + table.getName()
               + "."
-              + entity2.getName() + " = " + entity2.getName() + "." + entity2PK.get().getName();
+              + fkEntity2 + " = " + entity2.getName() + "." + entity2PK.get().getName();
     }
     assert query != null;
     return InputService.getJdbc().queryForList(query);
