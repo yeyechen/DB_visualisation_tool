@@ -254,7 +254,7 @@ public class VisualService {
     return InputService.getJdbc().queryForList(query);
   }
 
-  public List<Map<String, Object>> querySankeyDiagramData(
+  public List<Map<String, Object>> queryManyManyRelationshipData(
       Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
     Iterator<Attribute> iterator = attributes.iterator();
@@ -263,6 +263,7 @@ public class VisualService {
     Attribute optional = iterator.hasNext() ? iterator.next() : null;
     Set<Entity> entities = ModelUtil.getManyManyEntities((Relationship) table);
     String query = null;
+    // Reflexive case
     if (entities.size() == 1) {
       Entity entity = entities.iterator().next();
       Optional<Attribute> entityPK = entity.getAttributeList().stream()

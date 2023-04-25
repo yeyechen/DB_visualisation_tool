@@ -67,8 +67,14 @@ public class VisualController {
 
   @GetMapping("sankey_diagram_data")
   @ResponseBody
-  public List<Map<String, Object>> sankey_diagram_data() throws SQLException {
-    return visualService.querySankeyDiagramData(InputService.getSelectionInfo());
+  public List<Map<String, Object>> sankeyDiagramData() throws SQLException {
+    return visualService.queryManyManyRelationshipData(InputService.getSelectionInfo());
+  }
+
+  @GetMapping("chord_diagram_data")
+  @ResponseBody
+  public List<Map<String, Object>> chordDiagramData() throws SQLException {
+    return visualService.queryManyManyRelationshipData(InputService.getSelectionInfo());
   }
 
   /*-----------------------------------------*/
@@ -125,5 +131,10 @@ public class VisualController {
   @GetMapping("/sankey_diagram")
   public String sankey() {
     return "sankey_diagram";
+  }
+
+  @GetMapping("/chord_diagram")
+  public String chord() {
+    return "chord_diagram";
   }
 }
