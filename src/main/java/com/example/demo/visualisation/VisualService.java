@@ -34,7 +34,8 @@ public class VisualService {
     pk.ifPresent(attribute -> tablePK = attribute);
   }
 
-  private String getForeignKeyName(String foreignKeyTableName, String primaryKeyTableName)
+  private String getForeignKeyName(String foreignKeyTableName, String primaryKeyTableName,
+      String existingKeyName)
       throws SQLException {
     DatabaseMetaData metaData = Objects.requireNonNull(InputService.getJdbc().getDataSource())
         .getConnection().getMetaData();
@@ -42,11 +43,23 @@ public class VisualService {
     while (foreignKeys.next()) {
       String fkColumnName = foreignKeys.getString("FKCOLUMN_NAME");
       String pkTableName = foreignKeys.getString("PKTABLE_NAME");
-      if (pkTableName.equals(primaryKeyTableName)) {
+      if (pkTableName.equals(primaryKeyTableName) && !fkColumnName.equals(existingKeyName)) {
         return fkColumnName;
       }
     }
     return "";
+  }
+
+  private List<String> getCompoundForeignKeysName(String foreignKeyTableName,
+      String primaryKeyTableName) throws SQLException {
+    String fk1 = getForeignKeyName(foreignKeyTableName, primaryKeyTableName);
+    String fk2 = getForeignKeyName(foreignKeyTableName, primaryKeyTableName, fk1);
+    return List.of(fk1, fk2);
+  }
+
+  private String getForeignKeyName(String foreignKeyTableName, String primaryKeyTableName)
+      throws SQLException {
+    return getForeignKeyName(foreignKeyTableName, primaryKeyTableName, "");
   }
 
   public List<Map<String, Object>> queryBarChart(
@@ -249,10 +262,25 @@ public class VisualService {
     // todo: handle optional attributes
     Attribute optional = iterator.hasNext() ? iterator.next() : null;
     Set<Entity> entities = ModelUtil.getManyManyEntities((Relationship) table);
-    // todo: Reflexive case
     String query = null;
     if (entities.size() == 1) {
-
+      Entity entity = entities.iterator().next();
+      Optional<Attribute> entityPK = entity.getAttributeList().stream()
+          .filter(Attribute::getIsPrimary)
+          .findFirst();
+      assert entityPK.isPresent();
+      // assume reflexive relationship table has two foreign keys to the same entity
+      List<String> compoundFKs = getCompoundForeignKeysName(table.getName(), entity.getName());
+      Iterator<String> fkIterator = compoundFKs.iterator();
+      String fk1 = fkIterator.next();
+      String fk2 = fkIterator.next();
+      query =
+          "SELECT " + "r" + "." + fk1 + ", " + "r" + "." + fk2 + ", " + "r" + "."
+              + attribute1.getName()
+              + " FROM " + table.getName() + " r" + " JOIN " + entity.getName() + " e1" + " ON "
+              + "r" + "." + fk1 + " = " + "e1" + "."
+              + entityPK.get().getName() + " JOIN " + entity.getName() + " e2" + " ON " + "r" + "."
+              + fk2 + " = " + "e2" + "." + entityPK.get().getName();
     } else {
       Iterator<Entity> entityIterator = entities.iterator();
       Entity entity1 = entityIterator.next();

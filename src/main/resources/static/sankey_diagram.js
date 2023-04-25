@@ -167,7 +167,7 @@ d3.json("/sankey_diagram_data")
     links: data
   }, {
     nodeGroup: d => d.id.split(/\W/)[0], // take first word for color
-    format: (f => d => `${f(d)} TWh`)(d3.format(",.1~f")),
+    format: (f => d => `${f(d)}`)(d3.format(",.1~f")),
     width: 1200,
     height: 2400
   })
