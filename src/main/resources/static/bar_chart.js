@@ -78,7 +78,23 @@ d3.json("/bar_chart_data")
   const svg = BarChart(data);
   d3.select("body").append(() => svg);
 
+  d3.select("#sort").on("change", function() {
+    var keys = Object.keys(data[0]); // index: 0->k, 1->a1
+
+    var sortValue = d3.select("#sort").property("value");
+    console.log(sortValue);
+    var sortOrder = sortValue === "alpha" ? function(a, b) {
+      return d3.ascending(a[keys[0]], b[keys[0]]);
+    } : sortValue === "asc" ? function(a, b) {
+      return d3.ascending(a[keys[1]], b[keys[1]]);
+    } : function(a, b) {
+      return d3.descending(a[keys[1]], b[keys[1]]);
+    };
+    data.sort(sortOrder);
+    const svg = BarChart(data);
+
+    d3.select("body").select("svg").remove();
+    d3.select("body").append(() => svg);
+  });
+
 });
-
-
-
