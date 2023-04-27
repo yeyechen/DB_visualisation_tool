@@ -146,8 +146,6 @@ d3.json("/tree_map_data")
     return acc;
   }, { name: "data", children: [] });
 
-  console.log(groupedData);
-
   const svg = Treemap(groupedData, {
     value: d => d.value, // size of each node (file); null for internal nodes (folders)
     group: (d, n) => n.ancestors().slice(-2)[0].data.name, // e.g., "animate" in flare/animate/Easing; color

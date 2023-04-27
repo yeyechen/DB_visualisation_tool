@@ -1,5 +1,3 @@
-import { margin, width, height } from "./common.js";
-
 function Scatterplot(data, {
   x = ([x]) => x, // given d in data, returns the (quantitative) x-value
   y = ([, y]) => y, // given d in data, returns the (quantitative) y-value
@@ -122,4 +120,4 @@ d3.json("/scatter_diagram_data")
     stroke: "steelblue",
   })
   d3.select("body").append(() => svg);
-  })
+})

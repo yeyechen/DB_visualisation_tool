@@ -1,5 +1,3 @@
-import { margin, width, height } from "./common.js";
-
 function LineChart(data, {
   x = ([x]) => x, // given d in data, returns the (temporal) x-value
   y = ([, y]) => y, // given d in data, returns the (quantitative) y-value
@@ -150,10 +148,9 @@ d3.json("/line_chart_data")
     x: d => d[keys[1]],
     y: d => d[keys[2]],
     z: d => d[keys[0]],
-    xLabel: keys[1],
     yLabel: keys[2],
-    width,
-    height: 500,
+    width: 1800,
+    height: 1000,
     color: "steelblue"
   })
   d3.select("body").append(() => svg);
