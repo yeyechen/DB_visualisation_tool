@@ -93,7 +93,7 @@ public class InputController {
         table.put("option", options);
       }
       case REFLEXIVE_RELATIONSHIP -> {
-        options = Arrays.asList("Sankey Diagram", "Chord Diagram");
+        options = List.of("Chord Diagram");
         table.put("option", options);
       }
       case UNKNOWN -> {

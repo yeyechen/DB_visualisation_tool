@@ -37,8 +37,7 @@ function ChordDiagram(data, {
       .attr("d", arc);
 
   group.append("title")
-      .text(d => `${names[d.index]}
-${formatValue(d.value)}`);
+      .text(d => `${names[d.index]} ${formatValue(d.value)}`);
 
   const groupTick = group.append("g")
     .selectAll("g")
