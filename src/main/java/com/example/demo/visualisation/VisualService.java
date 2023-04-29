@@ -90,12 +90,12 @@ public class VisualService {
     Attribute attribute1 = iterator.next();
     Attribute attribute2 = iterator.next();
     Attribute attribute3 = iterator.next();
-    Attribute optional = iterator.hasNext() ? iterator.next() : null;
+    Attribute optionalAttr = iterator.hasNext() ? iterator.next() : null;
     String query;
-    if (optional != null) {
+    if (optionalAttr != null) {
       query =
           "SELECT " + tablePK.getName() + ", " + attribute1.getName() + ", " + attribute2.getName()
-              + ", " + attribute3.getName() + ", " + optional.getName() + " FROM "
+              + ", " + attribute3.getName() + ", " + optionalAttr.getName() + " FROM "
               + table.getName();
     } else {
       query =
@@ -111,36 +111,22 @@ public class VisualService {
     initialise(selectionInfo);
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
-    Attribute optional = iterator.hasNext() ? iterator.next() : null;
+    Attribute optionalAttr = iterator.hasNext() ? iterator.next() : null;
 
     // must be weak entity
     Entity strongEntity = ModelUtil.getRelatedStrongEntity((Entity) table,
         InputService.getSchema());
     assert strongEntity != null;
-    // primaryKey1 is k1, tablePK is k2
-    Optional<Attribute> primaryKey1 = strongEntity.getAttributeList().stream()
-        .filter(Attribute::getIsPrimary)
-        .findFirst();
-    assert primaryKey1.isPresent();
-    String query;
+    // fkStrongEntity is k1, tablePK is k2
     String fkStrongEntity = getForeignKeyName(table.getName(), strongEntity.getName());
-    if (optional != null) {
-      query = "SELECT " + strongEntity.getName() + "." + primaryKey1.get().getName() + ", "
-          + table.getName() + "." + tablePK.getName() + ", "
-          + table.getName() + "." + attribute1.getName() + ", "
-          + table.getName() + "." + optional.getName() + " FROM " + table.getName()
-          + " INNER JOIN " + strongEntity.getName()
-          + " ON " + table.getName() + "." + fkStrongEntity + " = "
-          + strongEntity.getName() + "."
-          + primaryKey1.get().getName();
+
+    String query;
+    if (optionalAttr != null) {
+      query = "SELECT " + fkStrongEntity + ", " + tablePK.getName() + ", " + attribute1.getName()
+          + ", " + optionalAttr.getName() + " FROM " + table.getName();
     } else {
-      query = "SELECT " + strongEntity.getName() + "." + primaryKey1.get().getName() + ", "
-          + table.getName() + "." + tablePK.getName()
-          + ", " + table.getName() + "." + attribute1.getName() + " FROM " + table.getName()
-          + " INNER JOIN " + strongEntity.getName()
-          + " ON " + table.getName() + "." + fkStrongEntity + " = "
-          + strongEntity.getName() + "."
-          + primaryKey1.get().getName();
+      query = "SELECT " + fkStrongEntity + ", " + tablePK.getName() + ", " + attribute1.getName()
+          + " FROM " + table.getName();
     }
     return InputService.getJdbc().queryForList(query);
   }
@@ -153,19 +139,11 @@ public class VisualService {
     Entity strongEntity = ModelUtil.getRelatedStrongEntity((Entity) table,
         InputService.getSchema());
     assert strongEntity != null;
-    // primaryKey1 is k1, tablePK is k2
-    Optional<Attribute> primaryKey1 = strongEntity.getAttributeList().stream()
-        .filter(Attribute::getIsPrimary)
-        .findFirst();
-    assert primaryKey1.isPresent();
+    // fkStrongEntity is k1, tablePK is k2
     String fkStrongEntity = getForeignKeyName(table.getName(), strongEntity.getName());
-    String query = "SELECT " + strongEntity.getName() + "." + primaryKey1.get().getName() + ", "
-        + table.getName() + "." + tablePK.getName() + ", "
-        + table.getName() + "." + attribute1.getName() + " FROM " + table.getName()
-        + " INNER JOIN " + strongEntity.getName()
-        + " ON " + table.getName() + "." + fkStrongEntity + " = "
-        + strongEntity.getName() + "."
-        + primaryKey1.get().getName();
+    String query =
+        "SELECT " + fkStrongEntity + ", " + tablePK.getName() + ", " + attribute1.getName()
+            + " FROM " + table.getName();
     return InputService.getJdbc().queryForList(query);
   }
 
@@ -177,19 +155,11 @@ public class VisualService {
     Entity strongEntity = ModelUtil.getRelatedStrongEntity((Entity) table,
         InputService.getSchema());
     assert strongEntity != null;
-    // primaryKey1 is k1, tablePK is k2
-    Optional<Attribute> primaryKey1 = strongEntity.getAttributeList().stream()
-        .filter(Attribute::getIsPrimary)
-        .findFirst();
-    assert primaryKey1.isPresent();
+
     String fkStrongEntity = getForeignKeyName(table.getName(), strongEntity.getName());
-    String query = "SELECT " + strongEntity.getName() + "." + primaryKey1.get().getName() + ", "
-        + table.getName() + "." + tablePK.getName() + ", "
-        + table.getName() + "." + attribute1.getName() + " FROM " + table.getName()
-        + " INNER JOIN " + strongEntity.getName()
-        + " ON " + table.getName() + "." + fkStrongEntity + " = "
-        + strongEntity.getName() + "."
-        + primaryKey1.get().getName();
+    String query =
+        "SELECT " + fkStrongEntity + ", " + tablePK.getName() + ", " + attribute1.getName()
+            + " FROM " + table.getName();
     return InputService.getJdbc().queryForList(query);
   }
 
@@ -198,35 +168,19 @@ public class VisualService {
     initialise(selectionInfo);
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
-    Attribute optional = iterator.hasNext() ? iterator.next() : null;
+    Attribute optionalAttr = iterator.hasNext() ? iterator.next() : null;
 
     Entity parentEntity = ModelUtil.getParentEntity((Entity) table,
         InputService.getSchema());
     assert parentEntity != null;
-    Optional<Attribute> parentKey = parentEntity.getAttributeList().stream()
-        .filter(Attribute::getIsPrimary)
-        .findFirst();
-    assert parentKey.isPresent();
     String fkParentEntity = getForeignKeyName(table.getName(), parentEntity.getName());
     String query;
-    if (optional != null) {
-      query = "SELECT " + parentEntity.getName() + "." + parentKey.get().getName() + ", "
-          + table.getName() + "." + tablePK.getName() + ", "
-          + table.getName() + "." + attribute1.getName() + ", "
-          + table.getName() + "." + optional.getName()
-          + " FROM " + table.getName()
-          + " INNER JOIN " + parentEntity.getName()
-          + " ON " + table.getName() + "." + fkParentEntity + " = "
-          + parentEntity.getName() + "."
-          + parentKey.get().getName();
+    if (optionalAttr != null) {
+      query = "SELECT " + fkParentEntity + ", " + tablePK.getName() + ", " + attribute1.getName()
+          + ", " + optionalAttr.getName() + " FROM " + table.getName();
     } else {
-      query = "SELECT " + parentEntity.getName() + "." + parentKey.get().getName() + ", "
-          + table.getName() + "." + tablePK.getName() + ", "
-          + table.getName() + "." + attribute1.getName() + " FROM " + table.getName()
-          + " INNER JOIN " + parentEntity.getName()
-          + " ON " + table.getName() + "." + fkParentEntity + " = "
-          + parentEntity.getName() + "."
-          + parentKey.get().getName();
+      query = "SELECT " + fkParentEntity + ", " + tablePK.getName() + ", " + attribute1.getName()
+          + " FROM " + table.getName();
     }
     return InputService.getJdbc().queryForList(query);
   }
@@ -234,23 +188,19 @@ public class VisualService {
   public List<Map<String, Object>> queryHierarchyTreeData(
       Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
-    Iterator<Attribute> iterator = attributes.iterator();
-    Attribute attribute1 = iterator.next();
+    Attribute optionalAttr = attributes.iterator().hasNext() ? attributes.iterator().next() : null;
     Entity parentEntity = ModelUtil.getParentEntity((Entity) table,
         InputService.getSchema());
     assert parentEntity != null;
-    Optional<Attribute> parentKey = parentEntity.getAttributeList().stream()
-        .filter(Attribute::getIsPrimary)
-        .findFirst();
-    assert parentKey.isPresent();
     String fkParentEntity = getForeignKeyName(table.getName(), parentEntity.getName());
-    String query = "SELECT " + parentEntity.getName() + "." + parentKey.get().getName() + ", "
-        + table.getName() + "." + tablePK.getName() + ", "
-        + table.getName() + "." + attribute1.getName() + " FROM " + table.getName()
-        + " INNER JOIN " + parentEntity.getName()
-        + " ON " + table.getName() + "." + fkParentEntity + " = "
-        + parentEntity.getName() + "."
-        + parentKey.get().getName();
+    String query;
+    if (optionalAttr != null) {
+      query = "SELECT " + fkParentEntity + ", " + tablePK.getName() + ", " + optionalAttr.getName()
+          + " FROM " + table.getName();
+    } else {
+      query =
+          "SELECT " + fkParentEntity + ", " + tablePK.getName() + " FROM " + table.getName();
+    }
     return InputService.getJdbc().queryForList(query);
   }
 
@@ -260,55 +210,30 @@ public class VisualService {
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
     // todo: handle optional attributes
-    Attribute optional = iterator.hasNext() ? iterator.next() : null;
+    Attribute optionalAttr = iterator.hasNext() ? iterator.next() : null;
     Set<Entity> entities = ModelUtil.getManyManyEntities((Relationship) table);
     String query = null;
     // Reflexive case
     if (entities.size() == 1) {
       Entity entity = entities.iterator().next();
-      Optional<Attribute> entityPK = entity.getAttributeList().stream()
-          .filter(Attribute::getIsPrimary)
-          .findFirst();
-      assert entityPK.isPresent();
       // assume reflexive relationship table has two foreign keys to the same entity
       List<String> compoundFKs = getCompoundForeignKeysName(table.getName(), entity.getName());
       Iterator<String> fkIterator = compoundFKs.iterator();
       String fk1 = fkIterator.next();
       String fk2 = fkIterator.next();
       query =
-          "SELECT " + "r" + "." + fk1 + ", " + "r" + "." + fk2 + ", " + "r" + "."
-              + attribute1.getName()
-              + " FROM " + table.getName() + " r" + " JOIN " + entity.getName() + " e1" + " ON "
-              + "r" + "." + fk1 + " = " + "e1" + "."
-              + entityPK.get().getName() + " JOIN " + entity.getName() + " e2" + " ON " + "r" + "."
-              + fk2 + " = " + "e2" + "." + entityPK.get().getName();
+          "SELECT " + fk1 + ", " + fk2 + ", " + attribute1.getName() + " FROM " + table.getName();
     } else {
       Iterator<Entity> entityIterator = entities.iterator();
       Entity entity1 = entityIterator.next();
       Entity entity2 = entityIterator.next();
 
-      Optional<Attribute> entity1PK = entity1.getAttributeList().stream()
-          .filter(Attribute::getIsPrimary)
-          .findFirst();
-      assert entity1PK.isPresent();
-
-      Optional<Attribute> entity2PK = entity2.getAttributeList().stream()
-          .filter(Attribute::getIsPrimary)
-          .findFirst();
-      assert entity2PK.isPresent();
       String fkEntity1 = getForeignKeyName(table.getName(), entity1.getName());
       String fkEntity2 = getForeignKeyName(table.getName(), entity2.getName());
       query =
-          "SELECT " + entity1.getName() + "." + entity1PK.get().getName() + ", " + entity2.getName()
-              + "." + entity2PK.get()
-              .getName() + ", " + table.getName() + "." + attribute1.getName()
-              + " FROM " + entity1.getName() + " INNER JOIN " + table.getName() + " ON "
-              + entity1.getName() + "." + entity1PK.get().getName() + " = " + table.getName() + "."
-              + fkEntity1 + " INNER JOIN " + entity2.getName() + " ON " + table.getName()
-              + "."
-              + fkEntity2 + " = " + entity2.getName() + "." + entity2PK.get().getName();
+          "SELECT " + fkEntity1 + ", " + fkEntity2 + ", " + attribute1.getName() + " FROM "
+              + table.getName();
     }
-    assert query != null;
     return InputService.getJdbc().queryForList(query);
   }
 }
