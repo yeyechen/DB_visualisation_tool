@@ -86,30 +86,18 @@ ${formatValue(d.value)}`);
   return svg.node();
 }
 
-data = Object.assign([
-  [.096899, .008859, .000554, .004430, .025471, .024363, .005537, .025471],
-  [.001107, .018272, .000000, .004983, .011074, .010520, .002215, .004983],
-  [.000554, .002769, .002215, .002215, .003876, .008306, .000554, .003322],
-  [.000554, .001107, .000554, .012182, .011628, .006645, .004983, .010520],
-  [.002215, .004430, .000000, .002769, .104097, .012182, .004983, .028239],
-  [.011628, .026024, .000000, .013843, .087486, .168328, .017165, .055925],
-  [.000554, .004983, .000000, .003322, .004430, .008859, .017719, .004430],
-  [.002215, .007198, .000000, .003322, .016611, .014950, .001107, .054264]
-], {
-  names: ["Apple", "HTC", "Huawei", "LG", "Nokia", "Samsung", "Sony", "Other"],
-  colors: ["#c4c4c4", "#69b40f", "#ec1d25", "#c8125c", "#008fc8", "#10218b", "#134b24", "#737373"]
-})
-
 d3.json("/chord_diagram_data")
   .then(function(data) {
 
-  const classes = Array.from(new Set(data.flatMap(({ country1, country2 }) => [country1, country2])));
-  const matrix = Array.from({ length: classes.length }, () => new Array(classes.length).fill(0));
+  var keys = Object.keys(data[0]); // index: 0->k_1, 1->k_2, 2->a1, 3->optional color
 
-  data.forEach(({ country1, country2, length }) => {
-    const row = classes.indexOf(country2);
-    const col = classes.indexOf(country1);
-    matrix[row][col] = length;
+  const classes = Array.from(new Set(data.flatMap(({ [keys[0]]: x, [keys[1]]: y }) => [x, y])));
+  const matrix = Array.from({ [keys[2]]: classes[keys[2]] }, () => new Array(classes[keys[2]]).fill(0));
+
+  data.forEach(({ [keys[0]]: x, [keys[1]]: y, [keys[2]]: value }) => {
+    const row = classes.indexOf(y);
+    const col = classes.indexOf(x);
+    matrix[row][col] = value;
   });
 
   const colorScale = d3.scaleOrdinal()
@@ -128,7 +116,6 @@ d3.json("/chord_diagram_data")
    names: classes,
    colors: colors
   });
-
   const svg = ChordDiagram(processedData, {})
   d3.select("body").append(() => svg);
 })

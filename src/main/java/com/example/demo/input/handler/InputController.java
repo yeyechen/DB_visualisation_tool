@@ -89,7 +89,7 @@ public class InputController {
         table.put("option", options);
       }
       case MANY_MANY_RELATIONSHIP -> {
-        options = List.of("Chord Diagram");
+        options = List.of("Sankey Diagram");
         table.put("option", options);
       }
       case REFLEXIVE_RELATIONSHIP -> {
