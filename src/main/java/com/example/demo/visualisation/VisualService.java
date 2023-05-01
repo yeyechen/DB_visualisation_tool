@@ -22,7 +22,7 @@ public class VisualService {
 
   private ERConnectableObj table;
   private List<Attribute> attributes;
-  private Attribute tablePK;
+  private Attribute tablePrimaryKey;
 
   private void initialise(Map<ERConnectableObj, List<Attribute>> selectionInfo) {
     table = selectionInfo.keySet().iterator().next();
@@ -31,7 +31,7 @@ public class VisualService {
         .filter(Attribute::getIsPrimary).findFirst()
         : ((Relationship) table).getAttributeList().stream().filter(Attribute::getIsPrimary)
             .findFirst();
-    pk.ifPresent(attribute -> tablePK = attribute);
+    pk.ifPresent(attribute -> tablePrimaryKey = attribute);
   }
 
   private String getForeignKeyName(String foreignKeyTableName, String primaryKeyTableName,
@@ -67,7 +67,7 @@ public class VisualService {
     initialise(selectionInfo);
     Attribute attribute = attributes.iterator().next();
     String query =
-        "SELECT " + tablePK.getName() + ", " + attribute.getName() + " FROM " + table.getName();
+        "SELECT " + tablePrimaryKey.getName() + ", " + attribute.getName() + " FROM " + table.getName();
     return InputService.getJdbc().queryForList(query);
   }
 
@@ -78,7 +78,7 @@ public class VisualService {
     Attribute attribute1 = iterator.next();
     Attribute attribute2 = iterator.next();
     String query =
-        "SELECT " + tablePK.getName() + ", " + attribute1.getName() + ", " + attribute2.getName()
+        "SELECT " + tablePrimaryKey.getName() + ", " + attribute1.getName() + ", " + attribute2.getName()
             + " FROM " + table.getName();
     return InputService.getJdbc().queryForList(query);
   }
@@ -94,12 +94,12 @@ public class VisualService {
     String query;
     if (optionalAttr != null) {
       query =
-          "SELECT " + tablePK.getName() + ", " + attribute1.getName() + ", " + attribute2.getName()
+          "SELECT " + tablePrimaryKey.getName() + ", " + attribute1.getName() + ", " + attribute2.getName()
               + ", " + attribute3.getName() + ", " + optionalAttr.getName() + " FROM "
               + table.getName();
     } else {
       query =
-          "SELECT " + tablePK.getName() + ", " + attribute1.getName() + ", " + attribute2.getName()
+          "SELECT " + tablePrimaryKey.getName() + ", " + attribute1.getName() + ", " + attribute2.getName()
               + ", " + attribute3.getName()
               + " FROM " + table.getName();
     }
@@ -122,10 +122,10 @@ public class VisualService {
 
     String query;
     if (optionalAttr != null) {
-      query = "SELECT " + fkStrongEntity + ", " + tablePK.getName() + ", " + attribute1.getName()
+      query = "SELECT " + fkStrongEntity + ", " + tablePrimaryKey.getName() + ", " + attribute1.getName()
           + ", " + optionalAttr.getName() + " FROM " + table.getName();
     } else {
-      query = "SELECT " + fkStrongEntity + ", " + tablePK.getName() + ", " + attribute1.getName()
+      query = "SELECT " + fkStrongEntity + ", " + tablePrimaryKey.getName() + ", " + attribute1.getName()
           + " FROM " + table.getName();
     }
     return InputService.getJdbc().queryForList(query);
@@ -142,7 +142,7 @@ public class VisualService {
     // fkStrongEntity is k1, tablePK is k2
     String fkStrongEntity = getForeignKeyName(table.getName(), strongEntity.getName());
     String query =
-        "SELECT " + fkStrongEntity + ", " + tablePK.getName() + ", " + attribute1.getName()
+        "SELECT " + fkStrongEntity + ", " + tablePrimaryKey.getName() + ", " + attribute1.getName()
             + " FROM " + table.getName();
     return InputService.getJdbc().queryForList(query);
   }
@@ -158,7 +158,7 @@ public class VisualService {
 
     String fkStrongEntity = getForeignKeyName(table.getName(), strongEntity.getName());
     String query =
-        "SELECT " + fkStrongEntity + ", " + tablePK.getName() + ", " + attribute1.getName()
+        "SELECT " + fkStrongEntity + ", " + tablePrimaryKey.getName() + ", " + attribute1.getName()
             + " FROM " + table.getName();
     return InputService.getJdbc().queryForList(query);
   }
@@ -176,10 +176,10 @@ public class VisualService {
     String fkParentEntity = getForeignKeyName(table.getName(), parentEntity.getName());
     String query;
     if (optionalAttr != null) {
-      query = "SELECT " + fkParentEntity + ", " + tablePK.getName() + ", " + attribute1.getName()
+      query = "SELECT " + fkParentEntity + ", " + tablePrimaryKey.getName() + ", " + attribute1.getName()
           + ", " + optionalAttr.getName() + " FROM " + table.getName();
     } else {
-      query = "SELECT " + fkParentEntity + ", " + tablePK.getName() + ", " + attribute1.getName()
+      query = "SELECT " + fkParentEntity + ", " + tablePrimaryKey.getName() + ", " + attribute1.getName()
           + " FROM " + table.getName();
     }
     return InputService.getJdbc().queryForList(query);
@@ -195,11 +195,11 @@ public class VisualService {
     String fkParentEntity = getForeignKeyName(table.getName(), parentEntity.getName());
     String query;
     if (optionalAttr != null) {
-      query = "SELECT " + fkParentEntity + ", " + tablePK.getName() + ", " + optionalAttr.getName()
+      query = "SELECT " + fkParentEntity + ", " + tablePrimaryKey.getName() + ", " + optionalAttr.getName()
           + " FROM " + table.getName();
     } else {
       query =
-          "SELECT " + fkParentEntity + ", " + tablePK.getName() + " FROM " + table.getName();
+          "SELECT " + fkParentEntity + ", " + tablePrimaryKey.getName() + " FROM " + table.getName();
     }
     return InputService.getJdbc().queryForList(query);
   }

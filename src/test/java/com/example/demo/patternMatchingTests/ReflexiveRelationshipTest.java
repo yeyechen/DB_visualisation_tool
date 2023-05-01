@@ -20,7 +20,7 @@ public class ReflexiveRelationshipTest {
 
   @Test
   public void mondialCountryTest() {
-    ModelType modelType = ModelUtil.patternMatching(testObject.getBorders(),
+    ModelType modelType = ModelUtil.patternMatch(testObject.getBorders(),
         testObject.getMondialSchema());
     assertEquals(modelType, ModelType.REFLEXIVE_RELATIONSHIP);
   }

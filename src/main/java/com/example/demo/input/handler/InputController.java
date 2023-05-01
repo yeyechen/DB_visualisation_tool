@@ -31,18 +31,18 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class InputController {
 
   @Autowired
-  InputService service;
+  InputService inputService;
 
   @PostMapping("/database-info")
   public String processDatabaseInfo(@RequestBody Map<String, String> formData)
       throws DBConnectionException, ParseException, SQLException {
-    service.initialise(formData);
+    inputService.initialise(formData);
     return "redirect:/selection";
   }
 
   @GetMapping("/attr-options")
   @ResponseBody
-  public List<Map<String, Object>> getOptions() {
+  public List<Map<String, Object>> getAttrOptions() {
     Schema schema = InputService.getSchema();
     List<Map<String, Object>> tables = new ArrayList<>();
     for (Entity entity : schema.getEntityList()) {
@@ -71,10 +71,10 @@ public class InputController {
 
   @GetMapping("/vis-options")
   @ResponseBody
-  public Map<String, Object> getOptionsVis() {
+  public Map<String, Object> getVisOptions() {
     Map<String, Object> table = new HashMap<>();
     List<String> options;
-    switch (service.getModelType()) {
+    switch (inputService.getModelType()) {
       case BASIC_ENTITY -> {
         options = Arrays.asList("Bar Chart", "Calendar", "Scatter Diagram",
             "Bubble Chart");
@@ -115,8 +115,8 @@ public class InputController {
 
   @PostMapping("/process-attr-selection")
   @ResponseBody
-  public String processAttrSelection(@RequestBody String selectedAttributesJSON) {
-    List<String> selectedAttributes = new Gson().fromJson(selectedAttributesJSON, List.class);
+  public String processAttrSelection(@RequestBody String selectedAttrJson) {
+    List<String> selectedAttributes = new Gson().fromJson(selectedAttrJson, List.class);
 
     Schema schema = InputService.getSchema();
 
@@ -157,14 +157,14 @@ public class InputController {
       }
     }
     // selectionInfo is not null for sure
-    service.patternMatchBasedOnSelection(selectionInfo);
+    inputService.patternMatchBasedOnSelection(selectionInfo);
     return selectedAttributes.toString();
   }
 
   @PostMapping("/process-vis-selection")
   @ResponseBody
-  public String processVisSelection(@RequestBody String selectedAttributesJSON) {
-    String formattedString = selectedAttributesJSON.toLowerCase().replace(" ", "_")
+  public String processVisSelection(@RequestBody String selectedVisJson) {
+    String formattedString = selectedVisJson.toLowerCase().replace(" ", "_")
         .replace("\"", "");
     return "/"+formattedString;
   }

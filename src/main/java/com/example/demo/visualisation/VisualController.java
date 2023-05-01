@@ -79,62 +79,62 @@ public class VisualController {
 
   /*-----------------------------------------*/
   @GetMapping("/input")
-  public String databaseInfo() {
+  public String databaseInputPage() {
     return "database";
   }
 
   @GetMapping("/selection")
-  public String select() {
+  public String selectionPage() {
     return "selection";
   }
 
   @GetMapping("/bar_chart")
-  public String bar() {
+  public String barChartPage() {
     return "bar_chart";
   }
 
   @GetMapping("/scatter_diagram")
-  public String scatter() {
+  public String scatterDiagramPage() {
     return "scatter_diagram";
   }
 
   @GetMapping("/bubble_chart")
-  public String bubble() {
+  public String bubbleChartPage() {
     return "bubble_chart";
   }
 
   @GetMapping("/line_chart")
-  public String line() {
+  public String lineChartPage() {
     return "line_chart";
   }
 
   @GetMapping("/stacked_bar_chart")
-  public String stacked() {
+  public String stackedBarChartPage() {
     return "stacked_bar_chart";
   }
 
   @GetMapping("/spider_chart")
-  public String spider() {
+  public String spiderChartPage() {
     return "spider_chart";
   }
 
   @GetMapping("/tree_map")
-  public String treeMap() {
+  public String treeMapPage() {
     return "tree_map";
   }
 
   @GetMapping("/hierarchy_tree")
-  public String hierarchyTree() {
+  public String hierarchyTreePage() {
     return "hierarchy_tree";
   }
 
   @GetMapping("/sankey_diagram")
-  public String sankey() {
+  public String sankeyDiagramPage() {
     return "sankey_diagram";
   }
 
   @GetMapping("/chord_diagram")
-  public String chord() {
+  public String chordDiagramPage() {
     return "chord_diagram";
   }
 }

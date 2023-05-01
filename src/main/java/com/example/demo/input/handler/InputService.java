@@ -15,7 +15,6 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.stereotype.Service;
@@ -23,16 +22,6 @@ import org.springframework.stereotype.Service;
 @Getter
 @Service
 public class InputService {
-
-  @Value("${spring.datasource.url}")
-  private String dbUrl;
-
-  @Value("${spring.datasource.username}")
-  private String dbUsername;
-
-  @Value("${spring.datasource.password}")
-  private String dbPassword;
-
 
   private ModelType modelType;
 
@@ -81,20 +70,18 @@ public class InputService {
   private void updateDatabaseDetails(RDBMSType dbType, String host, String port, String databaseName, String username, String password)
       throws ParseException {
 
-    dbUrl = DatabaseUtil.generateDatabaseURL(dbType, host, port, databaseName);
-    dbUsername = username;
-    dbPassword = password;
+    String dbUrl = DatabaseUtil.generateDatabaseURL(dbType, host, port, databaseName);
 
     // create datasource
     DriverManagerDataSource dataSource = new DriverManagerDataSource();
     dataSource.setUrl(dbUrl);
-    dataSource.setUsername(dbUsername);
-    dataSource.setPassword(dbPassword);
+    dataSource.setUsername(username);
+    dataSource.setPassword(password);
     jdbc = new JdbcTemplate(dataSource);
   }
 
   public void patternMatchBasedOnSelection(Map<ERConnectableObj, List<Attribute>> selectionInfo) {
-    modelType = ModelUtil.patternMatching(selectionInfo.keySet().iterator().next(), schema);
+    modelType = ModelUtil.patternMatch(selectionInfo.keySet().iterator().next(), schema);
     InputService.selectionInfo = selectionInfo;
   }
 }

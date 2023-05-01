@@ -22,7 +22,7 @@ public class ModelUtil {
   /**
    * The function pattern matches current user selection to one of the five ER models.
    */
-  public static ModelType patternMatching(ERConnectableObj object, Schema schema) {
+  public static ModelType patternMatch(ERConnectableObj object, Schema schema) {
     assert object != null;
 
     // two situations: user selected table is an Entity or a Relationship

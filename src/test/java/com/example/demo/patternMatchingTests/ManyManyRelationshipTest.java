@@ -20,7 +20,7 @@ public class ManyManyRelationshipTest {
 
   @Test
   public void mondialBelieveTest() {
-    ModelType modelType = ModelUtil.patternMatching(testObject.getBelieve(),
+    ModelType modelType = ModelUtil.patternMatch(testObject.getBelieve(),
         testObject.getMondialSchema());
     assertEquals(modelType, ModelType.MANY_MANY_RELATIONSHIP);
   }
