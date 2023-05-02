@@ -1,13 +1,8 @@
 package com.example.demo.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 /**
  * The different types of ER models
  */
-@AllArgsConstructor
-@Getter
 public enum ModelType {
   UNKNOWN,
   BASIC_ENTITY,
