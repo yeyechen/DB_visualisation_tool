@@ -106,7 +106,7 @@ function Pack(data, { // data is either tabular (array of objects) or hierarchy 
   return svg.node();
 }
 
-d3.json("/tree_map_data")
+d3.json("/circle_packing_data")
   .then(function(data) {
 
   var keys = Object.keys(data[0]); // index: 0->k_p, 1->k_c, 2->a1, 3->optional
