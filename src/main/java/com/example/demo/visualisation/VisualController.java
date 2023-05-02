@@ -19,19 +19,19 @@ public class VisualController {
 
   @GetMapping("/bar_chart_data")
   @ResponseBody
-  public List<Map<String, Object>> barChartData() {
+  public List<Map<String, Object>> barChartData() throws SQLException {
     return visualService.queryBarChart(InputService.getSelectionInfo());
   }
 
   @GetMapping("/scatter_diagram_data")
   @ResponseBody
-  public List<Map<String, Object>> scatterDiagramData() {
+  public List<Map<String, Object>> scatterDiagramData() throws SQLException {
     return visualService.queryScatterDiagram(InputService.getSelectionInfo());
   }
 
   @GetMapping("/bubble_chart_data")
   @ResponseBody
-  public List<Map<String, Object>> bubbleChartData() {
+  public List<Map<String, Object>> bubbleChartData() throws SQLException {
     return visualService.queryBubbleChart(InputService.getSelectionInfo());
   }
 

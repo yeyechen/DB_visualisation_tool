@@ -1,5 +1,7 @@
 package com.example.demo.visualisation;
 
+import com.example.demo.data.types.DataType;
+import com.example.demo.data.types.DataTypeUtil;
 import com.example.demo.input.handler.InputService;
 import com.example.demo.models.ModelUtil;
 import io.github.MigadaTang.Attribute;
@@ -15,6 +17,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.Assert;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -63,34 +66,74 @@ public class VisualService {
   }
 
   public List<Map<String, Object>> queryBarChart(
-      Map<ERConnectableObj, List<Attribute>> selectionInfo) {
+      Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
     Attribute attribute = attributes.iterator().next();
+    Assert.assertSame(
+        DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc()),
+        DataType.NUMERICAL);
     String query =
         "SELECT " + tablePrimaryKey.getName() + ", " + attribute.getName() + " FROM " + table.getName();
     return InputService.getJdbc().queryForList(query);
   }
 
   public List<Map<String, Object>> queryScatterDiagram(
-      Map<ERConnectableObj, List<Attribute>> selectionInfo) {
+      Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
+    Attribute optionalAttr = null;
+    for (Attribute attribute : attributes) {
+      if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
+          == DataType.LEXICAL) {
+        optionalAttr = attribute;
+        attributes.remove(attribute);
+      }
+    }
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
     Attribute attribute2 = iterator.next();
-    String query =
-        "SELECT " + tablePrimaryKey.getName() + ", " + attribute1.getName() + ", " + attribute2.getName()
-            + " FROM " + table.getName();
+    Assert.assertSame(
+        DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
+        DataType.NUMERICAL);
+    Assert.assertSame(
+        DataTypeUtil.getDataType(table.getName(), attribute2.getName(), InputService.getJdbc()),
+        DataType.NUMERICAL);
+    String query;
+    if (optionalAttr != null) {
+      query = "SELECT " + tablePrimaryKey.getName() + ", " + attribute1.getName() + ", "
+          + attribute2.getName() + ", " + optionalAttr.getName()
+          + " FROM " + table.getName();
+    } else {
+      query =
+          "SELECT " + tablePrimaryKey.getName() + ", " + attribute1.getName() + ", " + attribute2.getName()
+              + " FROM " + table.getName();
+    }
     return InputService.getJdbc().queryForList(query);
   }
 
   public List<Map<String, Object>> queryBubbleChart(
-      Map<ERConnectableObj, List<Attribute>> selectionInfo) {
+      Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
+    Attribute optionalAttr = null;
+    for (Attribute attribute : attributes) {
+      if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
+          == DataType.LEXICAL) {
+        optionalAttr = attribute;
+        attributes.remove(attribute);
+      }
+    }
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
     Attribute attribute2 = iterator.next();
     Attribute attribute3 = iterator.next();
-    Attribute optionalAttr = iterator.hasNext() ? iterator.next() : null;
+    Assert.assertSame(
+        DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
+        DataType.NUMERICAL);
+    Assert.assertSame(
+        DataTypeUtil.getDataType(table.getName(), attribute2.getName(), InputService.getJdbc()),
+        DataType.NUMERICAL);
+    Assert.assertSame(
+        DataTypeUtil.getDataType(table.getName(), attribute3.getName(), InputService.getJdbc()),
+        DataType.NUMERICAL);
     String query;
     if (optionalAttr != null) {
       query =
@@ -112,16 +155,23 @@ public class VisualService {
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
     Attribute optionalAttr = iterator.hasNext() ? iterator.next() : null;
-
+    Assert.assertSame(
+        DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
+        DataType.NUMERICAL);
     // must be weak entity
     Entity strongEntity = ModelUtil.getRelatedStrongEntity((Entity) table,
         InputService.getSchema());
-    assert strongEntity != null;
+    Assert.assertNotNull(strongEntity);
     // fkStrongEntity is k1, tablePK is k2
     String fkStrongEntity = getForeignKeyName(table.getName(), strongEntity.getName());
-
+    Assert.assertSame(
+        DataTypeUtil.getDataType(table.getName(), tablePrimaryKey.getName(), InputService.getJdbc()),
+        DataType.NUMERICAL);
     String query;
     if (optionalAttr != null) {
+      Assert.assertSame(
+          DataTypeUtil.getDataType(table.getName(), optionalAttr.getName(), InputService.getJdbc()),
+          DataType.NUMERICAL);
       query = "SELECT " + fkStrongEntity + ", " + tablePrimaryKey.getName() + ", " + attribute1.getName()
           + ", " + optionalAttr.getName() + " FROM " + table.getName();
     } else {
@@ -136,9 +186,12 @@ public class VisualService {
     initialise(selectionInfo);
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
+    Assert.assertSame(
+        DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
+        DataType.NUMERICAL);
     Entity strongEntity = ModelUtil.getRelatedStrongEntity((Entity) table,
         InputService.getSchema());
-    assert strongEntity != null;
+    Assert.assertNotNull(strongEntity);
     // fkStrongEntity is k1, tablePK is k2
     String fkStrongEntity = getForeignKeyName(table.getName(), strongEntity.getName());
     String query =
@@ -152,10 +205,12 @@ public class VisualService {
     initialise(selectionInfo);
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
+    Assert.assertSame(
+        DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
+        DataType.NUMERICAL);
     Entity strongEntity = ModelUtil.getRelatedStrongEntity((Entity) table,
         InputService.getSchema());
-    assert strongEntity != null;
-
+    Assert.assertNotNull(strongEntity);
     String fkStrongEntity = getForeignKeyName(table.getName(), strongEntity.getName());
     String query =
         "SELECT " + fkStrongEntity + ", " + tablePrimaryKey.getName() + ", " + attribute1.getName()
@@ -166,13 +221,21 @@ public class VisualService {
   public List<Map<String, Object>> queryTreeMapData(
       Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
+    Attribute optionalAttr = null;
+    for (Attribute attribute : attributes) {
+      if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
+          == DataType.LEXICAL) {
+        optionalAttr = attribute;
+        attributes.remove(attribute);
+      }
+    }
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
-    Attribute optionalAttr = iterator.hasNext() ? iterator.next() : null;
-
+    Assert.assertSame(DataTypeUtil.getDataType(table.getName(), attribute1.getName(),
+        InputService.getJdbc()), DataType.NUMERICAL);
     Entity parentEntity = ModelUtil.getParentEntity((Entity) table,
         InputService.getSchema());
-    assert parentEntity != null;
+    Assert.assertNotNull(parentEntity);
     String fkParentEntity = getForeignKeyName(table.getName(), parentEntity.getName());
     String query;
     if (optionalAttr != null) {
@@ -185,16 +248,19 @@ public class VisualService {
     return InputService.getJdbc().queryForList(query);
   }
 
+  // todo: handle no mandatory attribute
   public List<Map<String, Object>> queryHierarchyTreeData(
       Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
     Attribute optionalAttr = attributes.iterator().hasNext() ? attributes.iterator().next() : null;
     Entity parentEntity = ModelUtil.getParentEntity((Entity) table,
         InputService.getSchema());
-    assert parentEntity != null;
+    Assert.assertNotNull(parentEntity);
     String fkParentEntity = getForeignKeyName(table.getName(), parentEntity.getName());
     String query;
     if (optionalAttr != null) {
+      Assert.assertSame(DataTypeUtil.getDataType(table.getName(), optionalAttr.getName(),
+          InputService.getJdbc()), DataType.LEXICAL);
       query = "SELECT " + fkParentEntity + ", " + tablePrimaryKey.getName() + ", " + optionalAttr.getName()
           + " FROM " + table.getName();
     } else {
@@ -207,12 +273,22 @@ public class VisualService {
   public List<Map<String, Object>> queryManyManyRelationshipData(
       Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
+    Attribute optionalAttr = null;
+    for (Attribute attribute : attributes) {
+      if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
+          == DataType.LEXICAL) {
+        optionalAttr = attribute;
+        attributes.remove(attribute);
+      }
+    }
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
+    Assert.assertSame(
+        DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
+        DataType.NUMERICAL);
     // todo: handle optional attributes
-    Attribute optionalAttr = iterator.hasNext() ? iterator.next() : null;
     Set<Entity> entities = ModelUtil.getManyManyEntities((Relationship) table);
-    String query = null;
+    String query;
     // Reflexive case
     if (entities.size() == 1) {
       Entity entity = entities.iterator().next();
