@@ -47,6 +47,12 @@ public class VisualController {
     return visualService.queryStackedBarChart(InputService.getSelectionInfo());
   }
 
+  @GetMapping("/grouped_bar_chart_data")
+  @ResponseBody
+  public List<Map<String, Object>> groupedBarChartData() throws SQLException {
+    return visualService.queryGroupedBarChart(InputService.getSelectionInfo());
+  }
+
   @GetMapping("spider_chart_data")
   @ResponseBody
   public List<Map<String, Object>> spiderChartData() throws SQLException {
@@ -117,6 +123,11 @@ public class VisualController {
   @GetMapping("/stacked_bar_chart")
   public String stackedBarChartPage() {
     return "stacked_bar_chart";
+  }
+
+  @GetMapping("/grouped_bar_chart")
+  public String groupedBarChartPage() {
+    return "grouped_bar_chart";
   }
 
   @GetMapping("/spider_chart")
