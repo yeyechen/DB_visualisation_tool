@@ -7,6 +7,8 @@ function Scatterplot(data, {
   marginRight = 30, // right margin, in pixels
   marginBottom = 30, // bottom margin, in pixels
   marginLeft = 100, // left margin, in pixels
+  height = 700,
+  width = 600,
   inset = r * 2, // inset the default range, in pixels
   insetTop = inset, // inset the default y-range
   insetRight = inset, // inset the default x-range
