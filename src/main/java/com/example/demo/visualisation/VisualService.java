@@ -270,6 +270,36 @@ public class VisualService {
     return InputService.getJdbc().queryForList(query);
   }
 
+  public List<Map<String, Object>> queryCirclePacking(Map<ERConnectableObj, List<Attribute>> selectionInfo)
+      throws SQLException {
+    initialise(selectionInfo);
+    Attribute optionalAttr = null;
+    for (Attribute attribute : attributes) {
+      if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
+          == DataType.LEXICAL) {
+        optionalAttr = attribute;
+        attributes.remove(attribute);
+      }
+    }
+    Iterator<Attribute> iterator = attributes.iterator();
+    Attribute attribute1 = iterator.next();
+    Assert.assertSame(DataTypeUtil.getDataType(table.getName(), attribute1.getName(),
+        InputService.getJdbc()), DataType.NUMERICAL);
+    Entity parentEntity = ModelUtil.getParentEntity((Entity) table,
+        InputService.getSchema());
+    Assert.assertNotNull(parentEntity);
+    String fkParentEntity = getForeignKeyName(table.getName(), parentEntity.getName());
+    String query;
+    if (optionalAttr != null) {
+      query = "SELECT " + fkParentEntity + ", " + tablePrimaryKey.getName() + ", " + attribute1.getName()
+          + ", " + optionalAttr.getName() + " FROM " + table.getName();
+    } else {
+      query = "SELECT " + fkParentEntity + ", " + tablePrimaryKey.getName() + ", " + attribute1.getName()
+          + " FROM " + table.getName();
+    }
+    return InputService.getJdbc().queryForList(query);
+  }
+
   public List<Map<String, Object>> queryManyManyRelationshipData(
       Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);

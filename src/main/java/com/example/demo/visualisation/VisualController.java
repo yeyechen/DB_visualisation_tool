@@ -65,6 +65,12 @@ public class VisualController {
     return visualService.queryHierarchyTreeData(InputService.getSelectionInfo());
   }
 
+  @GetMapping("circle_packing_data")
+  @ResponseBody
+  public List<Map<String, Object>> circlePackingData() throws SQLException {
+    return visualService.queryCirclePacking(InputService.getSelectionInfo());
+  }
+
   @GetMapping("sankey_diagram_data")
   @ResponseBody
   public List<Map<String, Object>> sankeyDiagramData() throws SQLException {
@@ -126,6 +132,11 @@ public class VisualController {
   @GetMapping("/hierarchy_tree")
   public String hierarchyTreePage() {
     return "hierarchy_tree";
+  }
+
+  @GetMapping("/circle_packing")
+  public String circlePackingPage() {
+    return "circle_packing";
   }
 
   @GetMapping("/sankey_diagram")

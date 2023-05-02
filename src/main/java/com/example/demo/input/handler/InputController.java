@@ -77,15 +77,16 @@ public class InputController {
     switch (inputService.getModelType()) {
       case BASIC_ENTITY -> {
         options = Arrays.asList("Bar Chart", "Calendar", "Scatter Diagram",
-            "Bubble Chart");
+            "Bubble Chart", "Choropleth Map", "Word Cloud");
         table.put("option", options);
       }
       case WEAK_ENTITY -> {
-        options = Arrays.asList("Line Chart", "Stacked Bar Chart", "Spider Chart");
+        options = Arrays.asList("Line Chart", "Stacked Bar Chart", "Grouped Bar Chart",
+            "Spider Chart");
         table.put("option", options);
       }
       case ONE_MANY_RELATIONSHIP -> {
-        options = Arrays.asList("Tree Map", "Hierarchy Tree");
+        options = Arrays.asList("Tree Map", "Hierarchy Tree", "Circle Packing");
         table.put("option", options);
       }
       case MANY_MANY_RELATIONSHIP -> {
@@ -166,6 +167,6 @@ public class InputController {
   public String processVisSelection(@RequestBody String selectedVisJson) {
     String formattedString = selectedVisJson.toLowerCase().replace(" ", "_")
         .replace("\"", "");
-    return "/"+formattedString;
+    return "/" + formattedString;
   }
 }
