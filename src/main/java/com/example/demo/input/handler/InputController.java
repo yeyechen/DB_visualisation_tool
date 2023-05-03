@@ -103,11 +103,13 @@ public class InputController {
         // handle Subset case, treat Subset the same as Basic Entity, with extra pk from the main entity
         if (obj instanceof Entity && ((Entity) obj).getEntityType() == EntityType.SUBSET) {
           options = Arrays.asList("Bar Chart", "Calendar", "Scatter Diagram",
-              "Bubble Chart");
+              "Bubble Chart", "Choropleth Map", "Word Cloud");
           table.put("option", options);
-
-          ((Entity) obj).addPrimaryKey(((Entity) obj).getBelongStrongEntity().getName(),
-              DataType.TEXT);
+          try {
+            ((Entity) obj).addPrimaryKey(((Entity) obj).getBelongStrongEntity().getName(),
+                DataType.TEXT);
+          } catch (Exception ignored) {
+          }
         }
       }
     }

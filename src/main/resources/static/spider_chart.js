@@ -1,5 +1,5 @@
 // Spider chart function, written by Nadieh Bremer, VisualCinnamon.com
-function SpiderChart(id, data, options) {
+function RadarChart(id, data, options) {
 	var cfg = {
 	 w: 600,				//Width of the circle
 	 h: 600,				//Height of the circle
@@ -16,31 +16,15 @@ function SpiderChart(id, data, options) {
 	 color: d3.scaleOrdinal(d3.schemeCategory10)	//Color function
 	};
 
-  var keys = Object.keys(data[0]); // index: 0->k1, 1->k2, 2->a1
-
-  data = data.reduce(function(obj, item) {
-    if (!obj[item.name]) {
-      obj[item.name] = [];
-    }
-    obj[item.name].push(item);
-    return obj;
-  }, {});
-
-  data = Object.values(data).map(function(group) {
-    return group.map(function(item) {
-      return {axis: item[keys[1]], value: item[keys[2]]};
-    });
-  });
-
 	//Put all of the options into a variable called cfg
 	if('undefined' !== typeof options){
 	  for(var i in options){
 		if('undefined' !== typeof options[i]){ cfg[i] = options[i]; }
 	  }//for i
 	}//if
-	
+
 	//If the supplied maxValue is smaller than the actual one, replace by the max in the data
-	var maxValue = Math.max(cfg.maxValue, d3.max(data, function(i){return d3.max(i.map(function(o){return o[keys[2]];}))}));
+	var maxValue = Math.max(cfg.maxValue, d3.max(data, function(i){return d3.max(i.map(function(o){return o.value;}))}));
 
 	var allAxis = (data[0].map(function(i, j){return i.axis})),	//Names of each axis
 		total = allAxis.length,					//The number of different axes
@@ -149,11 +133,11 @@ function SpiderChart(id, data, options) {
 	//The radial line function
 	var radarLine = d3.lineRadial()
 	  .curve(d3.curveBasisClosed)
-		.radius(function(d) { return rScale(d[keys[2]]); })
+		.radius(function(d) { return rScale(d.value); })
 		.angle(function(d,i) {	return i*angleSlice; });
 
 	if(cfg.roundStrokes) {
-		radarLine.curve(d3.curveCardinalClosed)
+		radarLine.curve(d3.curveCardinalClosed);
 	}
 
 	//Create a wrapper for the blobs
@@ -201,8 +185,8 @@ function SpiderChart(id, data, options) {
 		.enter().append("circle")
 		.attr("class", "radarCircle")
 		.attr("r", cfg.dotRadius)
-		.attr("cx", function(d,i){ return rScale(d[keys[2]]) * Math.cos(angleSlice*i - Math.PI/2); })
-		.attr("cy", function(d,i){ return rScale(d[keys[2]]) * Math.sin(angleSlice*i - Math.PI/2); })
+		.attr("cx", function(d,i){ return rScale(d.value) * Math.cos(angleSlice*i - Math.PI/2); })
+		.attr("cy", function(d,i){ return rScale(d.value) * Math.sin(angleSlice*i - Math.PI/2); })
 		.style("fill", function(d,i,j) { return cfg.color(j); })
 		.style("fill-opacity", 0.8);
 
@@ -222,8 +206,8 @@ function SpiderChart(id, data, options) {
 		.enter().append("circle")
 		.attr("class", "radarInvisibleCircle")
 		.attr("r", cfg.dotRadius*1.5)
-		.attr("cx", function(d,i){ return rScale(d[keys[2]]) * Math.cos(angleSlice*i - Math.PI/2); })
-		.attr("cy", function(d,i){ return rScale(d[keys[2]]) * Math.sin(angleSlice*i - Math.PI/2); })
+		.attr("cx", function(d,i){ return rScale(d.value) * Math.cos(angleSlice*i - Math.PI/2); })
+		.attr("cy", function(d,i){ return rScale(d.value) * Math.sin(angleSlice*i - Math.PI/2); })
 		.style("fill", "none")
 		.style("pointer-events", "all")
 		.on("mouseover", function(d,i) {
@@ -233,7 +217,7 @@ function SpiderChart(id, data, options) {
 			tooltip
 				.attr('x', newX)
 				.attr('y', newY)
-				.text(Format(i[keys[2]]))
+				.text(Format(i.value))
 				.transition().duration(200)
 				.style('opacity', 1);
 		})
@@ -279,4 +263,4 @@ function SpiderChart(id, data, options) {
 	  });
 	}//wrap
 
-}
+}//RadarChart

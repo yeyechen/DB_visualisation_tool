@@ -17,7 +17,6 @@ public class DataTypeUtil {
     int dataType = 0; // 0 is NULL type in SQL
     if (rs.next()) {
       dataType = rs.getInt("DATA_TYPE");
-      System.out.println(dataType);
     }
     DataType result = getDataTypeBasedOnSQLType(dataType);
     assert
@@ -31,7 +30,7 @@ public class DataTypeUtil {
       case Types.DATE, Types.TIMESTAMP -> DataType.TEMPORAL;
       case Types.CHAR, Types.VARCHAR, Types.LONGVARCHAR, Types.NVARCHAR, Types.LONGNVARCHAR -> DataType.LEXICAL;
       case Types.OTHER -> DataType.GEOGRAPHICAL;
-      default -> null;
+      default -> DataType.OTHER;
     };
   }
 }

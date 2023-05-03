@@ -6,5 +6,6 @@ public enum DataType {
   TEMPORAL,
   // discrete:
   LEXICAL,
-  GEOGRAPHICAL
+  GEOGRAPHICAL,
+  OTHER
 }

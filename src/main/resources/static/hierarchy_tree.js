@@ -125,7 +125,7 @@ d3.json("/hierarchy_tree_data")
       acc.children.push({ "name": code, "children": [{ "name": curr[keys[1]], "value": curr[keys[2]] }] });
     }
     return acc;
-  }, { name: "data", children: [] });
+  }, { name: "", children: [] });
 
   const svg = Tree(groupedData, {
     label: d => d.name,

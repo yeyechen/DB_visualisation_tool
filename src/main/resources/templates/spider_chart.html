@@ -1,34 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.24.0/d3-legend.js"></script>
 <head>
   <meta charset="UTF-8">
   <title>spider chart</title>
 </head>
 <body>
 <script src = "spider_chart.js"></script>
-<div class="spiderChart"></div>
+<div class="spiderChart" id="spiderChart"></div>
 <script>
       var margin = {top: 100, right: 100, bottom: 100, left: 100},
       width = Math.min(700, window.innerWidth - 10) - margin.left - margin.right,
       height = Math.min(width, window.innerHeight - margin.top - margin.bottom - 20);
 
-			var color = d3.scaleOrdinal()
-				.range(["#EDC951","#CC333F","#00A0B0"]);
-
-			var spiderChartOptions = {
-			  w: width,
-			  h: height,
-			  margin: margin,
-			  maxValue: 0.5,
-			  levels: 5,
-			  roundStrokes: true,
-			  color: color
-			};
-
       d3.json("/spider_chart_data")
         .then(function(data) {
-        SpiderChart(".spiderChart", data, spiderChartOptions);
+
+        var keys = Object.keys(data[0]);
+
+        const grouped = Object.values(data.reduce((acc, cur) => {
+          const brand = cur[keys[0]];
+          const axis = cur[keys[1]];
+          const value = cur[keys[2]];
+          if (!acc[brand]) {
+            acc[brand] = {
+              brand: brand,
+              values: []
+            };
+          }
+          acc[brand].values.push({axis: axis, value: value});
+          return acc;
+        }, {})).map(obj => obj.values);
+
+        const brand = data.reduce((acc, cur) => {
+          const axis = cur[keys[0]];
+          if (!acc.includes(axis)) {
+            acc.push(axis);
+          }
+          return acc;
+        }, []);
+
+        const color = d3.scaleOrdinal()
+          .domain(brand)
+          .range(d3.schemeCategory10);
+
+        var spiderChartOptions = {
+          w: width,
+          h: height,
+          margin: margin,
+          maxValue: 0.5,
+          levels: 5,
+          roundStrokes: true,
+          color: color
+        };
+
+<!--        const svg = d3.select("#spiderChart");-->
+
+<!--        svg.append("g")-->
+<!--          .attr("class", "legendOrdinal")-->
+<!--          .attr("tranform", "translate(20,20)");-->
+
+<!--        var ordinal = d3.scaleOrdinal()-->
+<!--          .domain(brand)-->
+<!--          .range(brand.map((val, i) =>-->
+<!--            d3.interpolateYlGnBu(i / (brand.length - 1))-->
+<!--          ));-->
+
+<!--        var legendOrdinal = d3.legendColor()-->
+<!--          .scale(ordinal);-->
+
+<!--        svg.select(".legendOrdinal")-->
+<!--          .call(legendOrdinal);-->
+
+        RadarChart(".spiderChart", grouped, spiderChartOptions);
       })
 </script>
 </body>
