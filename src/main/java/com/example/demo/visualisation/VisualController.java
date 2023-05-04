@@ -80,13 +80,19 @@ public class VisualController {
   @GetMapping("sankey_diagram_data")
   @ResponseBody
   public List<Map<String, Object>> sankeyDiagramData() throws SQLException {
-    return visualService.queryManyManyRelationshipData(InputService.getSelectionInfo());
+    return visualService.querySankeyDiagramData(InputService.getSelectionInfo());
+  }
+
+  @GetMapping("network_chart_data")
+  @ResponseBody
+  public List<Map<String, Object>> networkChartData() throws SQLException {
+    return visualService.queryChordDiagramData(InputService.getSelectionInfo());
   }
 
   @GetMapping("chord_diagram_data")
   @ResponseBody
   public List<Map<String, Object>> chordDiagramData() throws SQLException {
-    return visualService.queryManyManyRelationshipData(InputService.getSelectionInfo());
+    return visualService.queryChordDiagramData(InputService.getSelectionInfo());
   }
 
   /*-----------------------------------------*/
@@ -153,6 +159,11 @@ public class VisualController {
   @GetMapping("/sankey_diagram")
   public String sankeyDiagramPage() {
     return "sankey_diagram";
+  }
+
+  @GetMapping("/network_chart")
+  public String networkChartPage() {
+    return "network_chart";
   }
 
   @GetMapping("/chord_diagram")

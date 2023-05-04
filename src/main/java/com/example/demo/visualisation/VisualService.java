@@ -333,7 +333,7 @@ public class VisualService {
     return InputService.getJdbc().queryForList(query);
   }
 
-  public List<Map<String, Object>> queryManyManyRelationshipData(
+  public List<Map<String, Object>> querySankeyDiagramData(
       Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
     Attribute optionalAttr = null;
@@ -349,30 +349,61 @@ public class VisualService {
     Assert.assertSame(
         DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
         DataType.NUMERICAL);
-    // todo: handle optional attributes
     Set<Entity> entities = ModelUtil.getManyManyEntities((Relationship) table);
+    Assert.assertEquals(entities.size(), 2);
+    Iterator<Entity> entityIterator = entities.iterator();
+    Entity entity1 = entityIterator.next();
+    Entity entity2 = entityIterator.next();
+    String fkEntity1 = getForeignKeyName(table.getName(), entity1.getName());
+    String fkEntity2 = getForeignKeyName(table.getName(), entity2.getName());
     String query;
-    // Reflexive case
-    if (entities.size() == 1) {
-      Entity entity = entities.iterator().next();
-      // assume reflexive relationship table has two foreign keys to the same entity
-      List<String> compoundFKs = getCompoundForeignKeysName(table.getName(), entity.getName());
-      Iterator<String> fkIterator = compoundFKs.iterator();
-      String fk1 = fkIterator.next();
-      String fk2 = fkIterator.next();
+    if (optionalAttr != null) {
       query =
-          "SELECT " + fk1 + ", " + fk2 + ", " + attribute1.getName() + " FROM " + table.getName();
+          "SELECT " + fkEntity1 + ", " + fkEntity2 + ", " + attribute1.getName() + ", "
+              + optionalAttr.getName() + " FROM " + table.getName();
     } else {
-      Iterator<Entity> entityIterator = entities.iterator();
-      Entity entity1 = entityIterator.next();
-      Entity entity2 = entityIterator.next();
-
-      String fkEntity1 = getForeignKeyName(table.getName(), entity1.getName());
-      String fkEntity2 = getForeignKeyName(table.getName(), entity2.getName());
       query =
           "SELECT " + fkEntity1 + ", " + fkEntity2 + ", " + attribute1.getName() + " FROM "
               + table.getName();
     }
+    return InputService.getJdbc().queryForList(query);
+  }
+
+  public List<Map<String, Object>> queryChordDiagramData(
+      Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
+    initialise(selectionInfo);
+    Attribute optionalAttr = null;
+    for (Attribute attribute : attributes) {
+      if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
+          == DataType.LEXICAL) {
+        optionalAttr = attribute;
+        attributes.remove(attribute);
+      }
+    }
+    Iterator<Attribute> iterator = attributes.iterator();
+    Attribute attribute1 = iterator.next();
+    Assert.assertSame(
+        DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
+        DataType.NUMERICAL);
+    Set<Entity> entities = ModelUtil.getManyManyEntities((Relationship) table);
+    Assert.assertEquals(entities.size(), 1);
+    String query;
+
+    Entity entity = entities.iterator().next();
+    // assume reflexive relationship table has two foreign keys to the same entity
+    List<String> compoundFKs = getCompoundForeignKeysName(table.getName(), entity.getName());
+    Iterator<String> fkIterator = compoundFKs.iterator();
+    String fk1 = fkIterator.next();
+    String fk2 = fkIterator.next();
+    if (optionalAttr != null) {
+      query =
+          "SELECT " + fk1 + ", " + fk2 + ", " + attribute1.getName() + ", "
+              + optionalAttr.getName() + " FROM " + table.getName();
+    } else {
+      query =
+          "SELECT " + fk1 + ", " + fk2 + ", " + attribute1.getName() + " FROM " + table.getName();
+    }
+
     return InputService.getJdbc().queryForList(query);
   }
 }
