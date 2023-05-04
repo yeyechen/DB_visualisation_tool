@@ -18,8 +18,6 @@
 
         var keys = Object.keys(data[0]);
 
-        console.log(data);
-
         // extract all unique axis values from data
         const uniqueAxes = [...new Set(data.map(item => item[keys[1]]))];
 
@@ -43,9 +41,6 @@
 
           return acc;
         }, {})).map(obj => obj.values);
-
-
-        console.log(grouped);
 
         const brand = data.reduce((acc, cur) => {
           const axis = cur[keys[0]];
