@@ -13,7 +13,8 @@ function RadarChart(id, data, options) {
 	 opacityCircles: 0.1, 	//The opacity of the circles of each blob
 	 strokeWidth: 2, 		//The width of the stroke around each blob
 	 roundStrokes: false,	//If true the area and stroke will follow a round path (cardinal-closed)
-	 color: d3.scaleOrdinal(d3.schemeCategory10)	//Color function
+	 color: d3.scaleOrdinal(d3.schemeCategory10),	//Color function
+	 brand:[]
 	};
 
 	//Put all of the options into a variable called cfg
@@ -63,6 +64,30 @@ function RadarChart(id, data, options) {
 		feMerge = filter.append('feMerge'),
 		feMergeNode_1 = feMerge.append('feMergeNode').attr('in','coloredBlur'),
 		feMergeNode_2 = feMerge.append('feMergeNode').attr('in','SourceGraphic');
+
+  // append legends
+  var size = 20
+
+  svg.selectAll(".dots")
+    .data(cfg.brand)
+    .enter()
+    .append("rect")
+      .attr("x", 100)
+      .attr("y", function(d,i){ return 20 + i*(size+5)}) // 100 is where the first dot appears. 25 is the distance between dots
+      .attr("width", size)
+      .attr("height", size)
+      .style("fill", function(d){ return cfg.color(d)})
+
+  svg.selectAll(".labels")
+    .data(cfg.brand)
+    .enter()
+    .append("text")
+      .attr("x", 100 + size*1.2)
+      .attr("y", function(d,i){ return 20 + i*(size+5) + (size/2)}) // 100 is where the first dot appears. 25 is the distance between dots
+      .style("fill", function(d){ return cfg.color(d)})
+      .text(function(d){ return d})
+      .attr("text-anchor", "left")
+      .style("alignment-baseline", "middle")
 
 	/////////////////////////////////////////////////////////
 	/////////////// Draw the Circular grid //////////////////

@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <script src="https://d3js.org/d3.v7.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.24.0/d3-legend.js"></script>
 <head>
   <meta charset="UTF-8">
   <title>spider chart</title>
@@ -19,19 +18,34 @@
 
         var keys = Object.keys(data[0]);
 
+        console.log(data);
+
+        // extract all unique axis values from data
+        const uniqueAxes = [...new Set(data.map(item => item[keys[1]]))];
+
+        // create grouped data with same order of axis keys
         const grouped = Object.values(data.reduce((acc, cur) => {
           const brand = cur[keys[0]];
           const axis = cur[keys[1]];
           const value = cur[keys[2]];
+
+          // create brand object if not exists
           if (!acc[brand]) {
             acc[brand] = {
               brand: brand,
-              values: []
+              values: uniqueAxes.map(axis => ({ axis: axis, value: null }))
             };
           }
-          acc[brand].values.push({axis: axis, value: value});
+
+          // set value for the corresponding axis
+          const axisIndex = uniqueAxes.indexOf(axis);
+          acc[brand].values[axisIndex].value = value;
+
           return acc;
         }, {})).map(obj => obj.values);
+
+
+        console.log(grouped);
 
         const brand = data.reduce((acc, cur) => {
           const axis = cur[keys[0]];
@@ -41,9 +55,9 @@
           return acc;
         }, []);
 
-        const color = d3.scaleOrdinal()
+        var color = d3.scaleOrdinal()
           .domain(brand)
-          .range(d3.schemeCategory10);
+          .range(d3.schemeCategory10.slice(0, brand.length));
 
         var spiderChartOptions = {
           w: width,
@@ -52,26 +66,9 @@
           maxValue: 0.5,
           levels: 5,
           roundStrokes: true,
-          color: color
+          color: color,
+          brand: brand
         };
-
-<!--        const svg = d3.select("#spiderChart");-->
-
-<!--        svg.append("g")-->
-<!--          .attr("class", "legendOrdinal")-->
-<!--          .attr("tranform", "translate(20,20)");-->
-
-<!--        var ordinal = d3.scaleOrdinal()-->
-<!--          .domain(brand)-->
-<!--          .range(brand.map((val, i) =>-->
-<!--            d3.interpolateYlGnBu(i / (brand.length - 1))-->
-<!--          ));-->
-
-<!--        var legendOrdinal = d3.legendColor()-->
-<!--          .scale(ordinal);-->
-
-<!--        svg.select(".legendOrdinal")-->
-<!--          .call(legendOrdinal);-->
 
         RadarChart(".spiderChart", grouped, spiderChartOptions);
       })
