@@ -1,5 +1,6 @@
 package com.example.demo.input.handler;
 
+import com.example.demo.models.ModelUtil;
 import com.google.gson.Gson;
 import io.github.MigadaTang.Attribute;
 import io.github.MigadaTang.ERBaseObj;
@@ -50,8 +51,13 @@ public class InputController {
       table.put("name", entity.getName());
       table.put("pKey", entity.getAttributeList().stream().filter(Attribute::getIsPrimary)
           .map(ERBaseObj::getName));
-      table.put("attributes", entity.getAttributeList().stream().filter(a -> !a.getIsPrimary())
-          .map(ERBaseObj::getName));
+      List<String> attributes = new ArrayList<>(entity.getAttributeList().stream().filter(a -> !a.getIsPrimary())
+          .map(ERBaseObj::getName).toList());
+      if (entity.getEntityType() == EntityType.STRONG && ModelUtil.getParentEntity(entity,
+          schema) != null) {
+        attributes.add("(select none)");
+      }
+      table.put("attributes", attributes);
       tables.add(table);
     }
     for (Relationship relationship : schema.getRelationshipList()) {
@@ -86,7 +92,12 @@ public class InputController {
         table.put("option", options);
       }
       case ONE_MANY_RELATIONSHIP -> {
-        options = Arrays.asList("Tree Map", "Hierarchy Tree", "Circle Packing");
+        // if the user selects no mandatory attributes
+        if (InputService.checkSelectNone()) {
+          options = List.of("Hierarchy Tree");
+        } else {
+          options = Arrays.asList("Tree Map", "Hierarchy Tree", "Circle Packing");
+        }
         table.put("option", options);
       }
       case MANY_MANY_RELATIONSHIP -> {
@@ -94,7 +105,7 @@ public class InputController {
         table.put("option", options);
       }
       case REFLEXIVE_RELATIONSHIP -> {
-        options = List.of("Chord Diagram");
+        options = List.of("Network Chart", "Chord Diagram", "Heat Map");
         table.put("option", options);
       }
       case UNKNOWN -> {

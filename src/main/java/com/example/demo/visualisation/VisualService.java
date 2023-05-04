@@ -276,7 +276,6 @@ public class VisualService {
     return InputService.getJdbc().queryForList(query);
   }
 
-  // todo: handle no mandatory attribute
   public List<Map<String, Object>> queryHierarchyTreeData(
       Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
