@@ -84,4 +84,10 @@ public class InputService {
     modelType = ModelUtil.patternMatch(selectionInfo.keySet().iterator().next(), schema);
     InputService.selectionInfo = selectionInfo;
   }
+
+  public static boolean checkSelectNone() {
+    // here we assume that user only select in on table, but in future development we may not guarantee that
+    List<Attribute> attributes = selectionInfo.values().iterator().next();
+    return attributes.isEmpty();
+  }
 }

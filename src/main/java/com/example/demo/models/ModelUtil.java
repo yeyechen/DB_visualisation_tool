@@ -112,7 +112,9 @@ public class ModelUtil {
       for (RelationshipEdge edge : relationship.getEdgeList()) {
         Cardinality cardinality = edge.getCardinality();
         if (cardinality == Cardinality.OneToOne || cardinality == Cardinality.ZeroToOne) {
-          flag = true;
+          if (edge.getConnObj() == childEntity) {
+            flag = true;
+          }
         } else if (cardinality == Cardinality.OneToMany || cardinality == Cardinality.ZeroToMany) {
           manySideEntity = (Entity) edge.getConnObj();
         }
