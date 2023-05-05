@@ -53,6 +53,7 @@ public class InputController {
           .map(ERBaseObj::getName));
       List<String> attributes = new ArrayList<>(entity.getAttributeList().stream().filter(a -> !a.getIsPrimary())
           .map(ERBaseObj::getName).toList());
+      // case where user don't have to select any attribute: Hierarchy Tree (one-many)
       if (entity.getEntityType() == EntityType.STRONG && ModelUtil.getParentEntity(entity,
           schema) != null) {
         attributes.add("(select none)");
@@ -66,9 +67,13 @@ public class InputController {
         table.put("name", relationship.getName());
         table.put("pKey", relationship.getAttributeList().stream().filter(Attribute::getIsPrimary)
             .map(ERBaseObj::getName));
-        table.put("attributes",
-            relationship.getAttributeList().stream().filter(a -> !a.getIsPrimary())
-                .map(ERBaseObj::getName));
+        List<String> attributes = new ArrayList<>(relationship.getAttributeList().stream().filter(a -> !a.getIsPrimary())
+            .map(ERBaseObj::getName).toList());
+        // cases where user don't have to select any attribute: Network Chart, Chord Diagram (reflexive)
+        if (ModelUtil.getManyManyEntities(relationship).size() == 1) {
+          attributes.add("(select none)");
+        }
+        table.put("attributes", attributes);
         tables.add(table);
       }
     }
