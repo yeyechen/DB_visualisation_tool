@@ -86,7 +86,7 @@ public class VisualController {
   @GetMapping("network_chart_data")
   @ResponseBody
   public List<Map<String, Object>> networkChartData() throws SQLException {
-    return visualService.queryChordDiagramData(InputService.getSelectionInfo());
+    return visualService.queryNetworkChartData(InputService.getSelectionInfo());
   }
 
   @GetMapping("chord_diagram_data")

@@ -368,6 +368,36 @@ public class VisualService {
     return InputService.getJdbc().queryForList(query);
   }
 
+  public List<Map<String, Object>> queryNetworkChartData(Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
+    initialise(selectionInfo);
+    Attribute optionalAttr = null;
+    for (Attribute attribute : attributes) {
+      if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
+          == DataType.LEXICAL) {
+        optionalAttr = attribute;
+      }
+    }
+    Set<Entity> entities = ModelUtil.getManyManyEntities((Relationship) table);
+    Assert.assertEquals(entities.size(), 1);
+    String query;
+
+    Entity entity = entities.iterator().next();
+    // assume reflexive relationship table has two foreign keys to the same entity
+    List<String> compoundFKs = getCompoundForeignKeysName(table.getName(), entity.getName());
+    Iterator<String> fkIterator = compoundFKs.iterator();
+    String fk1 = fkIterator.next();
+    String fk2 = fkIterator.next();
+    if (optionalAttr != null) {
+      query =
+          "SELECT " + fk1 + ", " + fk2 + ", "
+              + optionalAttr.getName() + " FROM " + table.getName();
+    } else {
+      query =
+          "SELECT " + fk1 + ", " + fk2 + " FROM " + table.getName();
+    }
+    return InputService.getJdbc().queryForList(query);
+  }
+
   public List<Map<String, Object>> queryChordDiagramData(
       Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
