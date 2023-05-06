@@ -156,12 +156,10 @@ d3.json("/sankey_diagram_data")
   .then(function(data) {
 
   var keys = Object.keys(data[0]); // index: 0->k1, 1->k2, 2->a1
-  console.log(data);
 
   data = data.map(obj => {
     return { source: obj[keys[0]], target: obj[keys[1]], value: obj[keys[2]] };
   });
-  console.log(data);
 
   const svg = SankeyChart({
     links: data

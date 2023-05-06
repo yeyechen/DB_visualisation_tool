@@ -105,16 +105,12 @@ d3.json("/chord_diagram_data")
 
   const colors = classes.map(colorScale);
 
-  var processedData = {
-    names: classes,
-    colors: colors
-  }
-
-  processedData = Object.assign(matrix,
+  var processedData = Object.assign(matrix,
   {
    names: classes,
    colors: colors
   });
+
   const svg = ChordDiagram(processedData, {})
   d3.select("body").append(() => svg);
 })
