@@ -95,6 +95,12 @@ public class VisualController {
     return visualService.queryChordDiagramData(InputService.getSelectionInfo());
   }
 
+  @GetMapping("heatmap_data")
+  @ResponseBody
+  public List<Map<String, Object>> heatmapData() throws SQLException {
+    return visualService.queryHeatmapData(InputService.getSelectionInfo());
+  }
+
   /*-----------------------------------------*/
   @GetMapping("/input")
   public String databaseInputPage() {
@@ -169,5 +175,10 @@ public class VisualController {
   @GetMapping("/chord_diagram")
   public String chordDiagramPage() {
     return "chord_diagram";
+  }
+
+  @GetMapping("/heatmap")
+  public String heatmapPage() {
+    return "heatmap";
   }
 }

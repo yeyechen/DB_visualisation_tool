@@ -378,6 +378,7 @@ public class VisualService {
       }
     }
     Set<Entity> entities = ModelUtil.getManyManyEntities((Relationship) table);
+    // reflexive
     Assert.assertEquals(entities.size(), 1);
     String query;
 
@@ -415,6 +416,7 @@ public class VisualService {
         DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
         DataType.NUMERICAL);
     Set<Entity> entities = ModelUtil.getManyManyEntities((Relationship) table);
+    // assert reflexive
     Assert.assertEquals(entities.size(), 1);
     String query;
 
@@ -433,6 +435,28 @@ public class VisualService {
           "SELECT " + fk1 + ", " + fk2 + ", " + attribute1.getName() + " FROM " + table.getName();
     }
 
+    return InputService.getJdbc().queryForList(query);
+  }
+
+  public List<Map<String, Object>> queryHeatmapData(
+      Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
+    initialise(selectionInfo);
+    Iterator<Attribute> iterator = attributes.iterator();
+    Attribute attribute1 = iterator.next();
+    Assert.assertSame(
+        DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
+        DataType.NUMERICAL);
+    Set<Entity> entities = ModelUtil.getManyManyEntities((Relationship) table);
+    // assert reflexive
+    Assert.assertEquals(entities.size(), 1);
+    Entity entity = entities.iterator().next();
+    // assume reflexive relationship table has two foreign keys to the same entity
+    List<String> compoundFKs = getCompoundForeignKeysName(table.getName(), entity.getName());
+    Iterator<String> fkIterator = compoundFKs.iterator();
+    String fk1 = fkIterator.next();
+    String fk2 = fkIterator.next();
+    String query =
+        "SELECT " + fk1 + ", " + fk2 + ", " + attribute1.getName() + " FROM " + table.getName();
     return InputService.getJdbc().queryForList(query);
   }
 }
