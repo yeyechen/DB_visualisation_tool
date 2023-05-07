@@ -35,6 +35,12 @@ public class VisualController {
     return visualService.queryBubbleChart(InputService.getSelectionInfo());
   }
 
+  @GetMapping("/word_cloud_data")
+  @ResponseBody
+  public List<Map<String, Object>> wordCloudData() throws SQLException {
+    return visualService.queryWordCloud(InputService.getSelectionInfo());
+  }
+
   @GetMapping("/line_chart_data")
   @ResponseBody
   public List<Map<String, Object>> lineChartData() throws SQLException {
@@ -125,6 +131,11 @@ public class VisualController {
   @GetMapping("/bubble_chart")
   public String bubbleChartPage() {
     return "bubble_chart";
+  }
+
+  @GetMapping("/word_cloud")
+  public String wordCloudPage() {
+    return "word_cloud";
   }
 
   @GetMapping("/line_chart")

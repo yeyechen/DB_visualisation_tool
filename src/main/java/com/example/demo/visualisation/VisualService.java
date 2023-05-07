@@ -153,6 +153,36 @@ public class VisualService {
     return InputService.getJdbc().queryForList(query);
   }
 
+  public List<Map<String, Object>> queryWordCloud(
+      Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
+    initialise(selectionInfo);
+    Attribute optionalAttr = null;
+    for (Attribute attribute : attributes) {
+      if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
+          == DataType.LEXICAL) {
+        optionalAttr = attribute;
+        attributes.remove(attribute);
+      }
+    }
+    Attribute attribute1 = attributes.iterator().next();
+    Assert.assertSame(
+        DataTypeUtil.getDataType(table.getName(), tablePrimaryKey.getName(), InputService.getJdbc()),
+        DataType.LEXICAL);
+    Assert.assertSame(
+        DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
+        DataType.NUMERICAL);
+    String query;
+    if (optionalAttr != null) {
+      query = "SELECT " + tablePrimaryKey.getName() + ", " + attribute1.getName() + ", "
+          + optionalAttr.getName() + " FROM " + table.getName();
+    } else {
+      query =
+          "SELECT " + tablePrimaryKey.getName() + ", " + attribute1.getName() + " FROM "
+              + table.getName();
+    }
+    return InputService.getJdbc().queryForList(query);
+  }
+
   public List<Map<String, Object>> queryLineChart(
       Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
