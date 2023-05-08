@@ -132,7 +132,11 @@ d3.json("/calendar_data")
     y: d => d.value,
     width: 700
   })
+  key = Legend(svg.scales.color, {title: keys[1], marginLeft: 40})
+
+  d3.select("body").append(() => key);
   d3.select("body").append(() => svg);
+
 })
 
 
