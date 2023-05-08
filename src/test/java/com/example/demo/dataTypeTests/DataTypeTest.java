@@ -12,7 +12,8 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 public class DataTypeTest {
 
-  static JdbcTemplate jdbc;
+  static JdbcTemplate mondialJdbc;
+  static JdbcTemplate phoneJdbc;
 
   @BeforeClass
   public static void init() throws Exception {
@@ -20,25 +21,36 @@ public class DataTypeTest {
     dataSource.setUrl("jdbc:postgresql://localhost:5432/sub_mondial");
     dataSource.setUsername("Mikeee");
     dataSource.setPassword("");
-    jdbc = new JdbcTemplate(dataSource);
+    mondialJdbc = new JdbcTemplate(dataSource);
+
+    DriverManagerDataSource dataSource2 = new DriverManagerDataSource();
+    dataSource2.setUrl("jdbc:postgresql://localhost:5432/phones");
+    dataSource2.setUsername("Mikeee");
+    dataSource2.setPassword("");
+    phoneJdbc = new JdbcTemplate(dataSource2);
   }
 
   @Test
   public void integerNumericalTypeTest() throws SQLException {
-    DataType type = DataTypeUtil.getDataType("country", "population", jdbc);
+    DataType type = DataTypeUtil.getDataType("country", "population", mondialJdbc);
     assertEquals(type, DataType.NUMERICAL);
   }
 
   @Test
   public void numericNumericalTypeTest() throws SQLException {
-    DataType type = DataTypeUtil.getDataType("country", "area", jdbc);
+    DataType type = DataTypeUtil.getDataType("country", "area", mondialJdbc);
     assertEquals(type, DataType.NUMERICAL);
   }
 
   @Test
   public void varcharLexicalTypeTest() throws SQLException {
-    DataType type = DataTypeUtil.getDataType("country", "name", jdbc);
+    DataType type = DataTypeUtil.getDataType("country", "name", mondialJdbc);
     assertEquals(type, DataType.LEXICAL);
   }
 
+  @Test
+  public void dataTemporalTypeTest() throws SQLException {
+    DataType type = DataTypeUtil.getDataType("sales", "date", phoneJdbc);
+    assertEquals(type, DataType.TEMPORAL);
+  }
 }
