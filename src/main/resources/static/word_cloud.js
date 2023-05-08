@@ -8,7 +8,7 @@ function WordCloud(data, {
   width = 1200, // outer width, in pixels
   height = 600, // outer height, in pixels
   fontFamily = "sans-serif", // font family
-  fontScale = 0.01, // base font size
+  maxFontSize = 250, // base font size
   padding = 0, // amount of padding between the words (in pixels)
   rotate = 0, // a constant or function to rotate the words
   invalidation // when this promise resolves, stop the simulation
@@ -23,13 +23,16 @@ function WordCloud(data, {
 
   const g = svg.append("g").attr("transform", `translate(${marginLeft},${marginTop})`);
 
+  const maxSize = data[0].size;
+  const fontScale = maxFontSize/maxSize;
+
   const cloud = d3.layout.cloud()
       .size([width - marginLeft - marginRight, height - marginTop - marginBottom])
       .words(data)
       .padding(padding)
       .rotate(rotate)
       .font(fontFamily)
-      .fontSize(d => (Math.sqrt(d.size) * fontScale))
+      .fontSize(d => (d.size * fontScale))
       .on("word", ({size, x, y, rotate, text}) => {
         g.append("text")
             .attr("font-size", size)
