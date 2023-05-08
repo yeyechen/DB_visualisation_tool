@@ -78,6 +78,34 @@ public class VisualService {
     return InputService.getJdbc().queryForList(query);
   }
 
+  public List<Map<String, Object>> queryCalendar(Map<ERConnectableObj, List<Attribute>> selectionInfo)
+      throws SQLException {
+    initialise(selectionInfo);
+    Attribute temporalAttr = null;
+    Iterator<Attribute> iterator = attributes.iterator();
+    while (iterator.hasNext()) {
+      Attribute attribute = iterator.next();
+      if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
+          == DataType.TEMPORAL) {
+        temporalAttr = attribute;
+        iterator.remove();
+      }
+    }
+    Assert.assertNotNull(temporalAttr);
+    Attribute optionalAttr = attributes.iterator().hasNext() ? attributes.iterator().next() : null;
+    String query;
+    if (optionalAttr != null) {
+      Assert.assertSame(
+          DataTypeUtil.getDataType(table.getName(), optionalAttr.getName(), InputService.getJdbc()),
+          DataType.NUMERICAL);
+      query = "SELECT " + temporalAttr.getName() + ", " + optionalAttr.getName() + " FROM "
+          + table.getName();
+    } else {
+      query = "SELECT " + temporalAttr.getName() + " FROM " + table.getName();
+    }
+    return InputService.getJdbc().queryForList(query);
+  }
+
   public List<Map<String, Object>> queryScatterDiagram(
       Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);

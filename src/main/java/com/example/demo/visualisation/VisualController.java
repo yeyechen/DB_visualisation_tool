@@ -23,6 +23,12 @@ public class VisualController {
     return visualService.queryBarChart(InputService.getSelectionInfo());
   }
 
+  @GetMapping("/calendar_data")
+  @ResponseBody
+  public List<Map<String, Object>> calendarData() throws SQLException {
+    return visualService.queryCalendar(InputService.getSelectionInfo());
+  }
+
   @GetMapping("/scatter_diagram_data")
   @ResponseBody
   public List<Map<String, Object>> scatterDiagramData() throws SQLException {
@@ -121,6 +127,11 @@ public class VisualController {
   @GetMapping("/bar_chart")
   public String barChartPage() {
     return "bar_chart";
+  }
+
+  @GetMapping("/calendar")
+  public String calendarPage() {
+    return "calendar";
   }
 
   @GetMapping("/scatter_diagram")
