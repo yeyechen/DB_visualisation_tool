@@ -393,6 +393,12 @@ public class VisualService {
   public List<Map<String, Object>> querySankeyDiagramData(
       Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
+    Set<Entity> entities = ModelUtil.getManyManyEntities((Relationship) table);
+    // reflexive case
+    if (entities.size() == 1) {
+      // attributes identical to chord case (see chart on paper)
+      return queryChordDiagramData(selectionInfo);
+    }
     Attribute optionalAttr = null;
     for (Attribute attribute : attributes) {
       if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
@@ -406,7 +412,6 @@ public class VisualService {
     Assert.assertSame(
         DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
         DataType.NUMERICAL);
-    Set<Entity> entities = ModelUtil.getManyManyEntities((Relationship) table);
     Assert.assertEquals(entities.size(), 2);
     Iterator<Entity> entityIterator = entities.iterator();
     Entity entity1 = entityIterator.next();

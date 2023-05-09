@@ -110,7 +110,7 @@ public class InputController {
         table.put("option", options);
       }
       case REFLEXIVE_RELATIONSHIP -> {
-        options = List.of("Network Chart", "Chord Diagram", "Heatmap");
+        options = List.of("Sankey Diagram", "Network Chart", "Chord Diagram", "Heatmap");
         table.put("option", options);
       }
       case UNKNOWN -> {
