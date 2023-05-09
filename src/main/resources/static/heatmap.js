@@ -29,22 +29,22 @@ function Heatmap(data, classes, {
 
   xAxis = g => g
   .attr("transform", `translate(${x.bandwidth()/2},${height - margin.bottom})`)
-  .call(d3.axisBottom(x).tickSizeOuter(0))
+  .call(d3.axisBottom(x).tickSize(0).tickPadding(4))
   .call(g => g.select(".domain").remove())
   .selectAll("text")
-    .attr("y", 0)
+    .attr("y", -9)
     .attr("x", -9)
     .attr("dy", ".35em")
     .attr("transform", "rotate(270)")
     .style("text-anchor", "end")
-    .style("fill", "#777")
+    .style("fill", "black")
 
   yAxis = g => g
   .attr("transform", `translate(${margin.left},0)`)
   .call(d3.axisLeft(y).tickSize(0).tickPadding(4))
   .call(g => g.select(".domain").remove())
   .selectAll("text")
-    .style("fill", "#777")
+    .style("fill", "black")
 
   svg.append("g")
       .call(xAxis);
@@ -98,7 +98,7 @@ function Heatmap(data, classes, {
     .attr("y", height - (legendHeight / 2))
     .style("font-size", "9pt")
     .style("font-family", "Consolas, courier")
-    .style("fill", "#aaa");
+    .style("fill", "black");
 
   return svg.node();
 }
@@ -120,7 +120,6 @@ d3.json("/heatmap_data")
     matrix[row].value[col] = value;
   });
 
-  console.log(matrix);
   const svg = Heatmap(matrix, classes, {})
 
   d3.select("body").append(() => svg);
