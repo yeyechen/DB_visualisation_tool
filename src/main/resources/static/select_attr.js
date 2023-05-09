@@ -1,18 +1,20 @@
 $(document).ready(function() {
 
   // Disable all checkboxes except for the ones in the clicked table
-  function disableCheckboxes(table) {
-    $("input[type='checkbox']").not("input[name^='" + table + "']").attr("disabled", true);
+  function disableCheckboxes(tables) {
+    $("input[type='checkbox']").not(function() {
+      return tables.includes($(this).attr("name").split("-")[0]);
+    }).attr("disabled", true);
   }
 
-  // Disable all checkboxes if the maximum number of checkboxes is checked
   function disableAllCheckboxes() {
     $("input[type='checkbox']").not(":checked").attr("disabled", true);
   }
 
-  // Enable checkboxes in a certain table
-  function enableCheckboxes(table) {
-    $("input[type='checkbox'][name^='" + table + "']").attr("disabled", false);
+  function enableCheckboxes(tables) {
+    $("input[type='checkbox']").filter(function() {
+      return tables.includes($(this).attr("name").split("-")[0]);
+    }).attr("disabled", false);
   }
 
   // Enable all checkboxes in all tables
@@ -20,9 +22,12 @@ $(document).ready(function() {
     $("input[type='checkbox']").attr("disabled", false);
   }
 
-  // Count the number of selected checkboxes in a table
-  function countSelectedCheckboxes(table) {
-    return $("input[name^='" + table + "']:checked").length;
+  function countSelectedCheckboxes(tables) {
+    var count = 0;
+    $.each(tables, function(index, table) {
+      count += $("input[name^='" + table + "']:checked").length;
+    });
+    return count;
   }
 
   $.get("/attr-options", function(tableData) {
@@ -37,22 +42,29 @@ $(document).ready(function() {
       });
     });
 
-    // Disable checkboxes in other tables when a checkbox is clicked
-    $("input[type='checkbox']").click(function() {
-      var table = $(this).attr("name");
-      disableCheckboxes(table);
+  // Disable checkboxes in other tables when a checkbox is clicked
+  $("input[type='checkbox']").click(function() {
+    var checkedBoxes = $("input[type='checkbox']:checked");
+    var checkedTables = [...new Set(checkedBoxes.map(function() {
+      return $(this).attr("name").split("-")[0];
+    }).toArray())];
 
-      if (countSelectedCheckboxes(table) >= 4) {
-        disableAllCheckboxes();
-      }
-      if (countSelectedCheckboxes(table) < 4) {
-        enableCheckboxes(table);
-      }
-      if (countSelectedCheckboxes(table) === 0) {
-        enableAllCheckboxes();
-      }
-    });
+    if (countSelectedCheckboxes(checkedTables) >= 4) {
+      disableAllCheckboxes();
+    }
+
+    if (checkedTables.length >= 2) {
+      disableCheckboxes(checkedTables);
+    } else if (checkedTables.length < 2 && countSelectedCheckboxes(checkedTables) < 4) {
+      enableAllCheckboxes();
+    }
+
+    if (countSelectedCheckboxes(checkedTables) < 4) {
+      enableCheckboxes(checkedTables);
+    }
+
   });
+});
 
   $("#attribute-form").submit(function(event) {
     event.preventDefault();
