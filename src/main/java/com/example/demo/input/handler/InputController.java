@@ -14,7 +14,6 @@ import io.github.MigadaTang.exception.DBConnectionException;
 import io.github.MigadaTang.exception.ParseException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,12 +86,12 @@ public class InputController {
     List<String> options;
     switch (inputService.getModelType()) {
       case BASIC_ENTITY -> {
-        options = Arrays.asList("Bar Chart", "Calendar", "Scatter Diagram",
+        options = List.of("Bar Chart", "Calendar", "Scatter Diagram",
             "Bubble Chart", "Choropleth Map", "Word Cloud");
         table.put("option", options);
       }
       case WEAK_ENTITY -> {
-        options = Arrays.asList("Line Chart", "Stacked Bar Chart", "Grouped Bar Chart",
+        options = List.of("Line Chart", "Stacked Bar Chart", "Grouped Bar Chart",
             "Spider Chart");
         table.put("option", options);
       }
@@ -101,7 +100,7 @@ public class InputController {
         if (InputService.checkSelectNone()) {
           options = List.of("Hierarchy Tree");
         } else {
-          options = Arrays.asList("Tree Map", "Hierarchy Tree", "Circle Packing");
+          options = List.of("Tree Map", "Hierarchy Tree", "Circle Packing");
         }
         table.put("option", options);
       }
@@ -110,7 +109,11 @@ public class InputController {
         table.put("option", options);
       }
       case REFLEXIVE_RELATIONSHIP -> {
-        options = List.of("Sankey Diagram", "Network Chart", "Chord Diagram", "Heatmap");
+        if (InputService.checkSelectNone()) {
+          options = List.of("Network Chart");
+        } else {
+          options = List.of("Sankey Diagram", "Network Chart", "Chord Diagram", "Heatmap");
+        }
         table.put("option", options);
       }
       case UNKNOWN -> {
@@ -118,7 +121,7 @@ public class InputController {
         ERConnectableObj obj = InputService.getSelectionInfo().keySet().iterator().next();
         // handle Subset case, treat Subset the same as Basic Entity, with extra pk from the main entity
         if (obj instanceof Entity && ((Entity) obj).getEntityType() == EntityType.SUBSET) {
-          options = Arrays.asList("Bar Chart", "Calendar", "Scatter Diagram",
+          options = List.of("Bar Chart", "Calendar", "Scatter Diagram",
               "Bubble Chart", "Choropleth Map", "Word Cloud");
           table.put("option", options);
           try {
