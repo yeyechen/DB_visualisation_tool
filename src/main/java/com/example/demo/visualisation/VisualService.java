@@ -5,12 +5,14 @@ import com.example.demo.data.types.DataTypeUtil;
 import com.example.demo.input.handler.InputService;
 import com.example.demo.models.ModelUtil;
 import io.github.MigadaTang.Attribute;
+import io.github.MigadaTang.ERBaseObj;
 import io.github.MigadaTang.ERConnectableObj;
 import io.github.MigadaTang.Entity;
 import io.github.MigadaTang.Relationship;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -65,22 +67,39 @@ public class VisualService {
     return getForeignKeyName(foreignKeyTableName, primaryKeyTableName, "");
   }
 
+  // helper function to generate basic SQL queries (SELECT ... FROM ...)
+  private String generateBasicSQLQuery(List<String> attributes, String tableName) {
+    StringBuilder sb = new StringBuilder("SELECT ");
+    Iterator<String> attrIterator = attributes.iterator();
+    sb.append(attrIterator.next());
+    while (attrIterator.hasNext()) {
+      sb.append(", ").append(attrIterator.next());
+    }
+    sb.append(" FROM ");
+    sb.append(tableName);
+    return sb.toString();
+  }
+
   public List<Map<String, Object>> queryBarChart(
       Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
+    List<String> attributeNameStrings = new ArrayList<>();
+
     Attribute attribute = attributes.iterator().next();
     Assert.assertSame(
         DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc()),
         DataType.NUMERICAL);
-    String query =
-        "SELECT " + tablePrimaryKey.getName() + ", " + attribute.getName() + " FROM "
-            + table.getName();
-    return InputService.getJdbc().queryForList(query);
+    attributeNameStrings.add(tablePrimaryKey.getName());
+    attributeNameStrings.add(attribute.getName());
+    return InputService.getJdbc()
+        .queryForList(generateBasicSQLQuery(attributeNameStrings, table.getName()));
   }
 
   public List<Map<String, Object>> queryCalendar(Map<ERConnectableObj, List<Attribute>> selectionInfo)
       throws SQLException {
     initialise(selectionInfo);
+    List<String> attributeNameStrings = new ArrayList<>();
+
     Attribute temporalAttr = null;
     Iterator<Attribute> iterator = attributes.iterator();
     while (iterator.hasNext()) {
@@ -93,22 +112,23 @@ public class VisualService {
     }
     Assert.assertNotNull(temporalAttr);
     Attribute optionalAttr = attributes.iterator().hasNext() ? attributes.iterator().next() : null;
-    String query;
+
+    attributeNameStrings.add(temporalAttr.getName());
     if (optionalAttr != null) {
       Assert.assertSame(
           DataTypeUtil.getDataType(table.getName(), optionalAttr.getName(), InputService.getJdbc()),
           DataType.NUMERICAL);
-      query = "SELECT " + temporalAttr.getName() + ", " + optionalAttr.getName() + " FROM "
-          + table.getName();
-    } else {
-      query = "SELECT " + temporalAttr.getName() + " FROM " + table.getName();
+      attributeNameStrings.add(optionalAttr.getName());
     }
-    return InputService.getJdbc().queryForList(query);
+    return InputService.getJdbc()
+        .queryForList(generateBasicSQLQuery(attributeNameStrings, table.getName()));
   }
 
   public List<Map<String, Object>> queryScatterDiagram(
       Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
+    List<String> attributeNameStrings = new ArrayList<>();
+
     Attribute optionalAttr = null;
     for (Attribute attribute : attributes) {
       if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
@@ -117,32 +137,25 @@ public class VisualService {
         attributes.remove(attribute);
       }
     }
-    Iterator<Attribute> iterator = attributes.iterator();
-    Attribute attribute1 = iterator.next();
-    Attribute attribute2 = iterator.next();
-    Assert.assertSame(
-        DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
-        DataType.NUMERICAL);
-    Assert.assertSame(
-        DataTypeUtil.getDataType(table.getName(), attribute2.getName(), InputService.getJdbc()),
-        DataType.NUMERICAL);
-    String query;
-    if (optionalAttr != null) {
-      query = "SELECT " + tablePrimaryKey.getName() + ", " + attribute1.getName() + ", "
-          + attribute2.getName() + ", " + optionalAttr.getName()
-          + " FROM " + table.getName();
-    } else {
-      query =
-          "SELECT " + tablePrimaryKey.getName() + ", " + attribute1.getName() + ", "
-              + attribute2.getName()
-              + " FROM " + table.getName();
+    for (Attribute attribute : attributes) {
+      Assert.assertSame(
+          DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc()),
+          DataType.NUMERICAL);
     }
-    return InputService.getJdbc().queryForList(query);
+    attributeNameStrings.add(tablePrimaryKey.getName());
+    attributeNameStrings.addAll(attributes.stream().map(ERBaseObj::getName).toList());
+    if (optionalAttr != null) {
+      attributeNameStrings.add(optionalAttr.getName());
+    }
+    return InputService.getJdbc()
+        .queryForList(generateBasicSQLQuery(attributeNameStrings, table.getName()));
   }
 
   public List<Map<String, Object>> queryBubbleChart(
       Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
+    List<String> attributeNameStrings = new ArrayList<>();
+
     Attribute optionalAttr = null;
     for (Attribute attribute : attributes) {
       if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
@@ -151,39 +164,25 @@ public class VisualService {
         attributes.remove(attribute);
       }
     }
-    Iterator<Attribute> iterator = attributes.iterator();
-    Attribute attribute1 = iterator.next();
-    Attribute attribute2 = iterator.next();
-    Attribute attribute3 = iterator.next();
-    Assert.assertSame(
-        DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
-        DataType.NUMERICAL);
-    Assert.assertSame(
-        DataTypeUtil.getDataType(table.getName(), attribute2.getName(), InputService.getJdbc()),
-        DataType.NUMERICAL);
-    Assert.assertSame(
-        DataTypeUtil.getDataType(table.getName(), attribute3.getName(), InputService.getJdbc()),
-        DataType.NUMERICAL);
-    String query;
-    if (optionalAttr != null) {
-      query =
-          "SELECT " + tablePrimaryKey.getName() + ", " + attribute1.getName() + ", "
-              + attribute2.getName()
-              + ", " + attribute3.getName() + ", " + optionalAttr.getName() + " FROM "
-              + table.getName();
-    } else {
-      query =
-          "SELECT " + tablePrimaryKey.getName() + ", " + attribute1.getName() + ", "
-              + attribute2.getName()
-              + ", " + attribute3.getName()
-              + " FROM " + table.getName();
+    for (Attribute attribute : attributes) {
+      Assert.assertSame(
+          DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc()),
+          DataType.NUMERICAL);
     }
-    return InputService.getJdbc().queryForList(query);
+    attributeNameStrings.add(tablePrimaryKey.getName());
+    attributeNameStrings.addAll(attributes.stream().map(ERBaseObj::getName).toList());
+    if (optionalAttr != null) {
+      attributeNameStrings.add(optionalAttr.getName());
+    }
+    return InputService.getJdbc()
+        .queryForList(generateBasicSQLQuery(attributeNameStrings, table.getName()));
   }
 
   public List<Map<String, Object>> queryWordCloud(
       Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
+    List<String> attributeNameStrings = new ArrayList<>();
+
     Attribute optionalAttr = null;
     for (Attribute attribute : attributes) {
       if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
@@ -199,16 +198,13 @@ public class VisualService {
     Assert.assertSame(
         DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
         DataType.NUMERICAL);
-    String query;
+    attributeNameStrings.add(tablePrimaryKey.getName());
+    attributeNameStrings.add(attribute1.getName());
     if (optionalAttr != null) {
-      query = "SELECT " + tablePrimaryKey.getName() + ", " + attribute1.getName() + ", "
-          + optionalAttr.getName() + " FROM " + table.getName();
-    } else {
-      query =
-          "SELECT " + tablePrimaryKey.getName() + ", " + attribute1.getName() + " FROM "
-              + table.getName();
+      attributeNameStrings.add(optionalAttr.getName());
     }
-    return InputService.getJdbc().queryForList(query);
+    return InputService.getJdbc()
+        .queryForList(generateBasicSQLQuery(attributeNameStrings, table.getName()));
   }
 
   public List<Map<String, Object>> queryLineChart(
