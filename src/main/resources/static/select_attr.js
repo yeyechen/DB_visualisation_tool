@@ -39,7 +39,7 @@ $(document).ready(function() {
 
     // Disable checkboxes in other tables when a checkbox is clicked
     $("input[type='checkbox']").click(function() {
-      var table = $(this).attr("name");
+      var table = $(this).attr("name").split("-")[0]+"-";
       disableCheckboxes(table);
 
       if (countSelectedCheckboxes(table) >= 4) {
