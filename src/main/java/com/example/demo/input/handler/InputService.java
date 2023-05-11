@@ -12,6 +12,7 @@ import io.github.MigadaTang.exception.ParseException;
 import io.github.MigadaTang.transform.DatabaseUtil;
 import io.github.MigadaTang.transform.Reverse;
 import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import lombok.Getter;
@@ -81,13 +82,21 @@ public class InputService {
   }
 
   public void patternMatchBasedOnSelection(Map<ERConnectableObj, List<Attribute>> selectionInfo) {
-    modelType = ModelUtil.patternMatch(selectionInfo.keySet().iterator().next(), schema);
+    // user can select attributes from at most two tables (or select none)
+    if (selectionInfo.keySet().size() == 1) {
+      modelType = ModelUtil.patternMatch(selectionInfo.keySet().iterator().next(), schema);
+    } else {
+      Iterator<ERConnectableObj> iterator = selectionInfo.keySet().iterator();
+      modelType = ModelUtil.patternMatch(iterator.next(), iterator.next(), schema);
+    }
     InputService.selectionInfo = selectionInfo;
   }
 
   public static boolean checkSelectNone() {
-    // here we assume that user only select in on table, but in future development we may not guarantee that
-    List<Attribute> attributes = selectionInfo.values().iterator().next();
-    return attributes.isEmpty();
+    if (selectionInfo.keySet().size() == 1) {
+      List<Attribute> attributes = selectionInfo.values().iterator().next();
+      return attributes.isEmpty();
+    }
+    return false;
   }
 }
