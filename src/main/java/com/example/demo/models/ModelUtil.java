@@ -15,24 +15,9 @@ import io.github.MigadaTang.Schema;
 import io.github.MigadaTang.common.Cardinality;
 import io.github.MigadaTang.common.EntityType;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
-import org.junit.Assert;
 
 public class ModelUtil {
-
-  private static ModelType downwardConversion(ModelType original) {
-    switch (original) {
-      case MANY_MANY_RELATIONSHIP -> {
-        return ONE_MANY_RELATIONSHIP;
-      }
-      case ONE_MANY_RELATIONSHIP -> {
-        return WEAK_ENTITY;
-      }
-      // todo: handel other cases
-      default -> {return UNKNOWN;}
-    }
-  }
 
   /**
    * The function pattern matches current user selection to one of the five ER models.
@@ -98,40 +83,6 @@ public class ModelUtil {
       return UNKNOWN;
     }
     return UNKNOWN;
-  }
-
-  // to handel situations where user select attributes from two tables (must be of type entity)
-  public static ModelType patternMatch(ERConnectableObj entity1, ERConnectableObj entity2, Schema schema) {
-    Assert.assertTrue(entity1 instanceof Entity);
-    Assert.assertTrue(entity2 instanceof Entity);
-
-    // todo: handel all situations
-    ModelType result = UNKNOWN;
-    for (Relationship relationship : schema.getRelationshipList()) {
-      // flags for cardinality (0-> unknown (one-one), 1-> one-many, 2-> many-many)
-      int cardinality = 0;
-      Iterator<RelationshipEdge> edgeIterator = relationship.getEdgeList().iterator();
-      RelationshipEdge edge1 = edgeIterator.next();
-      RelationshipEdge edge2 = edgeIterator.next();
-      if ((edge1.getConnObj() == entity1 || edge1.getConnObj() == entity2) && (
-          edge2.getConnObj() == entity1 || edge2.getConnObj() == entity2)) {
-        if (edge1.getCardinality() == Cardinality.OneToMany
-            || edge1.getCardinality() == Cardinality.ZeroToMany) {
-          cardinality++;
-        }
-        if (edge2.getCardinality() == Cardinality.OneToMany
-            || edge2.getCardinality() == Cardinality.ZeroToMany) {
-          cardinality++;
-        }
-      }
-
-      if (cardinality == 1) {
-        result = ONE_MANY_RELATIONSHIP;
-      } else if (cardinality == 2) {
-        result = MANY_MANY_RELATIONSHIP;
-      }
-    }
-    return downwardConversion(result);
   }
 
   // helper function to find the strong entity which relate to a given weak entity

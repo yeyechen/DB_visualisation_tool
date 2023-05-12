@@ -1,5 +1,6 @@
 package com.example.demo.input.handler;
 
+import com.example.demo.models.ModelUtil;
 import com.google.gson.Gson;
 import io.github.MigadaTang.Attribute;
 import io.github.MigadaTang.ERBaseObj;
@@ -51,7 +52,11 @@ public class InputController {
           .map(ERBaseObj::getName));
       List<String> attributes = new ArrayList<>(entity.getAttributeList().stream().filter(a -> !a.getIsPrimary())
           .map(ERBaseObj::getName).toList());
-      attributes.add("(select none)");
+      // case where user don't have to select any attribute: Hierarchy Tree (one-many)
+      if (entity.getEntityType() == EntityType.STRONG && ModelUtil.getParentEntity(entity,
+          schema) != null) {
+        attributes.add("(select none)");
+      }
       table.put("attributes", attributes);
       tables.add(table);
     }
@@ -63,7 +68,10 @@ public class InputController {
             .map(ERBaseObj::getName));
         List<String> attributes = new ArrayList<>(relationship.getAttributeList().stream().filter(a -> !a.getIsPrimary())
             .map(ERBaseObj::getName).toList());
-        attributes.add("(select none)");
+        // cases where user don't have to select any attribute: Network Chart, Chord Diagram (reflexive)
+        if (ModelUtil.getManyManyEntities(relationship).size() == 1) {
+          attributes.add("(select none)");
+        }
         table.put("attributes", attributes);
         tables.add(table);
       }
@@ -131,13 +139,13 @@ public class InputController {
   @ResponseBody
   public String processAttrSelection(@RequestBody String selectedAttrJson) {
     List<String> selectedAttributes = new Gson().fromJson(selectedAttrJson, List.class);
-    System.out.println(selectedAttributes);
+
     Schema schema = InputService.getSchema();
 
     Map<ERConnectableObj, List<Attribute>> selectionInfo = new HashMap<>();
+    List<Attribute> selectedAttrs = new ArrayList<>();
 
     for (String attribute : selectedAttributes) {
-      List<Attribute> selectedAttrs = new ArrayList<>();
       String[] parts = attribute.split("\\.");
       String tableName = parts[0];
       int hashCode = attribute.hashCode();
@@ -150,7 +158,6 @@ public class InputController {
         // compare hashcode for entity-attr combination, to avoid collision
         for (Attribute attr : entity.get().getAttributeList()) {
           if ((entity.get().getName() + "." + attr.getName()).hashCode() == hashCode) {
-            System.out.println(entity.get().getName() + "---" + attr.getName());
             selectedAttrs.add(attr);
             break;
           }
@@ -173,7 +180,6 @@ public class InputController {
     }
     // selectionInfo is not null for sure
     inputService.patternMatchBasedOnSelection(selectionInfo);
-    System.out.println(selectionInfo);
     return selectedAttributes.toString();
   }
 
