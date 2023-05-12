@@ -210,12 +210,11 @@ public class VisualService {
   public List<Map<String, Object>> queryLineChart(
       Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
+    List<String> attributeNameStrings = new ArrayList<>();
+
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
     Attribute optionalAttr = iterator.hasNext() ? iterator.next() : null;
-    Assert.assertSame(
-        DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
-        DataType.NUMERICAL);
     // must be weak entity
     Entity strongEntity = ModelUtil.getRelatedStrongEntity((Entity) table,
         InputService.getSchema());
@@ -223,28 +222,30 @@ public class VisualService {
     // fkStrongEntity is k1, tablePK is k2
     String fkStrongEntity = getForeignKeyName(table.getName(), strongEntity.getName());
     Assert.assertSame(
+        DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
+        DataType.NUMERICAL);
+    Assert.assertSame(
         DataTypeUtil.getDataType(table.getName(), tablePrimaryKey.getName(),
             InputService.getJdbc()),
         DataType.NUMERICAL);
-    String query;
+    attributeNameStrings.add(fkStrongEntity);
+    attributeNameStrings.add(tablePrimaryKey.getName());
+    attributeNameStrings.add(attribute1.getName());
     if (optionalAttr != null) {
       Assert.assertSame(
           DataTypeUtil.getDataType(table.getName(), optionalAttr.getName(), InputService.getJdbc()),
           DataType.NUMERICAL);
-      query = "SELECT " + fkStrongEntity + ", " + tablePrimaryKey.getName() + ", "
-          + attribute1.getName()
-          + ", " + optionalAttr.getName() + " FROM " + table.getName();
-    } else {
-      query = "SELECT " + fkStrongEntity + ", " + tablePrimaryKey.getName() + ", "
-          + attribute1.getName()
-          + " FROM " + table.getName();
+      attributeNameStrings.add(optionalAttr.getName());
     }
-    return InputService.getJdbc().queryForList(query);
+    return InputService.getJdbc()
+        .queryForList(generateBasicSQLQuery(attributeNameStrings, table.getName()));
   }
 
   public List<Map<String, Object>> queryStackedBarChart(
       Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
+    List<String> attributeNameStrings = new ArrayList<>();
+
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
     Assert.assertSame(
@@ -255,15 +256,18 @@ public class VisualService {
     Assert.assertNotNull(strongEntity);
     // fkStrongEntity is k1, tablePK is k2
     String fkStrongEntity = getForeignKeyName(table.getName(), strongEntity.getName());
-    String query =
-        "SELECT " + fkStrongEntity + ", " + tablePrimaryKey.getName() + ", " + attribute1.getName()
-            + " FROM " + table.getName();
-    return InputService.getJdbc().queryForList(query);
+    attributeNameStrings.add(fkStrongEntity);
+    attributeNameStrings.add(tablePrimaryKey.getName());
+    attributeNameStrings.add(attribute1.getName());
+    return InputService.getJdbc()
+        .queryForList(generateBasicSQLQuery(attributeNameStrings, table.getName()));
   }
 
   public List<Map<String, Object>> queryGroupedBarChart(
       Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
+    List<String> attributeNameStrings = new ArrayList<>();
+
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
     Assert.assertSame(
@@ -274,15 +278,18 @@ public class VisualService {
     Assert.assertNotNull(strongEntity);
     // fkStrongEntity is k1, tablePK is k2
     String fkStrongEntity = getForeignKeyName(table.getName(), strongEntity.getName());
-    String query =
-        "SELECT " + fkStrongEntity + ", " + tablePrimaryKey.getName() + ", " + attribute1.getName()
-            + " FROM " + table.getName();
-    return InputService.getJdbc().queryForList(query);
+    attributeNameStrings.add(fkStrongEntity);
+    attributeNameStrings.add(tablePrimaryKey.getName());
+    attributeNameStrings.add(attribute1.getName());
+    return InputService.getJdbc()
+        .queryForList(generateBasicSQLQuery(attributeNameStrings, table.getName()));
   }
 
   public List<Map<String, Object>> querySpiderChart(
       Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
+    List<String> attributeNameStrings = new ArrayList<>();
+
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
     Assert.assertSame(
@@ -291,16 +298,20 @@ public class VisualService {
     Entity strongEntity = ModelUtil.getRelatedStrongEntity((Entity) table,
         InputService.getSchema());
     Assert.assertNotNull(strongEntity);
+    // fkStrongEntity is k1, tablePK is k2
     String fkStrongEntity = getForeignKeyName(table.getName(), strongEntity.getName());
-    String query =
-        "SELECT " + fkStrongEntity + ", " + tablePrimaryKey.getName() + ", " + attribute1.getName()
-            + " FROM " + table.getName();
-    return InputService.getJdbc().queryForList(query);
+    attributeNameStrings.add(fkStrongEntity);
+    attributeNameStrings.add(tablePrimaryKey.getName());
+    attributeNameStrings.add(attribute1.getName());
+    return InputService.getJdbc()
+        .queryForList(generateBasicSQLQuery(attributeNameStrings, table.getName()));
   }
 
   public List<Map<String, Object>> queryTreeMapData(
       Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
+    List<String> attributeNameStrings = new ArrayList<>();
+
     Attribute optionalAttr = null;
     for (Attribute attribute : attributes) {
       if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
@@ -317,46 +328,43 @@ public class VisualService {
         InputService.getSchema());
     Assert.assertNotNull(parentEntity);
     String fkParentEntity = getForeignKeyName(table.getName(), parentEntity.getName());
-    String query;
+    attributeNameStrings.add(fkParentEntity);
+    attributeNameStrings.add(tablePrimaryKey.getName());
+    attributeNameStrings.add(attribute1.getName());
     if (optionalAttr != null) {
-      query = "SELECT " + fkParentEntity + ", " + tablePrimaryKey.getName() + ", "
-          + attribute1.getName()
-          + ", " + optionalAttr.getName() + " FROM " + table.getName();
-    } else {
-      query = "SELECT " + fkParentEntity + ", " + tablePrimaryKey.getName() + ", "
-          + attribute1.getName()
-          + " FROM " + table.getName();
+      attributeNameStrings.add(optionalAttr.getName());
     }
-    return InputService.getJdbc().queryForList(query);
+    return InputService.getJdbc()
+        .queryForList(generateBasicSQLQuery(attributeNameStrings, table.getName()));
   }
 
   public List<Map<String, Object>> queryHierarchyTreeData(
       Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
+    List<String> attributeNameStrings = new ArrayList<>();
+
     Attribute optionalAttr = attributes.iterator().hasNext() ? attributes.iterator().next() : null;
     Entity parentEntity = ModelUtil.getParentEntity((Entity) table,
         InputService.getSchema());
     Assert.assertNotNull(parentEntity);
     String fkParentEntity = getForeignKeyName(table.getName(), parentEntity.getName());
-    String query;
+    attributeNameStrings.add(fkParentEntity);
+    attributeNameStrings.add(tablePrimaryKey.getName());
     if (optionalAttr != null) {
       Assert.assertSame(DataTypeUtil.getDataType(table.getName(), optionalAttr.getName(),
           InputService.getJdbc()), DataType.LEXICAL);
-      query = "SELECT " + fkParentEntity + ", " + tablePrimaryKey.getName() + ", "
-          + optionalAttr.getName()
-          + " FROM " + table.getName();
-    } else {
-      query =
-          "SELECT " + fkParentEntity + ", " + tablePrimaryKey.getName() + " FROM "
-              + table.getName();
+      attributeNameStrings.add(optionalAttr.getName());
     }
-    return InputService.getJdbc().queryForList(query);
+    return InputService.getJdbc()
+        .queryForList(generateBasicSQLQuery(attributeNameStrings, table.getName()));
   }
 
   public List<Map<String, Object>> queryCirclePacking(
       Map<ERConnectableObj, List<Attribute>> selectionInfo)
       throws SQLException {
     initialise(selectionInfo);
+    List<String> attributeNameStrings = new ArrayList<>();
+
     Attribute optionalAttr = null;
     for (Attribute attribute : attributes) {
       if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
@@ -373,28 +381,27 @@ public class VisualService {
         InputService.getSchema());
     Assert.assertNotNull(parentEntity);
     String fkParentEntity = getForeignKeyName(table.getName(), parentEntity.getName());
-    String query;
+    attributeNameStrings.add(fkParentEntity);
+    attributeNameStrings.add(tablePrimaryKey.getName());
+    attributeNameStrings.add(attribute1.getName());
     if (optionalAttr != null) {
-      query = "SELECT " + fkParentEntity + ", " + tablePrimaryKey.getName() + ", "
-          + attribute1.getName()
-          + ", " + optionalAttr.getName() + " FROM " + table.getName();
-    } else {
-      query = "SELECT " + fkParentEntity + ", " + tablePrimaryKey.getName() + ", "
-          + attribute1.getName()
-          + " FROM " + table.getName();
+      attributeNameStrings.add(optionalAttr.getName());
     }
-    return InputService.getJdbc().queryForList(query);
+    return InputService.getJdbc()
+        .queryForList(generateBasicSQLQuery(attributeNameStrings, table.getName()));
   }
 
   public List<Map<String, Object>> querySankeyDiagramData(
       Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
+
     Set<Entity> entities = ModelUtil.getManyManyEntities((Relationship) table);
     // reflexive case
     if (entities.size() == 1) {
       // attributes identical to chord case (see chart on paper)
       return queryChordDiagramData(selectionInfo);
     }
+
     Attribute optionalAttr = null;
     for (Attribute attribute : attributes) {
       if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
@@ -409,26 +416,19 @@ public class VisualService {
         DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
         DataType.NUMERICAL);
     Assert.assertEquals(entities.size(), 2);
-    Iterator<Entity> entityIterator = entities.iterator();
-    Entity entity1 = entityIterator.next();
-    Entity entity2 = entityIterator.next();
-    String fkEntity1 = getForeignKeyName(table.getName(), entity1.getName());
-    String fkEntity2 = getForeignKeyName(table.getName(), entity2.getName());
-    String query;
+    List<String> attributeNameStrings = new ArrayList<>(
+        entities.stream().map(ERBaseObj::getName).toList());
+    attributeNameStrings.add(attribute1.getName());
     if (optionalAttr != null) {
-      query =
-          "SELECT " + fkEntity1 + ", " + fkEntity2 + ", " + attribute1.getName() + ", "
-              + optionalAttr.getName() + " FROM " + table.getName();
-    } else {
-      query =
-          "SELECT " + fkEntity1 + ", " + fkEntity2 + ", " + attribute1.getName() + " FROM "
-              + table.getName();
+      attributeNameStrings.add(optionalAttr.getName());
     }
-    return InputService.getJdbc().queryForList(query);
+    return InputService.getJdbc()
+        .queryForList(generateBasicSQLQuery(attributeNameStrings, table.getName()));
   }
 
   public List<Map<String, Object>> queryNetworkChartData(Map<ERConnectableObj, List<Attribute>> selectionInfo) throws SQLException {
     initialise(selectionInfo);
+
     Attribute optionalAttr = null;
     for (Attribute attribute : attributes) {
       if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
@@ -439,23 +439,17 @@ public class VisualService {
     Set<Entity> entities = ModelUtil.getManyManyEntities((Relationship) table);
     // reflexive
     Assert.assertEquals(entities.size(), 1);
-    String query;
 
     Entity entity = entities.iterator().next();
     // assume reflexive relationship table has two foreign keys to the same entity
     List<String> compoundFKs = getCompoundForeignKeysName(table.getName(), entity.getName());
-    Iterator<String> fkIterator = compoundFKs.iterator();
-    String fk1 = fkIterator.next();
-    String fk2 = fkIterator.next();
+    List<String> attributeNameStrings = new ArrayList<>(compoundFKs);
+
     if (optionalAttr != null) {
-      query =
-          "SELECT " + fk1 + ", " + fk2 + ", "
-              + optionalAttr.getName() + " FROM " + table.getName();
-    } else {
-      query =
-          "SELECT " + fk1 + ", " + fk2 + " FROM " + table.getName();
+      attributeNameStrings.add(optionalAttr.getName());
     }
-    return InputService.getJdbc().queryForList(query);
+    return InputService.getJdbc()
+        .queryForList(generateBasicSQLQuery(attributeNameStrings, table.getName()));
   }
 
   public List<Map<String, Object>> queryChordDiagramData(
@@ -482,19 +476,13 @@ public class VisualService {
     Entity entity = entities.iterator().next();
     // assume reflexive relationship table has two foreign keys to the same entity
     List<String> compoundFKs = getCompoundForeignKeysName(table.getName(), entity.getName());
-    Iterator<String> fkIterator = compoundFKs.iterator();
-    String fk1 = fkIterator.next();
-    String fk2 = fkIterator.next();
+    List<String> attributeNameStrings = new ArrayList<>(compoundFKs);
+    attributeNameStrings.add(attribute1.getName());
     if (optionalAttr != null) {
-      query =
-          "SELECT " + fk1 + ", " + fk2 + ", " + attribute1.getName() + ", "
-              + optionalAttr.getName() + " FROM " + table.getName();
-    } else {
-      query =
-          "SELECT " + fk1 + ", " + fk2 + ", " + attribute1.getName() + " FROM " + table.getName();
+      attributeNameStrings.add(optionalAttr.getName());
     }
-
-    return InputService.getJdbc().queryForList(query);
+    return InputService.getJdbc()
+        .queryForList(generateBasicSQLQuery(attributeNameStrings, table.getName()));
   }
 
   public List<Map<String, Object>> queryHeatmapData(
@@ -511,11 +499,9 @@ public class VisualService {
     Entity entity = entities.iterator().next();
     // assume reflexive relationship table has two foreign keys to the same entity
     List<String> compoundFKs = getCompoundForeignKeysName(table.getName(), entity.getName());
-    Iterator<String> fkIterator = compoundFKs.iterator();
-    String fk1 = fkIterator.next();
-    String fk2 = fkIterator.next();
-    String query =
-        "SELECT " + fk1 + ", " + fk2 + ", " + attribute1.getName() + " FROM " + table.getName();
-    return InputService.getJdbc().queryForList(query);
+    List<String> attributeNameStrings = new ArrayList<>(compoundFKs);
+    attributeNameStrings.add(attribute1.getName());
+    return InputService.getJdbc()
+        .queryForList(generateBasicSQLQuery(attributeNameStrings, table.getName()));
   }
 }
