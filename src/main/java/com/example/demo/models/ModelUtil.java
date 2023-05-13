@@ -152,11 +152,15 @@ public class ModelUtil {
       boolean flag = false;
       Entity tempEntity = null;
       for (RelationshipEdge edge : relationship.getEdgeList()) {
+        if (((Entity) edge.getConnObj()).getEntityType() == EntityType.WEAK) {
+          continue;
+        }
         if (edge.getConnObj() == entity) {
           flag = true;
           if (tempEntity != null) {
             result.add(tempEntity);
           }
+          continue;
         }
         if (flag) {
           result.add((Entity) edge.getConnObj());

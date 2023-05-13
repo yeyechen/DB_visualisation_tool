@@ -24,6 +24,7 @@ public class InRelationshipWithTest {
     List<Entity> entities = ModelUtil.inRelationshipWith(testObject.getCountry(),
         testObject.getMondialSchema());
     System.out.println(entities);
+    assertTrue(entities.contains(testObject.getCountry()));
     assertTrue(entities.contains(testObject.getReligion()));
     assertTrue(entities.contains(testObject.getContinent()));
   }

@@ -1,4 +1,5 @@
 $(document).ready(function() {
+  $("#right-heading").text("Select visualisation:");
   $.get("/vis-options", function(tableData) {
     $.each(tableData.option, function(index, option) {
       $("<label><input type='radio' name='options' value='" + option + "'> " + option + "</label><br>").appendTo("#vis-form");
