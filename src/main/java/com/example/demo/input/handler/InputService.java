@@ -5,6 +5,7 @@ import com.example.demo.models.ModelUtil;
 import io.github.MigadaTang.Attribute;
 import io.github.MigadaTang.ER;
 import io.github.MigadaTang.ERConnectableObj;
+import io.github.MigadaTang.Entity;
 import io.github.MigadaTang.Schema;
 import io.github.MigadaTang.common.RDBMSType;
 import io.github.MigadaTang.exception.DBConnectionException;

@@ -14,8 +14,11 @@ import io.github.MigadaTang.RelationshipEdge;
 import io.github.MigadaTang.Schema;
 import io.github.MigadaTang.common.Cardinality;
 import io.github.MigadaTang.common.EntityType;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import org.junit.Assert;
 
 public class ModelUtil {
 
@@ -90,14 +93,18 @@ public class ModelUtil {
     assert weakEntity.getEntityType() == EntityType.WEAK;
     for (Relationship relationship : schema.getRelationshipList()) {
       boolean flag = false;
+      Entity tempEntity = null;
       for (RelationshipEdge edge : relationship.getEdgeList()) {
-        Entity tempEntity = (Entity) edge.getConnObj();
-        if (flag) {
-          return tempEntity;
-        }
-        if (tempEntity == weakEntity) {
+        if (edge.getConnObj() == weakEntity) {
           flag = true;
+          if (tempEntity != null) {
+            return tempEntity;
+          }
         }
+        if (flag) {
+          return (Entity) edge.getConnObj();
+        }
+        tempEntity = (Entity) edge.getConnObj();
       }
     }
     return null;
@@ -105,7 +112,7 @@ public class ModelUtil {
 
   // helper function to find the entity of the many side in a One-Many relationship
   public static Entity getParentEntity(Entity childEntity, Schema schema) {
-    assert childEntity.getEntityType() == EntityType.STRONG;
+    Assert.assertSame(childEntity.getEntityType(), EntityType.STRONG);
     for (Relationship relationship : schema.getRelationshipList()) {
       boolean flag = false;
       Entity manySideEntity = null;
@@ -134,5 +141,29 @@ public class ModelUtil {
       entities.add((Entity) edge.getConnObj());
     }
     return entities;
+  }
+
+  // helper function to find a list of entities in relationship (either one-many or many-many)
+  // with the given entity
+  public static List<Entity> inRelationshipWith(Entity entity, Schema schema) {
+    Assert.assertSame(entity.getEntityType(), EntityType.STRONG);
+    List<Entity> result = new ArrayList<>();
+    for (Relationship relationship : schema.getRelationshipList()) {
+      boolean flag = false;
+      Entity tempEntity = null;
+      for (RelationshipEdge edge : relationship.getEdgeList()) {
+        if (edge.getConnObj() == entity) {
+          flag = true;
+          if (tempEntity != null) {
+            result.add(tempEntity);
+          }
+        }
+        if (flag) {
+          result.add((Entity) edge.getConnObj());
+        }
+        tempEntity = (Entity) edge.getConnObj();
+      }
+    }
+    return result;
   }
 }

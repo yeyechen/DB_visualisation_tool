@@ -1,14 +1,15 @@
 package com.example.demo.modelUtilTests;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import com.example.demo.TestObject;
 import com.example.demo.models.ModelUtil;
 import io.github.MigadaTang.Entity;
+import java.util.List;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class GetParentEntityTest {
+public class InRelationshipWithTest {
 
   static TestObject testObject;
 
@@ -19,9 +20,12 @@ public class GetParentEntityTest {
   }
 
   @Test
-  public void mondialReligionTest() {
-    Entity parent = ModelUtil.getParentEntity(testObject.getCountry(),
+  public void mondialCountryTest() {
+    List<Entity> entities = ModelUtil.inRelationshipWith(testObject.getCountry(),
         testObject.getMondialSchema());
-    assertEquals(parent, testObject.getContinent());
+    System.out.println(entities);
+    assertTrue(entities.contains(testObject.getReligion()));
+    assertTrue(entities.contains(testObject.getContinent()));
   }
+
 }
