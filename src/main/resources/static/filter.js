@@ -1,7 +1,12 @@
 $(document).ready(function() {
+
+  $("#filter-list thead").empty();
+  $("#filter-list tbody").empty();
+  $("#filter-form br").remove();
+  $("#filter-form button").remove();
+
   $("#mid-heading").text("Select filter:");
   $.get("/filter-options", function(tableData) {
-    console.log(tableData);
     $("<tr>")
       .append($("<th>").text("Table Name"))
       .append($("<th>").text("Filtering Attributes"))
