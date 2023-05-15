@@ -24,6 +24,7 @@ $(document).ready(function() {
 
     $("#filter-list input[type='checkbox']").click(function() {
       var checkboxValue = $(this).val();
+
       $.ajax({
         url: "/filter-click",
         method: "POST",
@@ -37,16 +38,16 @@ $(document).ready(function() {
               .append($("<th>").text("Conditions"))
               .appendTo(filterConditionTable.find("thead"));
           }
-          filterConditionTable.find("tbody").empty();
+//          filterConditionTable.find("tbody").empty();
 
           var $row = $("<tr>").appendTo(filterConditionTable.find("tbody"));
           var $optionsTd = $("<td>").appendTo($row);
           $.each(data, function(index, value) {
-            console.log(value);
             var checkbox = $("<input>")
               .attr("type", "checkbox")
               .attr("name", "filterCondition")
-              .attr("value", value);
+              .attr("value", value)
+              .attr("data-filter-option", checkboxValue);
             var label = $("<label>").text(value).append(checkbox);
             $optionsTd.append(label);
             $("<br>").appendTo($optionsTd);
@@ -57,19 +58,41 @@ $(document).ready(function() {
     });
   });
 
-  $("#filter-list").submit(function(event) {
-    event.preventDefault();
+  var options = {};
 
-    var selectedVis = $("input[name='options']:checked").val();
+  $(document).on("click", "#filter-condition input[type='checkbox']", function(event) {
+
+    var filterOption = $(this).data("filter-option");
+    var checkboxValue = $(this).val();
+
+    if ($(this).is(":checked")) {
+      // Checkbox is checked, add the option to the object
+      if (!options[filterOption]) {
+        options[filterOption] = [];
+      }
+      options[filterOption].push(checkboxValue);
+    } else {
+      // Checkbox is unchecked, remove the option from the object
+      if (options[filterOption]) {
+        var index = options[filterOption].indexOf(checkboxValue);
+        if (index !== -1) {
+          options[filterOption].splice(index, 1);
+        }
+      }
+    }
+
+  });
+
+  $(document).on("click", "#filter-list button[type='submit']", function(event) {
+    event.preventDefault();
 
     $.ajax({
       url: "/process-filter",
       type: "POST",
       contentType: "application/json",
-      data: JSON.stringify(selectedVis),
+      data: JSON.stringify(options),
       success: function(data) {
-				window.history.pushState(null, null, data);
-				location.reload();
+        console.log(data);
       },
       error: function(xhr, status, error) {
         alert(xhr.responseText);

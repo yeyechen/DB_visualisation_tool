@@ -4,6 +4,7 @@ import com.example.demo.data.types.DataType;
 import com.example.demo.data.types.DataTypeUtil;
 import com.example.demo.models.ModelUtil;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import io.github.MigadaTang.Attribute;
 import io.github.MigadaTang.ERBaseObj;
 import io.github.MigadaTang.ERConnectableObj;
@@ -13,6 +14,7 @@ import io.github.MigadaTang.Schema;
 import io.github.MigadaTang.common.EntityType;
 import io.github.MigadaTang.exception.DBConnectionException;
 import io.github.MigadaTang.exception.ParseException;
+import java.lang.reflect.Type;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -206,9 +208,9 @@ public class InputController {
 
   @PostMapping("/filter-click")
   @ResponseBody
-  public List<String> respondFilterClick(@RequestBody String selectedVisJson) throws SQLException {
+  public List<String> respondFilterClick(@RequestBody String selectedFilterJson) throws SQLException {
 
-    String[] parts = selectedVisJson.split("\\.");
+    String[] parts = selectedFilterJson.split("\\.");
     String tableName = parts[0];
     String attributeName = parts[1].split("=")[0];
     DataType type = DataTypeUtil.getDataType(tableName, attributeName, InputService.getJdbc());
@@ -228,6 +230,25 @@ public class InputController {
       }
     }
     return result;
+  }
+
+  @PostMapping("/process-filter")
+  @ResponseBody
+  public String processFilter(@RequestBody String selectedFilterJson) {
+
+    Type mapType = new TypeToken<Map<String, List<String>>>(){}.getType();
+    Map<String, List<String>> data = new Gson().fromJson(selectedFilterJson, mapType);
+
+    // Access the values
+    for (Map.Entry<String, List<String>> entry : data.entrySet()) {
+      String key = entry.getKey();
+      List<String> values = entry.getValue();
+      System.out.println("Key: " + key);
+      System.out.println("Values: " + values);
+    }
+
+    System.out.println(selectedFilterJson);
+    return selectedFilterJson;
   }
 
   @PostMapping("/process-vis-selection")
