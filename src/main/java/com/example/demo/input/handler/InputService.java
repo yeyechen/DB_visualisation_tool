@@ -5,7 +5,6 @@ import com.example.demo.models.ModelUtil;
 import io.github.MigadaTang.Attribute;
 import io.github.MigadaTang.ER;
 import io.github.MigadaTang.ERConnectableObj;
-import io.github.MigadaTang.Entity;
 import io.github.MigadaTang.Schema;
 import io.github.MigadaTang.common.RDBMSType;
 import io.github.MigadaTang.exception.DBConnectionException;
@@ -13,6 +12,7 @@ import io.github.MigadaTang.exception.ParseException;
 import io.github.MigadaTang.transform.DatabaseUtil;
 import io.github.MigadaTang.transform.Reverse;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.Getter;
@@ -86,9 +86,22 @@ public class InputService {
     InputService.selectionInfo = selectionInfo;
   }
 
-  public static boolean checkSelectNone() {
+  public boolean checkSelectNone() {
     // here we assume that user only select in on table, but in future development we may not guarantee that
     List<Attribute> attributes = selectionInfo.values().iterator().next();
     return attributes.isEmpty();
+  }
+
+  public List<String> getDiscreteFilterOptions(String tableName, String attributeName) {
+    StringBuilder query = new StringBuilder("SELECT ").append(attributeName);
+    query.append(" FROM ").append(tableName);
+
+    List<Map<String, Object>> resultMaps = jdbc.queryForList(query.toString());
+    List<String> result = new ArrayList<>();
+    for (Map<String, Object> row : resultMaps) {
+      String element = (String) row.get(attributeName);
+      result.add(element);
+    }
+    return result;
   }
 }

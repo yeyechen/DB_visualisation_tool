@@ -19,15 +19,45 @@ $(document).ready(function() {
         $("<label><input type='checkbox' name='" + table.name + "-" + attribute + "' value='" + table.name + "." + attribute + "'> " + attribute + "</label><br>").appendTo($attributesTd);
       });
     });
-    $("<br>").appendTo("#filter-form");
-    $("<button>").text("Apply").attr("type", "submit").appendTo("#filter-form");
+    $("<br>").appendTo("#filter-list");
+    $("<button>").text("Apply").attr("type", "submit").appendTo("#filter-list");
 
     $("#filter-list input[type='checkbox']").click(function() {
+      var checkboxValue = $(this).val();
+      $.ajax({
+        url: "/filter-click",
+        method: "POST",
+        data: checkboxValue,
+        success: function(data) {
 
+          var filterConditionTable = $("#filter-condition");
+          // Append header row if it doesn't exist yet
+          if (filterConditionTable.find("thead").children().length === 0) {
+            $("<tr>")
+              .append($("<th>").text("Conditions"))
+              .appendTo(filterConditionTable.find("thead"));
+          }
+          filterConditionTable.find("tbody").empty();
+
+          var $row = $("<tr>").appendTo(filterConditionTable.find("tbody"));
+          var $optionsTd = $("<td>").appendTo($row);
+          $.each(data, function(index, value) {
+            console.log(value);
+            var checkbox = $("<input>")
+              .attr("type", "checkbox")
+              .attr("name", "filterCondition")
+              .attr("value", value);
+            var label = $("<label>").text(value).append(checkbox);
+            $optionsTd.append(label);
+            $("<br>").appendTo($optionsTd);
+          });
+
+        }
+      });
     });
   });
 
-  $("#filter-form").submit(function(event) {
+  $("#filter-list").submit(function(event) {
     event.preventDefault();
 
     var selectedVis = $("input[name='options']:checked").val();

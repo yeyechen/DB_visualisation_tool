@@ -1,5 +1,7 @@
 package com.example.demo.input.handler;
 
+import com.example.demo.data.types.DataType;
+import com.example.demo.data.types.DataTypeUtil;
 import com.example.demo.models.ModelUtil;
 import com.google.gson.Gson;
 import io.github.MigadaTang.Attribute;
@@ -8,7 +10,6 @@ import io.github.MigadaTang.ERConnectableObj;
 import io.github.MigadaTang.Entity;
 import io.github.MigadaTang.Relationship;
 import io.github.MigadaTang.Schema;
-import io.github.MigadaTang.common.DataType;
 import io.github.MigadaTang.common.EntityType;
 import io.github.MigadaTang.exception.DBConnectionException;
 import io.github.MigadaTang.exception.ParseException;
@@ -117,7 +118,7 @@ public class InputController {
       }
       case ONE_MANY_RELATIONSHIP -> {
         // if the user selects no mandatory attributes
-        if (InputService.checkSelectNone()) {
+        if (inputService.checkSelectNone()) {
           options = List.of("Hierarchy Tree");
         } else {
           options = List.of("Tree Map", "Hierarchy Tree", "Circle Packing");
@@ -129,7 +130,7 @@ public class InputController {
         table.put("option", options);
       }
       case REFLEXIVE_RELATIONSHIP -> {
-        if (InputService.checkSelectNone()) {
+        if (inputService.checkSelectNone()) {
           options = List.of("Network Chart");
         } else {
           options = List.of("Sankey Diagram", "Network Chart", "Chord Diagram", "Heatmap");
@@ -146,7 +147,7 @@ public class InputController {
           table.put("option", options);
           try {
             ((Entity) obj).addPrimaryKey(((Entity) obj).getBelongStrongEntity().getName(),
-                DataType.TEXT);
+                io.github.MigadaTang.common.DataType.TEXT);
           } catch (Exception ignored) {
           }
         }
@@ -201,6 +202,32 @@ public class InputController {
     // selectionInfo is not null for sure
     inputService.patternMatchBasedOnSelection(selectionInfo);
     return selectedAttributes.toString();
+  }
+
+  @PostMapping("/filter-click")
+  @ResponseBody
+  public List<String> respondFilterClick(@RequestBody String selectedVisJson) throws SQLException {
+
+    String[] parts = selectedVisJson.split("\\.");
+    String tableName = parts[0];
+    String attributeName = parts[1].split("=")[0];
+    DataType type = DataTypeUtil.getDataType(tableName, attributeName, InputService.getJdbc());
+    List<String> result = new ArrayList<>();
+    // todo: handel filtering data types
+    switch (type) {
+      case NUMERICAL -> {
+      }
+      case TEMPORAL -> {
+      }
+      case LEXICAL -> {
+        result.addAll(inputService.getDiscreteFilterOptions(tableName, attributeName));
+      }
+      case GEOGRAPHICAL -> {
+      }
+      default -> {
+      }
+    }
+    return result;
   }
 
   @PostMapping("/process-vis-selection")
