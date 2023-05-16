@@ -5,12 +5,18 @@ $(document).ready(function() {
   $("#filter-form br").remove();
   $("#filter-form button").remove();
 
-  $("#mid-heading").text("Select filter:");
   $.get("/filter-options", function(tableData) {
-    $("<tr>")
-      .append($("<th>").text("Table Name"))
-      .append($("<th>").text("Filtering Attributes"))
-      .appendTo("#filter-list thead");
+    console.log(tableData);
+    if (Array.isArray(tableData) && tableData.length !== 0) {
+      $("#mid-heading").text("Select filter:");
+      $("<tr>")
+        .append($("<th>").text("Table Name"))
+        .append($("<th>").text("Filtering Attributes"))
+        .appendTo("#filter-list thead");
+
+      $("<br>").appendTo("#filter-list");
+      $("<button>").text("Apply").attr("type", "submit").appendTo("#filter-list");
+    }
     $.each(tableData, function(index, table) {
       var $tableListItem =$("<tr></tr>").appendTo("#filter-list tbody");
       $("<td>" + table.name + "</td>").appendTo($tableListItem);
@@ -19,8 +25,6 @@ $(document).ready(function() {
         $("<label><input type='checkbox' name='" + table.name + "-" + attribute + "' value='" + table.name + "." + attribute + "'> " + attribute + "</label><br>").appendTo($attributesTd);
       });
     });
-    $("<br>").appendTo("#filter-list");
-    $("<button>").text("Apply").attr("type", "submit").appendTo("#filter-list");
 
     $("#filter-list input[type='checkbox']").click(function() {
       var checkboxValue = $(this).val();
@@ -92,11 +96,27 @@ $(document).ready(function() {
       contentType: "application/json",
       data: JSON.stringify(options),
       success: function(data) {
-        console.log(data);
+        showAlert("Filter Applied!");
       },
       error: function(xhr, status, error) {
         alert(xhr.responseText);
       }
     });
   });
+
+  function showAlert(message) {
+    var container = document.getElementById("notification-container");
+    var notification = document.createElement("div");
+    notification.classList.add("notification");
+    notification.textContent = message;
+
+    container.appendChild(notification);
+    container.style.display = "block";
+
+    setTimeout(function() {
+      container.style.display = "none";
+      notification.remove();
+    }, 3000);
+  }
+
 });

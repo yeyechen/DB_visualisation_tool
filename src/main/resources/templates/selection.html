@@ -40,6 +40,20 @@
     button:hover {
       background-color: #3e8e41;
     }
+
+    #notification-container {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      padding: 10px;
+      border-radius: 4px;
+      z-index: 9999;
+      display: none;
+    }
+
   </style>
 </head>
 <body>
@@ -91,6 +105,7 @@
     <form id="vis-form">
     </form>
   </div>
+  <div id="notification-container"></div>
 </div>
 </body>
 </html>

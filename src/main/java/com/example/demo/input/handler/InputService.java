@@ -79,7 +79,6 @@ public class InputService {
     updateDatabaseDetails(dbTypeEnum, host, port, databaseName, username, password);
 
     selectionInfo = new HashMap<>();
-    filterConditions = new HashMap<>();
   }
 
   private void updateDatabaseDetails(RDBMSType dbType, String host, String port, String databaseName, String username, String password)
@@ -98,6 +97,7 @@ public class InputService {
   public void patternMatchBasedOnSelection(Map<ERConnectableObj, List<Attribute>> selectionInfo) {
     modelType = ModelUtil.patternMatch(selectionInfo.keySet().iterator().next(), schema);
     InputService.selectionInfo = selectionInfo;
+    filterConditions = new HashMap<>();
   }
 
   public boolean checkSelectNone() {
