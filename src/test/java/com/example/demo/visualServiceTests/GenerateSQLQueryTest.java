@@ -31,19 +31,37 @@ public class GenerateSQLQueryTest {
     testObject.setup();
 
     Map<ERConnectableObj, List<Attribute>> selectionInfo = new HashMap<>();
-    Map<String, List<String>> filterConditions = new HashMap<>();
     selectionInfo.put(testObject.getCountry(), testObject.getCountry().getAttributeList());
-    filterConditions.put("airport.iata_code", List.of("HEA", "KBL"));
     inputService = new InputService();
     inputService.initialise(formData);
     inputService.patternMatchBasedOnSelection(selectionInfo);
-    inputService.setFilterCondisions(filterConditions);
     visualService = new VisualService();
-    visualService.initialise(InputService.getSelectionInfo(), InputService.getFilterConditions());
   }
 
   @Test
-  public void GenerateSQLQueryTest() throws SQLException {
+  public void directlyJoinTest() throws SQLException {
+    Map<String, List<String>> filterConditions = new HashMap<>();
+    filterConditions.put("airport.iata_code", List.of("HEA", "KBL"));
+    inputService.setFilterCondisions(filterConditions);
+    visualService.initialise(InputService.getSelectionInfo(), InputService.getFilterConditions());
+    System.out.println(visualService.generateSQLQuery(List.of("population"), "country", "code"));
+  }
+
+  @Test
+  public void reverseDirection() throws SQLException {
+    Map<String, List<String>> filterConditions = new HashMap<>();
+    filterConditions.put("country.code", List.of("CN", "UK"));
+    inputService.setFilterCondisions(filterConditions);
+    visualService.initialise(InputService.getSelectionInfo(), InputService.getFilterConditions());
+    System.out.println(visualService.generateSQLQuery(List.of("elevation"), "airport", "iata_code"));
+  }
+
+  @Test
+  public void joinThreeTablesTest() throws SQLException {
+    Map<String, List<String>> filterConditions = new HashMap<>();
+    filterConditions.put("continent.name", List.of("Europe", "Asia"));
+    inputService.setFilterCondisions(filterConditions);
+    visualService.initialise(InputService.getSelectionInfo(), InputService.getFilterConditions());
     System.out.println(visualService.generateSQLQuery(List.of("population"), "country", "code"));
   }
 
