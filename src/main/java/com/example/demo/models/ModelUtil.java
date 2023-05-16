@@ -175,4 +175,24 @@ public class ModelUtil {
     }
     return result;
   }
+
+  // helper function to find the relationship table name between two entities
+  public static String getRelationshipNameBetween(String entityName1, String entityName2, Schema schema) {
+    for (Relationship relationship : schema.getRelationshipList()) {
+      boolean flag1 = false;
+      boolean flag2 = false;
+      for (RelationshipEdge edge : relationship.getEdgeList()) {
+        if (edge.getConnObj().getName().equals(entityName1)) {
+          flag1 = true;
+        }
+        if (edge.getConnObj().getName().equals(entityName2)) {
+          flag2 = true;
+        }
+      }
+      if (flag1 && flag2) {
+        return relationship.getName();
+      }
+    }
+    return "";
+  }
 }
