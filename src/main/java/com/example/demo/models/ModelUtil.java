@@ -100,6 +100,8 @@ public class ModelUtil {
           if (tempEntity != null) {
             return tempEntity;
           }
+          tempEntity = (Entity) edge.getConnObj();
+          continue;
         }
         if (flag) {
           return (Entity) edge.getConnObj();
@@ -146,7 +148,9 @@ public class ModelUtil {
   // helper function to find a list of entities in relationship (either one-many or many-many)
   // with the given entity
   public static List<Entity> inRelationshipWith(Entity entity, Schema schema) {
-    Assert.assertSame(entity.getEntityType(), EntityType.STRONG);
+    if (entity.getEntityType() == EntityType.WEAK) {
+      return new ArrayList<>();
+    }
     List<Entity> result = new ArrayList<>();
     for (Relationship relationship : schema.getRelationshipList()) {
       boolean flag = false;
@@ -160,6 +164,7 @@ public class ModelUtil {
           if (tempEntity != null) {
             result.add(tempEntity);
           }
+          tempEntity = (Entity) edge.getConnObj();
           continue;
         }
         if (flag) {

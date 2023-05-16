@@ -235,19 +235,9 @@ public class InputController {
   @PostMapping("/process-filter")
   @ResponseBody
   public String processFilter(@RequestBody String selectedFilterJson) {
-
     Type mapType = new TypeToken<Map<String, List<String>>>(){}.getType();
-    Map<String, List<String>> data = new Gson().fromJson(selectedFilterJson, mapType);
-
-    // Access the values
-    for (Map.Entry<String, List<String>> entry : data.entrySet()) {
-      String key = entry.getKey();
-      List<String> values = entry.getValue();
-      System.out.println("Key: " + key);
-      System.out.println("Values: " + values);
-    }
-
-    System.out.println(selectedFilterJson);
+    Map<String, List<String>> filterConditions = new Gson().fromJson(selectedFilterJson, mapType);
+    inputService.setFilterCondisions(filterConditions);
     return selectedFilterJson;
   }
 

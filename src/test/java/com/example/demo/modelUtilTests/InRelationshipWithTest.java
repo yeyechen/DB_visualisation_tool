@@ -27,6 +27,7 @@ public class InRelationshipWithTest {
     assertTrue(entities.contains(testObject.getCountry()));
     assertTrue(entities.contains(testObject.getReligion()));
     assertTrue(entities.contains(testObject.getContinent()));
+    assertTrue(entities.contains(testObject.getAirport()));
   }
 
 }

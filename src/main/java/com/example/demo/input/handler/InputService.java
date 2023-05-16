@@ -13,6 +13,7 @@ import io.github.MigadaTang.transform.DatabaseUtil;
 import io.github.MigadaTang.transform.Reverse;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Getter;
@@ -29,8 +30,10 @@ public class InputService {
   private static Schema schema;
 
   private static Map<ERConnectableObj, List<Attribute>> selectionInfo;
-  private static JdbcTemplate jdbc;
 
+  private static Map<String, List<String>> filterConditions;
+
+  private static JdbcTemplate jdbc;
   public static Schema getSchema() {
     return schema;
   }
@@ -41,6 +44,14 @@ public class InputService {
 
   public static JdbcTemplate getJdbc() {
     return jdbc;
+  }
+
+  public void setFilterCondisions(Map<String, List<String>> filterConditions) {
+    InputService.filterConditions = filterConditions;
+  }
+
+  public static Map<String, List<String>> getFilterConditions() {
+    return filterConditions;
   }
 
   public void initialise(Map<String, String> formData)
@@ -66,6 +77,9 @@ public class InputService {
     schema = reverse.relationSchemasToERModel(dbTypeEnum, host, port, databaseName, username,
         password);
     updateDatabaseDetails(dbTypeEnum, host, port, databaseName, username, password);
+
+    selectionInfo = new HashMap<>();
+    filterConditions = new HashMap<>();
   }
 
   private void updateDatabaseDetails(RDBMSType dbType, String host, String port, String databaseName, String username, String password)

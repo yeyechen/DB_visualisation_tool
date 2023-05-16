@@ -19,11 +19,13 @@ public class TestObject {
   private Entity countryPop;
   private Entity continent;
   private Entity religion;
+  private Entity airport;
   private Relationship borders;
   private Relationship provincePartOf;
   private Relationship countryPopPartOf;
   private Relationship encompasses;
   private Relationship believe;
+  private Relationship in;
 
   public void setup() throws Exception {
     ER.initialize();
@@ -56,10 +58,17 @@ public class TestObject {
     countryPop.addPrimaryKey("year", DataType.VARCHAR);
     countryPop.addPrimaryKey("population", DataType.INT);
 
-    // One-Many Relationship
+    // One-Many Relationships
     continent = mondialSchema.addEntity("continent");
     encompasses = mondialSchema.createRelationship("encompasses", continent, country,
         Cardinality.ZeroToMany, Cardinality.OneToOne); // should be (1:2), but for test purposes
+
+    airport = mondialSchema.addEntity("airport");
+    in = mondialSchema.createRelationship("in", airport, country, Cardinality.OneToOne,
+        Cardinality.ZeroToMany);
+    airport.addPrimaryKey("iata_code", DataType.VARCHAR);
+    airport.addAttribute("name", DataType.VARCHAR, AttributeType.Mandatory);
+    airport.addAttribute("country", DataType.VARCHAR, AttributeType.Mandatory);
 
     // Many-Many Relationship
     religion = mondialSchema.addEntity("religion");

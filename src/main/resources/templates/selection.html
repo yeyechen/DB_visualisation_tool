@@ -8,6 +8,10 @@
     float: left;
     width: 33%;
     }
+    .mini-column {
+    float: left;
+    width: 50%;
+    }
 
     .row:after {
     content: "";
@@ -63,12 +67,22 @@
   <div id="mid" class="column">
     <h2 id="mid-heading"></h2>
     <form id="filter-form">
-      <table id="filter-list">
-        <thead>
-        </thead>
-        <tbody>
-        </tbody>
-      </table>
+      <div id="mid-left" class="mini-column">
+        <table id="filter-list">
+          <thead>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+      <div id="mid-right" class="mini-column">
+        <table id="filter-condition">
+          <thead>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
     </form>
   </div>
 
