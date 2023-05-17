@@ -42,7 +42,8 @@ $(document).ready(function() {
               .append($("<th>").text("Conditions"))
               .appendTo(filterConditionTable.find("thead"));
           }
-//          filterConditionTable.find("tbody").empty();
+
+          filterConditionTable.find("tbody").empty();
 
           var $row = $("<tr>").appendTo(filterConditionTable.find("tbody"));
           var $optionsTd = $("<td>").appendTo($row);

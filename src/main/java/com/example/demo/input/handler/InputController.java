@@ -15,6 +15,7 @@ import io.github.MigadaTang.common.EntityType;
 import io.github.MigadaTang.exception.DBConnectionException;
 import io.github.MigadaTang.exception.ParseException;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -89,15 +90,26 @@ public class InputController {
   public List<Map<String, Object>> getFilterOptions() {
     Schema schema = InputService.getSchema();
     List<Map<String, Object>> tables = new ArrayList<>();
-    List<Entity> relatedEntities = ModelUtil.inRelationshipWith(
-        (Entity) InputService.getSelectionInfo().keySet().iterator().next(),
-        schema);
-    for (Entity entity : relatedEntities) {
-      Map<String, Object> table = new HashMap<>();
-      table.put("name", entity.getName());
-      List<String> attributes = entity.getAttributeList().stream().map(ERBaseObj::getName).toList();
-      table.put("attributes", attributes);
-      tables.add(table);
+    ERConnectableObj tableObject = InputService.getSelectionInfo().keySet().iterator().next();
+    // adding the table itself into the filter condition
+    Map<String, Object> self = new HashMap<>();
+    self.put("name", tableObject.getName());
+    if (tableObject instanceof Relationship) {
+      List<String> attributes = ((Relationship) tableObject).getAttributeList().stream()
+          .map(ERBaseObj::getName).toList();
+      self.put("attributes", attributes);
+      tables.add(self);
+    }
+    if (tableObject instanceof Entity) {
+      List<Entity> relatedTables = new ArrayList<>(List.of((Entity) tableObject));
+      relatedTables.addAll(ModelUtil.inRelationshipWith((Entity) tableObject, schema));
+      for (Entity entity : relatedTables) {
+        Map<String, Object> table = new HashMap<>();
+        table.put("name", entity.getName());
+        List<String> attributes = entity.getAttributeList().stream().map(ERBaseObj::getName).toList();
+        table.put("attributes", attributes);
+        tables.add(table);
+      }
     }
     return tables;
   }
@@ -218,6 +230,9 @@ public class InputController {
     // todo: handel filtering data types
     switch (type) {
       case NUMERICAL -> {
+        List<BigDecimal> scalarList = inputService.getScalarFilterOptions(tableName,
+            attributeName);
+        result.addAll(scalarList.stream().map(BigDecimal::toString).toList());
       }
       case TEMPORAL -> {
       }
@@ -229,6 +244,7 @@ public class InputController {
       default -> {
       }
     }
+    System.out.println(result);
     return result;
   }
 

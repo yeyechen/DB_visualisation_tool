@@ -161,7 +161,8 @@ public class ModelUtil {
         }
         if (edge.getConnObj() == entity) {
           flag = true;
-          if (tempEntity != null) {
+          // does not allow reflexive relationships
+          if (tempEntity != null && tempEntity != entity) {
             result.add(tempEntity);
           }
           tempEntity = (Entity) edge.getConnObj();

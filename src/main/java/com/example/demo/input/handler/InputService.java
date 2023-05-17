@@ -11,8 +11,10 @@ import io.github.MigadaTang.exception.DBConnectionException;
 import io.github.MigadaTang.exception.ParseException;
 import io.github.MigadaTang.transform.DatabaseUtil;
 import io.github.MigadaTang.transform.Reverse;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -106,6 +108,7 @@ public class InputService {
     return attributes.isEmpty();
   }
 
+  // get filter options for discrete data types
   public List<String> getDiscreteFilterOptions(String tableName, String attributeName) {
     StringBuilder query = new StringBuilder("SELECT ").append(attributeName);
     query.append(" FROM ").append(tableName);
@@ -118,4 +121,25 @@ public class InputService {
     }
     return result;
   }
+
+  // get filter options for scalar data types
+  public List<BigDecimal> getScalarFilterOptions(String tableName, String attributeName) {
+    StringBuilder query = new StringBuilder("SELECT ").append(attributeName);
+    query.append(" FROM ").append(tableName);
+
+    List<Map<String, Object>> resultMaps = jdbc.queryForList(query.toString());
+    List<BigDecimal> resultList = new ArrayList<>();
+    for (Map<String, Object> resultMap : resultMaps) {
+      Object value = resultMap.get(attributeName);
+
+        Number numberValue = (Number) value;
+        BigDecimal decimalValue = new BigDecimal(numberValue.toString());
+        resultList.add(decimalValue);
+      }
+    BigDecimal minValue = Collections.min(resultList);
+    BigDecimal maxValue = Collections.max(resultList);
+
+    return List.of(minValue, maxValue);
+  }
+
 }

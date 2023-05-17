@@ -101,38 +101,40 @@ public class VisualService {
       StringBuilder whereCondition = new StringBuilder();
       for (Map.Entry<String, Map<String, List<String>>> entry : filterConditions.entrySet()) {
         String joinTableName = entry.getKey();
-        // todo: handel when no foreign key (join three tables)
-        String fkName1 = getForeignKeyName(joinTableName, tableName);
-        String fkName2 = getForeignKeyName(tableName, joinTableName);
-        if (fkName1.isEmpty() && fkName2.isEmpty()) {
-          // need to join three tables, including the middle relationship table
-          String middleJoinTableName = ModelUtil.getRelationshipNameBetween(tableName, joinTableName,
-              InputService.getSchema());
-          String fk1 = getForeignKeyName(middleJoinTableName, tableName);
-          fromJoins.append(" INNER JOIN ").append(middleJoinTableName);
-          fromJoins.append(" ON ");
-          fromJoins.append(tableName).append(".").append(tablePrimaryKey);
-          fromJoins.append("=").append(middleJoinTableName).append(".").append(fk1);
+        if (!joinTableName.equals(tableName)) {
+          String fkName1 = getForeignKeyName(joinTableName, tableName);
+          String fkName2 = getForeignKeyName(tableName, joinTableName);
+          if (fkName1.isEmpty() && fkName2.isEmpty()) {
+            // need to join three tables, including the middle relationship table
+            String middleJoinTableName = ModelUtil.getRelationshipNameBetween(tableName,
+                joinTableName,
+                InputService.getSchema());
+            String fk1 = getForeignKeyName(middleJoinTableName, tableName);
+            fromJoins.append(" INNER JOIN ").append(middleJoinTableName);
+            fromJoins.append(" ON ");
+            fromJoins.append(tableName).append(".").append(tablePrimaryKey);
+            fromJoins.append("=").append(middleJoinTableName).append(".").append(fk1);
 
-          String fk2 = getForeignKeyName(middleJoinTableName, joinTableName);
-          fromJoins.append(" INNER JOIN ").append(joinTableName);
-          fromJoins.append(" ON ");
-          fromJoins.append(middleJoinTableName).append(".").append(fk2);
-          fromJoins.append("=").append(joinTableName).append(".").append(getPrimaryKeyName(joinTableName));
+            String fk2 = getForeignKeyName(middleJoinTableName, joinTableName);
+            fromJoins.append(" INNER JOIN ").append(joinTableName);
+            fromJoins.append(" ON ");
+            fromJoins.append(middleJoinTableName).append(".").append(fk2);
+            fromJoins.append("=").append(joinTableName).append(".")
+                .append(getPrimaryKeyName(joinTableName));
+          }
+          if (!fkName1.isEmpty()) {
+            fromJoins.append(" INNER JOIN ").append(joinTableName);
+            fromJoins.append(" ON ");
+            fromJoins.append(tableName).append(".").append(tablePrimaryKey);
+            fromJoins.append("=").append(joinTableName).append(".").append(fkName1);
+          } else if (!fkName2.isEmpty()) {
+            fromJoins.append(" INNER JOIN ").append(joinTableName);
+            fromJoins.append(" ON ");
+            fromJoins.append(tableName).append(".").append(fkName2);
+            fromJoins.append("=").append(joinTableName).append(".")
+                .append(getPrimaryKeyName(joinTableName));
+          }
         }
-        if (!fkName1.isEmpty()) {
-          fromJoins.append(" INNER JOIN ").append(joinTableName);
-          fromJoins.append(" ON ");
-          fromJoins.append(tableName).append(".").append(tablePrimaryKey);
-          fromJoins.append("=").append(joinTableName).append(".").append(fkName1);
-        } else if (!fkName2.isEmpty()) {
-          fromJoins.append(" INNER JOIN ").append(joinTableName);
-          fromJoins.append(" ON ");
-          fromJoins.append(tableName).append(".").append(fkName2);
-          fromJoins.append("=").append(joinTableName).append(".")
-              .append(getPrimaryKeyName(joinTableName));
-        }
-
         Map<String, List<String>> conditions = entry.getValue();
         for (Map.Entry<String, List<String>> singleCondition : conditions.entrySet()) {
           String conditionAttr = singleCondition.getKey();
@@ -555,7 +557,7 @@ public class VisualService {
       attributeNameStrings.add(optionalAttr.getName());
     }
     return InputService.getJdbc()
-        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName()));
+        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), ""));
   }
 
   public List<Map<String, Object>> queryNetworkChartData(
@@ -583,7 +585,7 @@ public class VisualService {
       attributeNameStrings.add(optionalAttr.getName());
     }
     return InputService.getJdbc()
-        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName()));
+        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), ""));
   }
 
   public List<Map<String, Object>> queryChordDiagramData(
@@ -617,7 +619,7 @@ public class VisualService {
       attributeNameStrings.add(optionalAttr.getName());
     }
     return InputService.getJdbc()
-        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName()));
+        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), ""));
   }
 
   public List<Map<String, Object>> queryHeatmapData(
@@ -638,6 +640,6 @@ public class VisualService {
     List<String> attributeNameStrings = new ArrayList<>(compoundFKs);
     attributeNameStrings.add(attribute1.getName());
     return InputService.getJdbc()
-        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName()));
+        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), ""));
   }
 }
