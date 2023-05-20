@@ -12,7 +12,7 @@ $(document).ready(function() {
       $("<tr>")
         .append($("<th>").text("Table Name"))
         .append($("<th>").text("Filtering Attributes"))
-        .appendTo("#filter-list thead");
+        .appendTo("#filter-list thead")
 
       $("<br>").appendTo("#filter-list");
       $("<button>").text("Apply").attr("type", "submit").appendTo("#filter-list");
@@ -47,17 +47,126 @@ $(document).ready(function() {
 
           var $row = $("<tr>").appendTo(filterConditionTable.find("tbody"));
           var $optionsTd = $("<td>").appendTo($row);
-          $.each(data, function(index, value) {
-            var checkbox = $("<input>")
-              .attr("type", "checkbox")
-              .attr("name", "filterCondition")
-              .attr("value", value)
-              .attr("data-filter-option", checkboxValue);
-            var label = $("<label>").text(value).append(checkbox);
-            $optionsTd.append(label);
-            $("<br>").appendTo($optionsTd);
-          });
 
+          if (typeof data[0] === "string") {
+            $.each(data, function(index, value) {
+              var checkbox = $("<input>")
+                .attr("type", "checkbox")
+                .attr("name", "filterCondition")
+                .attr("value", value)
+                .attr("data-filter-option", checkboxValue);
+              var label = $("<label>").text(value).append(checkbox);
+              $optionsTd.append(label);
+              $("<br>").appendTo($optionsTd);
+            });
+          }
+
+          if (typeof data[0] === "number") {
+
+            var dragBarContainer = $('<div id="drag-bar-container"></div>');
+            var dragBar = $('<div id="drag-bar"></div>');
+            var minHandle = $('<div id="min-handle" class="handle"></div>');
+            var maxHandle = $('<div id="max-handle" class="handle"></div>');
+            dragBar.append(minHandle, maxHandle);
+            dragBarContainer.append(dragBar);
+
+            $optionsTd.append(dragBarContainer);
+
+            var dragBar = $('#drag-bar');
+            var minHandle = $('#min-handle');
+            var maxHandle = $('#max-handle');
+
+            var dragBarWidth = dragBar.width();
+            var handleWidth = minHandle.width();
+
+            var minValue = data[0];
+            var maxValue = data[1];
+            var currentMinValue = minValue;
+            var currentMaxValue = maxValue;
+
+            // Calculate the initial positions of the handles
+            var minPosition = 0;
+            var maxPosition = dragBarWidth - handleWidth;
+
+            minHandle.css('left', minPosition + 'px');
+            maxHandle.css('left', maxPosition + 'px');
+
+            // Set up event listeners for dragging the handles
+            minHandle.on('mousedown', startDragging);
+            maxHandle.on('mousedown', startDragging);
+
+            var minText = $("<span>").text("min");
+            var maxText = $("<span>").text("max");
+            var realTimeMinValue = $("<span>").text(currentMinValue);
+            var realTimeMaxValue = $("<span>").text(currentMaxValue);
+            var minMaxValue = $("<div>").addClass("min-max-container");
+            minMaxValue.append(realTimeMinValue, realTimeMaxValue);
+            var minMaxText = $("<div>").addClass("min-max-container");
+            minMaxText.append(minText, maxText);
+
+
+            $optionsTd.css("width", "200");
+            $optionsTd.append(minMaxText);
+            $optionsTd.append(minMaxValue);
+
+            // Function to start dragging the handles
+            function startDragging() {
+              var handle = $(this);
+
+              // Get the initial position of the handle
+              var initialPosition = parseFloat(handle.css('left')) || 0;
+
+              // Get the initial mouse position
+              var initialMousePosition = event.clientX;
+
+              // Calculate the offset between the mouse position and the handle position
+              var offset = initialMousePosition - initialPosition;
+
+              // Set up event listeners for dragging
+              $(document).on('mousemove', drag);
+              $(document).on('mouseup', stopDragging);
+
+              // Function to handle dragging
+              function drag(event) {
+                // Calculate the new position of the handle based on the mouse position and the offset
+                var newPosition = event.clientX - offset;
+
+                // Limit the position within the bounds of the drag bar
+                newPosition = Math.max(0, Math.min(dragBarWidth - handleWidth, newPosition));
+
+                // Update the position of the handle
+                handle.css('left', newPosition + 'px');
+
+                // Update the current values based on the new position
+                if (handle.is(minHandle)) {
+                  currentMinValue = calculateValue(newPosition, dragBarWidth, minValue, maxValue);
+                } else if (handle.is(maxHandle)) {
+                  currentMaxValue = calculateValue(newPosition + handleWidth, dragBarWidth, minValue, maxValue);
+                }
+
+                // Update any other UI elements or perform additional actions based on the new values
+                realTimeMinValue.text(Math.round(currentMinValue));
+                realTimeMaxValue.text(Math.round(currentMaxValue));
+              }
+
+              // Function to stop dragging
+              function stopDragging() {
+                // Remove the event listeners for dragging
+                $(document).off('mousemove', drag);
+                $(document).off('mouseup', stopDragging);
+
+                // Perform any final actions or updates based on the new values
+                // ...
+              }
+            }
+
+            // Function to calculate the value based on the position within the drag bar
+            function calculateValue(position, dragBarWidth, minValue, maxValue) {
+              var range = maxValue - minValue;
+              var normalizedPosition = position / dragBarWidth;
+              return minValue + range * normalizedPosition;
+            }
+          }
         }
       });
     });

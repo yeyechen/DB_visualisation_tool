@@ -15,7 +15,6 @@ import io.github.MigadaTang.common.EntityType;
 import io.github.MigadaTang.exception.DBConnectionException;
 import io.github.MigadaTang.exception.ParseException;
 import java.lang.reflect.Type;
-import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -220,19 +219,18 @@ public class InputController {
 
   @PostMapping("/filter-click")
   @ResponseBody
-  public List<String> respondFilterClick(@RequestBody String selectedFilterJson) throws SQLException {
+  public List<Object> respondFilterClick(@RequestBody String selectedFilterJson) throws SQLException {
 
     String[] parts = selectedFilterJson.split("\\.");
     String tableName = parts[0];
     String attributeName = parts[1].split("=")[0];
     DataType type = DataTypeUtil.getDataType(tableName, attributeName, InputService.getJdbc());
-    List<String> result = new ArrayList<>();
+    List<Object> result = new ArrayList<>();
     // todo: handel filtering data types
     switch (type) {
       case NUMERICAL -> {
-        List<BigDecimal> scalarList = inputService.getScalarFilterOptions(tableName,
-            attributeName);
-        result.addAll(scalarList.stream().map(BigDecimal::toString).toList());
+        result.addAll(inputService.getScalarFilterOptions(tableName,
+            attributeName));
       }
       case TEMPORAL -> {
       }

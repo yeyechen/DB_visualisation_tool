@@ -131,11 +131,18 @@ public class InputService {
     List<BigDecimal> resultList = new ArrayList<>();
     for (Map<String, Object> resultMap : resultMaps) {
       Object value = resultMap.get(attributeName);
-
+      // handle nullable values
+      if (value != null) {
         Number numberValue = (Number) value;
         BigDecimal decimalValue = new BigDecimal(numberValue.toString());
         resultList.add(decimalValue);
       }
+    }
+
+    if (resultList.isEmpty()) {
+      // handle the case where all values were null
+      return Collections.emptyList();
+    }
     BigDecimal minValue = Collections.min(resultList);
     BigDecimal maxValue = Collections.max(resultList);
 

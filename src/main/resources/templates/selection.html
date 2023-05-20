@@ -54,6 +54,42 @@
       display: none;
     }
 
+    #drag-bar-container {
+      width: 180px;
+      margin: 10px;
+    }
+
+    #drag-bar {
+      position: relative;
+      height: 8px;
+      background-color: #e0e0e0;
+      cursor: pointer;
+    }
+
+    .handle {
+      position: absolute;
+      width: 15px;
+      height: 15px;
+      top: -5px;
+      background-color: #4CAF50;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    #min-handle {
+      left: 0;
+    }
+
+    #max-handle {
+      right: 0;
+    }
+
+    .min-max-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
   </style>
 </head>
 <body>
@@ -98,6 +134,7 @@
         </table>
       </div>
     </form>
+
   </div>
 
   <div id="right" class="column">
