@@ -1,3 +1,4 @@
+var options = {};
 $(document).ready(function() {
 
   $("#filter-list thead").empty();
@@ -147,6 +148,11 @@ $(document).ready(function() {
                 // Update any other UI elements or perform additional actions based on the new values
                 realTimeMinValue.text(Math.round(currentMinValue));
                 realTimeMaxValue.text(Math.round(currentMaxValue));
+                if (!options[checkboxValue]) {
+                  options[checkboxValue] = [];
+                }
+                options[checkboxValue][0] = Math.round(currentMinValue);
+                options[checkboxValue][1] = Math.round(currentMaxValue);
               }
 
               // Function to stop dragging
@@ -171,8 +177,6 @@ $(document).ready(function() {
       });
     });
   });
-
-  var options = {};
 
   $(document).on("click", "#filter-condition input[type='checkbox']", function(event) {
 
@@ -199,7 +203,7 @@ $(document).ready(function() {
 
   $(document).on("click", "#filter-list button[type='submit']", function(event) {
     event.preventDefault();
-
+    console.log(options);
     $.ajax({
       url: "/process-filter",
       type: "POST",

@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -136,19 +137,42 @@ public class VisualService {
           }
         }
         Map<String, List<String>> conditions = entry.getValue();
-        for (Map.Entry<String, List<String>> singleCondition : conditions.entrySet()) {
+        Set<Entry<String, List<String>>> entries = conditions.entrySet();
+        for (Map.Entry<String, List<String>> singleCondition : entries) {
           String conditionAttr = singleCondition.getKey();
           List<String> conditionValues = singleCondition.getValue();
 
           DataType type = DataTypeUtil.getDataType(joinTableName, conditionAttr,
               InputService.getJdbc());
+          if (type == DataType.NUMERICAL) {
+            whereCondition.append("(");
+            // only two element in "conditionValues" index 0 for min, index 1 for max
+            Iterator<String> minMax = conditionValues.iterator();
+            String min = minMax.next();
+            String max = minMax.next();
+            whereCondition.append(joinTableName)
+                .append(".")
+                .append(conditionAttr)
+                .append(">=")
+                .append(min)
+                .append(" AND ")
+                .append(joinTableName)
+                .append(".")
+                .append(conditionAttr)
+                .append("<=")
+                .append(max);
+            whereCondition.append(")");
+          }
 
           if (type == DataType.LEXICAL) {
             whereCondition.append("(");
             for (String value : conditionValues) {
               String stringFormatValue = "'" + value + "'";
-              whereCondition.append(joinTableName).append(".").append(conditionAttr)
-                  .append("=").append(stringFormatValue);
+              whereCondition.append(joinTableName)
+                  .append(".")
+                  .append(conditionAttr)
+                  .append("=")
+                  .append(stringFormatValue);
               whereCondition.append(" OR ");
             }
             // remove the extra " OR " at the end
@@ -157,8 +181,8 @@ public class VisualService {
           }
           whereCondition.append(" AND ");
         }
-        whereCondition.setLength(whereCondition.length() - 5);
       }
+      whereCondition.setLength(whereCondition.length() - 5);
       StringBuilder selectAttr = new StringBuilder();
       for (String attr : attributes) {
         selectAttr.append(tableName).append(".").append(attr);
