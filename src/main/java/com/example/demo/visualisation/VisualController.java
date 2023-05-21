@@ -24,6 +24,13 @@ public class VisualController {
         InputService.getFilterConditions());
   }
 
+  @GetMapping("/pie_chart_data")
+  @ResponseBody
+  public List<Map<String, Object>> pieChartData() throws SQLException {
+    return visualService.queryPieChart(InputService.getSelectionInfo(),
+        InputService.getFilterConditions());
+  }
+
   @GetMapping("/calendar_data")
   @ResponseBody
   public List<Map<String, Object>> calendarData() throws SQLException {
@@ -143,6 +150,11 @@ public class VisualController {
   @GetMapping("/bar_chart")
   public String barChartPage() {
     return "bar_chart";
+  }
+
+  @GetMapping("/pie_chart")
+  public String pieChartPage() {
+    return "pie_chart";
   }
 
   @GetMapping("/calendar")

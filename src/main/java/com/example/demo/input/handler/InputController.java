@@ -120,7 +120,7 @@ public class InputController {
     List<String> options;
     switch (inputService.getModelType()) {
       case BASIC_ENTITY -> {
-        options = List.of("Bar Chart", "Calendar", "Scatter Diagram",
+        options = List.of("Bar Chart", "Pie Chart", "Calendar", "Scatter Diagram",
             "Bubble Chart", "Choropleth Map", "Word Cloud");
         table.put("option", options);
       }
@@ -228,21 +228,16 @@ public class InputController {
     List<Object> result = new ArrayList<>();
     // todo: handel filtering data types
     switch (type) {
-      case NUMERICAL -> {
-        result.addAll(inputService.getScalarFilterOptions(tableName,
-            attributeName));
-      }
+      case NUMERICAL -> result.addAll(inputService.getScalarFilterOptions(tableName,
+          attributeName));
       case TEMPORAL -> {
       }
-      case LEXICAL -> {
-        result.addAll(inputService.getDiscreteFilterOptions(tableName, attributeName));
-      }
+      case LEXICAL -> result.addAll(inputService.getDiscreteFilterOptions(tableName, attributeName));
       case GEOGRAPHICAL -> {
       }
       default -> {
       }
     }
-    System.out.println(result);
     return result;
   }
 
