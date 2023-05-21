@@ -17,6 +17,7 @@ import io.github.MigadaTang.common.EntityType;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import org.junit.Assert;
 
@@ -149,7 +150,7 @@ public class ModelUtil {
   // with the given entity
   public static List<Entity> inRelationshipWith(Entity entity, Schema schema) {
     if (entity.getEntityType() == EntityType.WEAK) {
-      return new ArrayList<>();
+      return List.of(Objects.requireNonNull(getRelatedStrongEntity(entity, schema)));
     }
     List<Entity> result = new ArrayList<>();
     for (Relationship relationship : schema.getRelationshipList()) {
