@@ -226,17 +226,10 @@ public class InputController {
     String attributeName = parts[1].split("=")[0];
     DataType type = DataTypeUtil.getDataType(tableName, attributeName, InputService.getJdbc());
     List<Object> result = new ArrayList<>();
-    // todo: handel filtering data types
     switch (type) {
-      case NUMERICAL -> result.addAll(inputService.getScalarFilterOptions(tableName,
+      case NUMERICAL, TEMPORAL -> result.addAll(inputService.getScalarFilterOptions(tableName,
           attributeName));
-      case TEMPORAL -> {
-      }
       case LEXICAL -> result.addAll(inputService.getDiscreteFilterOptions(tableName, attributeName));
-      case GEOGRAPHICAL -> {
-      }
-      default -> {
-      }
     }
     return result;
   }

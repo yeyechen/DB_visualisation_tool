@@ -343,6 +343,22 @@ public class VisualService {
         .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName()));
   }
 
+  public List<Map<String, Object>> queryChoroplethMap(
+      Map<ERConnectableObj, List<Attribute>> selectionInfo,
+      Map<String, List<String>> filterConditions) throws SQLException {
+    initialise(selectionInfo, filterConditions);
+    List<String> attributeNameStrings = new ArrayList<>();
+
+    Attribute attribute = attributes.iterator().next();
+    Assert.assertSame(
+        DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc()),
+        DataType.NUMERICAL);
+    attributeNameStrings.add(tablePrimaryKey.getName());
+    attributeNameStrings.add(attribute.getName());
+    return InputService.getJdbc()
+        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName()));
+  }
+
   public List<Map<String, Object>> queryWordCloud(
       Map<ERConnectableObj, List<Attribute>> selectionInfo,
       Map<String, List<String>> filterConditions) throws SQLException {

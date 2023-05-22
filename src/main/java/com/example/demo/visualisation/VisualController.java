@@ -52,6 +52,13 @@ public class VisualController {
         InputService.getFilterConditions());
   }
 
+  @GetMapping("/choropleth_map_data")
+  @ResponseBody
+  public List<Map<String, Object>> choroplethMapData() throws SQLException {
+    return visualService.queryChoroplethMap(InputService.getSelectionInfo(),
+        InputService.getFilterConditions());
+  }
+
   @GetMapping("/word_cloud_data")
   @ResponseBody
   public List<Map<String, Object>> wordCloudData() throws SQLException {
@@ -170,6 +177,11 @@ public class VisualController {
   @GetMapping("/bubble_chart")
   public String bubbleChartPage() {
     return "bubble_chart";
+  }
+
+  @GetMapping("/choropleth_map")
+  public String choroplethMapPage() {
+    return "choropleth_map";
   }
 
   @GetMapping("/word_cloud")
