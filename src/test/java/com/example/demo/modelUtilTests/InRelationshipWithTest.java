@@ -23,7 +23,6 @@ public class InRelationshipWithTest {
   public void mondialCountryTest() {
     List<ERConnectableObj> entities = ModelUtil.tablesInRelationshipWith(testObject.getCountry(),
         testObject.getMondialSchema());
-    System.out.println(entities);
     assertTrue(entities.contains(testObject.getReligion()));
     assertTrue(entities.contains(testObject.getContinent()));
     assertTrue(entities.contains(testObject.getAirport()));
@@ -33,4 +32,11 @@ public class InRelationshipWithTest {
     assertTrue(entities.contains(testObject.getBorders()));
   }
 
+  @Test
+  public void relationshipTest() {
+    List<ERConnectableObj> entities = ModelUtil.tablesInRelationshipWith(testObject.getEncompasses(),
+        testObject.getMondialSchema());
+    assertTrue(entities.contains(testObject.getContinent()));
+    assertTrue(entities.contains(testObject.getCountry()));
+  }
 }
