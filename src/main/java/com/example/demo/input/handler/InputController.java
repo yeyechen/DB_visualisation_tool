@@ -14,13 +14,18 @@ import io.github.MigadaTang.Schema;
 import io.github.MigadaTang.common.EntityType;
 import io.github.MigadaTang.exception.DBConnectionException;
 import io.github.MigadaTang.exception.ParseException;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -97,10 +102,12 @@ public class InputController {
       Map<String, Object> map = new HashMap<>();
       map.put("name", table.getName());
       if (table instanceof Entity) {
-        List<String> attributes = ((Entity) table).getAttributeList().stream().map(ERBaseObj::getName).toList();
+        List<String> attributes = ((Entity) table).getAttributeList().stream()
+            .map(ERBaseObj::getName).toList();
         map.put("attributes", attributes);
       } else if (table instanceof Relationship) {
-        List<String> attributes = ((Relationship) table).getAttributeList().stream().map(ERBaseObj::getName).toList();
+        List<String> attributes = ((Relationship) table).getAttributeList().stream()
+            .map(ERBaseObj::getName).toList();
         map.put("attributes", attributes);
       }
       tables.add(map);
@@ -214,7 +221,8 @@ public class InputController {
 
   @PostMapping("/filter-click")
   @ResponseBody
-  public List<Object> respondFilterClick(@RequestBody String selectedFilterJson) throws SQLException {
+  public List<Object> respondFilterClick(@RequestBody String selectedFilterJson)
+      throws SQLException {
 
     String[] parts = selectedFilterJson.split("\\.");
     String tableName = parts[0];
@@ -224,7 +232,8 @@ public class InputController {
     switch (type) {
       case NUMERICAL, TEMPORAL -> result.addAll(inputService.getScalarFilterOptions(tableName,
           attributeName));
-      case LEXICAL -> result.addAll(inputService.getDiscreteFilterOptions(tableName, attributeName));
+      case LEXICAL -> result.addAll(
+          inputService.getDiscreteFilterOptions(tableName, attributeName));
     }
     return result;
   }
@@ -232,7 +241,8 @@ public class InputController {
   @PostMapping("/process-filter")
   @ResponseBody
   public String processFilter(@RequestBody String selectedFilterJson) {
-    Type mapType = new TypeToken<Map<String, List<String>>>(){}.getType();
+    Type mapType = new TypeToken<Map<String, List<String>>>() {
+    }.getType();
     Map<String, List<String>> filterConditions = new Gson().fromJson(selectedFilterJson, mapType);
     inputService.setFilterCondisions(filterConditions);
     return selectedFilterJson;
@@ -244,5 +254,33 @@ public class InputController {
     String formattedString = selectedVisJson.toLowerCase().replace(" ", "_")
         .replace("\"", "");
     return "/" + formattedString;
+  }
+
+  @PostMapping("/get-related-tables")
+  @ResponseBody
+  public String getRelatedTables(@RequestBody String selectedTableURL)
+      throws UnsupportedEncodingException {
+    String selectedTableJson = URLDecoder.decode(selectedTableURL, StandardCharsets.UTF_8.toString());
+    Set<String> noDuplicates = new HashSet<>(
+        new Gson().fromJson(selectedTableJson.split("=")[0], List.class));
+    List<String> selectedTables = new ArrayList<>(noDuplicates);
+
+    Schema schema = InputService.getSchema();
+    List<ERConnectableObj> allTables = new ArrayList<>();
+
+    allTables.addAll(schema.getRelationshipList());
+    allTables.addAll(schema.getEntityList());
+
+    // the result we are going to return
+    List<String> relatedTables = new ArrayList<>(selectedTables);
+
+    for (String tableName : selectedTables) {
+      Optional<ERConnectableObj> table = allTables.stream().filter(e -> e.getName().equals(tableName))
+          .findFirst();
+      table.ifPresent(erConnectableObj -> relatedTables.addAll(
+          ModelUtil.tablesInRelationshipWith(erConnectableObj, schema).stream()
+              .map(ERConnectableObj::getName).toList()));
+    }
+    return new Gson().toJson(relatedTables);
   }
 }

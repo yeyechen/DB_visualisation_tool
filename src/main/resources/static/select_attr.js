@@ -1,8 +1,18 @@
 $(document).ready(function() {
 
-  // Disable all checkboxes except for the ones in the clicked table
-  function disableCheckboxes(table) {
-    $("#table-list input[type='checkbox']").not("input[name^='" + table + "']").attr("disabled", true);
+  // Disable all checkboxes that are in tables not related to the ones in the clicked table,
+  // and also enable all checkboxes that are in tables related
+  function disableUnrelatedCheckboxes(tables) {
+    $("#table-list input[type='checkbox']").each(function() {
+      var checkbox = $(this);
+      var tableName = checkbox.attr("name").split("-")[0];
+
+      if (tables.includes(tableName)) {
+        checkbox.prop("disabled", false);  // Enable checkbox
+      } else {
+        checkbox.prop("disabled", true);   // Disable checkbox
+      }
+    });
   }
 
   // Disable all checkboxes if the maximum number of checkboxes is checked
@@ -10,19 +20,14 @@ $(document).ready(function() {
     $("#table-list input[type='checkbox']").not(":checked").attr("disabled", true);
   }
 
-  // Enable checkboxes in a certain table
-  function enableCheckboxes(table) {
-    $("#table-list input[type='checkbox'][name^='" + table + "']").attr("disabled", false);
-  }
-
   // Enable all checkboxes in all tables
   function enableAllCheckboxes() {
     $("#table-list input[type='checkbox']").attr("disabled", false);
   }
 
-  // Count the number of selected checkboxes in a table
-  function countSelectedCheckboxes(table) {
-    return $("#table-list input[name^='" + table + "']:checked").length;
+  // Count the number of all checkboxes
+  function countCheckboxes() {
+    return $("#table-list input[type='checkbox']:checked").length;
   }
 
   $.get("/attr-options", function(tableData) {
@@ -37,20 +42,37 @@ $(document).ready(function() {
       });
     });
 
+    var selectedTables = [];
+    var relatedTables = [];
     // Disable checkboxes in other tables when a checkbox is clicked
     $("#table-list input[type='checkbox']").click(function() {
-      var table = $(this).attr("name").split("-")[0]+"-";
-      disableCheckboxes(table);
+      var table = $(this).attr("name").split("-")[0];
+      var isChecked = $(this).prop("checked");
+      if (isChecked) {
+        selectedTables.push(table);
+      } else {
+        var index = selectedTables.indexOf(table);
+        if (index !== -1) {
+          selectedTables.splice(index, 1);
+        }
+      }
+      $.ajax({
+        url: "/get-related-tables",
+        type: "POST",
+        data: JSON.stringify(selectedTables),
+        success: function(response) {
+          relatedTables = JSON.parse(response);
+          disableUnrelatedCheckboxes(relatedTables);
 
-      if (countSelectedCheckboxes(table) >= 4) {
-        disableAllCheckboxes();
-      }
-      if (countSelectedCheckboxes(table) < 4) {
-        enableCheckboxes(table);
-      }
-      if (countSelectedCheckboxes(table) === 0) {
-        enableAllCheckboxes();
-      }
+          if (countCheckboxes() >= 4) {
+            disableAllCheckboxes();
+          }
+
+          if (countCheckboxes() === 0) {
+            enableAllCheckboxes();
+          }
+        }
+      });
     });
   });
 

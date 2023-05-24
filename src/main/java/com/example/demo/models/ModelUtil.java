@@ -155,6 +155,9 @@ public class ModelUtil {
     }
     Set<ERConnectableObj> result = new HashSet<>();
     for (Relationship relationship : schema.getRelationshipList()) {
+      if (relationship == table) {
+        return relationship.getEdgeList().stream().map(RelationshipEdge::getConnObj).toList();
+      }
       boolean flag = false;
       Entity tempEntity = null;
       for (RelationshipEdge edge : relationship.getEdgeList()) {
