@@ -146,36 +146,41 @@ public class ModelUtil {
     return entities;
   }
 
-  // helper function to find a list of entities in relationship (either one-many or many-many)
-  // with the given entity
-  public static List<Entity> inRelationshipWith(Entity entity, Schema schema) {
-    if (entity.getEntityType() == EntityType.WEAK) {
-      return List.of(Objects.requireNonNull(getRelatedStrongEntity(entity, schema)));
+  // helper function to find a list of ERConnectableObj in relationship with a given ERConnectableObj
+  // including the relationship itself
+  // so basically any tables that can be joined with the current table
+  public static List<ERConnectableObj> tablesInRelationshipWith(ERConnectableObj table, Schema schema) {
+    if (table instanceof Entity && ((Entity) table).getEntityType() == EntityType.WEAK) {
+      return List.of(Objects.requireNonNull(getRelatedStrongEntity((Entity) table, schema)));
     }
-    List<Entity> result = new ArrayList<>();
+    Set<ERConnectableObj> result = new HashSet<>();
     for (Relationship relationship : schema.getRelationshipList()) {
       boolean flag = false;
       Entity tempEntity = null;
       for (RelationshipEdge edge : relationship.getEdgeList()) {
-        if (((Entity) edge.getConnObj()).getEntityType() == EntityType.WEAK) {
-          continue;
-        }
-        if (edge.getConnObj() == entity) {
+        if (edge.getConnObj() == table) {
           flag = true;
-          // does not allow reflexive relationships
-          if (tempEntity != null && tempEntity != entity) {
+          // exclude reflexive relationships, because the table itself will be
+          // added anyway in the upstream function
+          if (tempEntity != null && tempEntity != table) {
             result.add(tempEntity);
+          }
+          if (relationship.getAttributeList().size() > 0) {
+            result.add(relationship);
           }
           tempEntity = (Entity) edge.getConnObj();
           continue;
         }
         if (flag) {
-          result.add((Entity) edge.getConnObj());
+          result.add(edge.getConnObj());
+          if (relationship.getAttributeList().size() > 0) {
+            result.add(relationship);
+          }
         }
         tempEntity = (Entity) edge.getConnObj();
       }
     }
-    return result;
+    return new ArrayList<>(result);
   }
 
   // helper function to find the relationship table name between two entities

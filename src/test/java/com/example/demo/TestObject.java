@@ -62,6 +62,7 @@ public class TestObject {
     continent = mondialSchema.addEntity("continent");
     encompasses = mondialSchema.createRelationship("encompasses", continent, country,
         Cardinality.ZeroToMany, Cardinality.OneToOne); // should be (1:2), but for test purposes
+    encompasses.addAttribute("percent", DataType.DOUBLE, AttributeType.Mandatory);
 
     airport = mondialSchema.addEntity("airport");
     in = mondialSchema.createRelationship("in", airport, country, Cardinality.OneToOne,

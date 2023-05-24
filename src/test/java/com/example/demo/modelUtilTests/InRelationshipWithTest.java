@@ -1,10 +1,10 @@
 package com.example.demo.modelUtilTests;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import com.example.demo.TestObject;
 import com.example.demo.models.ModelUtil;
-import io.github.MigadaTang.Entity;
+import io.github.MigadaTang.ERConnectableObj;
 import java.util.List;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -21,13 +21,16 @@ public class InRelationshipWithTest {
 
   @Test
   public void mondialCountryTest() {
-    List<Entity> entities = ModelUtil.inRelationshipWith(testObject.getCountry(),
+    List<ERConnectableObj> entities = ModelUtil.tablesInRelationshipWith(testObject.getCountry(),
         testObject.getMondialSchema());
     System.out.println(entities);
-    assertTrue(entities.contains(testObject.getCountry()));
     assertTrue(entities.contains(testObject.getReligion()));
     assertTrue(entities.contains(testObject.getContinent()));
     assertTrue(entities.contains(testObject.getAirport()));
+    assertTrue(entities.contains(testObject.getCountryPop()));
+    assertTrue(entities.contains(testObject.getProvince()));
+    assertTrue(entities.contains(testObject.getEncompasses()));
+    assertTrue(entities.contains(testObject.getBorders()));
   }
 
 }

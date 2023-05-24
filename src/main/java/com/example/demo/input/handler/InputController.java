@@ -91,24 +91,19 @@ public class InputController {
     List<Map<String, Object>> tables = new ArrayList<>();
     ERConnectableObj tableObject = InputService.getSelectionInfo().keySet().iterator().next();
     // adding the table itself into the filter condition
-    Map<String, Object> self = new HashMap<>();
-    self.put("name", tableObject.getName());
-    if (tableObject instanceof Relationship) {
-      List<String> attributes = ((Relationship) tableObject).getAttributeList().stream()
-          .map(ERBaseObj::getName).toList();
-      self.put("attributes", attributes);
-      tables.add(self);
-    }
-    if (tableObject instanceof Entity) {
-      List<Entity> relatedTables = new ArrayList<>(List.of((Entity) tableObject));
-      relatedTables.addAll(ModelUtil.inRelationshipWith((Entity) tableObject, schema));
-      for (Entity entity : relatedTables) {
-        Map<String, Object> table = new HashMap<>();
-        table.put("name", entity.getName());
-        List<String> attributes = entity.getAttributeList().stream().map(ERBaseObj::getName).toList();
-        table.put("attributes", attributes);
-        tables.add(table);
+    List<ERConnectableObj> relatedTables = new ArrayList<>(List.of(tableObject));
+    relatedTables.addAll(ModelUtil.tablesInRelationshipWith(tableObject, schema));
+    for (ERConnectableObj table : relatedTables) {
+      Map<String, Object> map = new HashMap<>();
+      map.put("name", table.getName());
+      if (table instanceof Entity) {
+        List<String> attributes = ((Entity) table).getAttributeList().stream().map(ERBaseObj::getName).toList();
+        map.put("attributes", attributes);
+      } else if (table instanceof Relationship) {
+        List<String> attributes = ((Relationship) table).getAttributeList().stream().map(ERBaseObj::getName).toList();
+        map.put("attributes", attributes);
       }
+      tables.add(map);
     }
     return tables;
   }
