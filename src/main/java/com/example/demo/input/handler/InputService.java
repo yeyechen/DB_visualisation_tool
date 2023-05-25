@@ -97,8 +97,8 @@ public class InputService {
   }
 
   public void patternMatchBasedOnSelection(Map<ERConnectableObj, List<Attribute>> selectionInfo) {
-    modelType = ModelUtil.patternMatch(selectionInfo.keySet().iterator().next(), schema);
     InputService.selectionInfo = selectionInfo;
+    modelType = ModelUtil.patternMatchBasedOnSelection(selectionInfo, schema);
     filterConditions = new HashMap<>();
   }
 

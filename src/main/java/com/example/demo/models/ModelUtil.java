@@ -7,6 +7,8 @@ import static com.example.demo.models.ModelType.REFLEXIVE_RELATIONSHIP;
 import static com.example.demo.models.ModelType.UNKNOWN;
 import static com.example.demo.models.ModelType.WEAK_ENTITY;
 
+import com.example.demo.input.handler.InputService;
+import io.github.MigadaTang.Attribute;
 import io.github.MigadaTang.ERConnectableObj;
 import io.github.MigadaTang.Entity;
 import io.github.MigadaTang.Relationship;
@@ -16,12 +18,66 @@ import io.github.MigadaTang.common.Cardinality;
 import io.github.MigadaTang.common.EntityType;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.Assert;
 
 public class ModelUtil {
+
+  public static ModelType patternMatchBasedOnSelection(
+      Map<ERConnectableObj, List<Attribute>> selectionInfo, Schema schema) {
+    // max number of table user can choose: 2
+    if (selectionInfo.keySet().size() > 1) {
+      // strictly based on the model: one table contains attribute info, the other table can only be
+      // selected by the key
+      ERConnectableObj attrTable;
+      ERConnectableObj keyTable;
+      Iterator<ERConnectableObj> keyIterator = selectionInfo.keySet().iterator();
+
+      ERConnectableObj table1 = keyIterator.next();
+      ERConnectableObj table2 = keyIterator.next();
+
+      // classify
+      if (selectionInfo.get(table2).isEmpty()) {
+        attrTable = table1;
+        keyTable = table2;
+      } else {
+        attrTable = table2;
+        keyTable = table1;
+      }
+      if (attrTable instanceof Relationship || keyTable instanceof Relationship) {
+        return UNKNOWN;
+      }
+      Relationship relationship = getRelationshipBetween(attrTable.getName(), keyTable.getName(),
+          schema);
+
+      Optional<RelationshipEdge> attrEdge = relationship.getEdgeList().stream()
+          .filter(edge -> edge.getConnObj() == attrTable).findFirst();
+      Optional<RelationshipEdge> keyEdge = relationship.getEdgeList().stream()
+          .filter(edge -> edge.getConnObj() == keyTable).findFirst();
+
+      if (attrEdge.isEmpty() || keyEdge.isEmpty()) {
+        return UNKNOWN;
+      } else {
+        // check paper, only in this situation we have a One-Many Relationship, otherwise we treat
+        // every selection UNKNOWN, suggesting no visualisation
+        if ((attrEdge.get().getCardinality() == Cardinality.OneToOne
+            || attrEdge.get().getCardinality() == Cardinality.ZeroToOne) && (
+            keyEdge.get().getCardinality() == Cardinality.OneToMany || keyEdge.get()
+                .getCardinality() == Cardinality.ZeroToMany)) {
+          InputService.getSelectionInfo().remove(keyTable);
+          return ONE_MANY_RELATIONSHIP;
+        }
+        return UNKNOWN;
+      }
+    } else {
+      return ModelUtil.patternMatch(selectionInfo.keySet().iterator().next(), schema);
+    }
+  }
 
   /**
    * The function pattern matches current user selection to one of the five ER models.
@@ -219,7 +275,7 @@ public class ModelUtil {
   }
 
   // helper function to find the relationship table name between two entities
-  public static String getRelationshipNameBetween(String entityName1, String entityName2, Schema schema) {
+  public static Relationship getRelationshipBetween(String entityName1, String entityName2, Schema schema) {
     for (Relationship relationship : schema.getRelationshipList()) {
       boolean flag1 = false;
       boolean flag2 = false;
@@ -232,9 +288,9 @@ public class ModelUtil {
         }
       }
       if (flag1 && flag2) {
-        return relationship.getName();
+        return relationship;
       }
     }
-    return "";
+    return null;
   }
 }
