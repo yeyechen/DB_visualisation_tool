@@ -144,10 +144,6 @@ public class VisualController {
   }
 
   /*-----------------------------------------*/
-  @GetMapping("/input")
-  public String databaseInputPage() {
-    return "database";
-  }
 
   @GetMapping("/selection")
   public String selectionPage() {
