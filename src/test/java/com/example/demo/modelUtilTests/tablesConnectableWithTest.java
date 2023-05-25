@@ -9,7 +9,7 @@ import java.util.List;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class InRelationshipWithTest {
+public class tablesConnectableWithTest {
 
   static TestObject testObject;
 
@@ -21,7 +21,7 @@ public class InRelationshipWithTest {
 
   @Test
   public void mondialCountryTest() {
-    List<ERConnectableObj> entities = ModelUtil.tablesInRelationshipWith(testObject.getCountry(),
+    List<ERConnectableObj> entities = ModelUtil.tablesConnectableWith(testObject.getCountry(),
         testObject.getMondialSchema());
     assertTrue(entities.contains(testObject.getReligion()));
     assertTrue(entities.contains(testObject.getContinent()));
@@ -34,7 +34,7 @@ public class InRelationshipWithTest {
 
   @Test
   public void relationshipTest() {
-    List<ERConnectableObj> entities = ModelUtil.tablesInRelationshipWith(testObject.getEncompasses(),
+    List<ERConnectableObj> entities = ModelUtil.tablesConnectableWith(testObject.getEncompasses(),
         testObject.getMondialSchema());
     assertTrue(entities.contains(testObject.getContinent()));
     assertTrue(entities.contains(testObject.getCountry()));

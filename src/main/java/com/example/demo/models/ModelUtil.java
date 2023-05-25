@@ -146,10 +146,42 @@ public class ModelUtil {
     return entities;
   }
 
+  // helper function to find a list of entities in relationship (either one-many or many-many)
+  // with the given entity
+  public static List<Entity> inRelationshipWith(Entity entity, Schema schema) {
+    if (entity.getEntityType() == EntityType.WEAK) {
+      return new ArrayList<>();
+    }
+    List<Entity> result = new ArrayList<>();
+    for (Relationship relationship : schema.getRelationshipList()) {
+      boolean flag = false;
+      Entity tempEntity = null;
+      for (RelationshipEdge edge : relationship.getEdgeList()) {
+        if (((Entity) edge.getConnObj()).getEntityType() == EntityType.WEAK) {
+          continue;
+        }
+        if (edge.getConnObj() == entity) {
+          flag = true;
+          // does not allow reflexive relationships
+          if (tempEntity != null && tempEntity != entity) {
+            result.add(tempEntity);
+          }
+          tempEntity = (Entity) edge.getConnObj();
+          continue;
+        }
+        if (flag) {
+          result.add((Entity) edge.getConnObj());
+        }
+        tempEntity = (Entity) edge.getConnObj();
+      }
+    }
+    return result;
+  }
+
   // helper function to find a list of ERConnectableObj in relationship with a given ERConnectableObj
   // including the relationship itself
   // so basically any tables that can be joined with the current table
-  public static List<ERConnectableObj> tablesInRelationshipWith(ERConnectableObj table, Schema schema) {
+  public static List<ERConnectableObj> tablesConnectableWith(ERConnectableObj table, Schema schema) {
     if (table instanceof Entity && ((Entity) table).getEntityType() == EntityType.WEAK) {
       return List.of(Objects.requireNonNull(getRelatedStrongEntity((Entity) table, schema)));
     }

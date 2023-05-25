@@ -21,11 +21,9 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -97,7 +95,7 @@ public class InputController {
     ERConnectableObj tableObject = InputService.getSelectionInfo().keySet().iterator().next();
     // adding the table itself into the filter condition
     List<ERConnectableObj> relatedTables = new ArrayList<>(List.of(tableObject));
-    relatedTables.addAll(ModelUtil.tablesInRelationshipWith(tableObject, schema));
+    relatedTables.addAll(ModelUtil.tablesConnectableWith(tableObject, schema));
     for (ERConnectableObj table : relatedTables) {
       Map<String, Object> map = new HashMap<>();
       map.put("name", table.getName());
@@ -258,27 +256,23 @@ public class InputController {
 
   @PostMapping("/get-related-tables")
   @ResponseBody
-  public String getRelatedTables(@RequestBody String selectedTableURL)
+  public String getRelatedEntityTables(@RequestBody String selectedTableURL)
       throws UnsupportedEncodingException {
     String selectedTableJson = URLDecoder.decode(selectedTableURL, StandardCharsets.UTF_8.toString());
-    Set<String> noDuplicates = new HashSet<>(
-        new Gson().fromJson(selectedTableJson.split("=")[0], List.class));
-    List<String> selectedTables = new ArrayList<>(noDuplicates);
+    List<String> selectedTables = new Gson().fromJson(selectedTableJson.split("=")[0], List.class);
 
     Schema schema = InputService.getSchema();
-    List<ERConnectableObj> allTables = new ArrayList<>();
 
-    allTables.addAll(schema.getRelationshipList());
-    allTables.addAll(schema.getEntityList());
+    List<Entity> allEntities = new ArrayList<>(schema.getEntityList());
 
     // the result we are going to return
-    List<String> relatedTables = new ArrayList<>(selectedTables);
+    List<String> relatedTables = new ArrayList<>();
 
     for (String tableName : selectedTables) {
-      Optional<ERConnectableObj> table = allTables.stream().filter(e -> e.getName().equals(tableName))
+      Optional<Entity> table = allEntities.stream().filter(e -> e.getName().equals(tableName))
           .findFirst();
       table.ifPresent(erConnectableObj -> relatedTables.addAll(
-          ModelUtil.tablesInRelationshipWith(erConnectableObj, schema).stream()
+          ModelUtil.inRelationshipWith(erConnectableObj, schema).stream()
               .map(ERConnectableObj::getName).toList()));
     }
     return new Gson().toJson(relatedTables);
