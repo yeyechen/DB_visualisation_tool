@@ -1,5 +1,6 @@
 package com.example.demo.input.handler;
 
+import com.example.demo.data.types.DataTypeUtil;
 import com.example.demo.models.ModelType;
 import com.example.demo.models.ModelUtil;
 import io.github.MigadaTang.Attribute;
@@ -84,7 +85,7 @@ public class InputService {
   }
 
   private void updateDatabaseDetails(RDBMSType dbType, String host, String port, String databaseName, String username, String password)
-      throws ParseException {
+      throws ParseException, SQLException {
 
     String dbUrl = DatabaseUtil.generateDatabaseURL(dbType, host, port, databaseName);
 
@@ -94,6 +95,7 @@ public class InputService {
     dataSource.setUsername(username);
     dataSource.setPassword(password);
     jdbc = new JdbcTemplate(dataSource);
+    DataTypeUtil.initialiseMetaData(jdbc);
   }
 
   public void patternMatchBasedOnSelection(Map<ERConnectableObj, List<Attribute>> selectionInfo) {

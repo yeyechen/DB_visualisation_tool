@@ -52,7 +52,12 @@ $(document).ready(function() {
       $("<u>" + table.pKey + "</u>").appendTo($pKeyTd);
       var $attributesTd = $("<td></td>").appendTo($tableListItem);
       $.each(table.attributes, function(index, attribute) {
-        $("<label><input type='checkbox' name='" + table.name + "-" + attribute + "' value='" + table.name + "." + attribute + "'> " + attribute + "</label><br>").appendTo($attributesTd);
+        var attributeName = attribute.name;
+        var attributeType = attribute.dataType;
+
+        $("<label><input type='checkbox' name='" + table.name + "-" + attributeName + "' value='" +
+          table.name + "." + attributeName + "'> " + attributeType + " " + attributeName + "</label><br>")
+          .appendTo($attributesTd);
       });
     });
 

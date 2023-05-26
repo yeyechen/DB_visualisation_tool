@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -48,37 +49,72 @@ public class InputController {
 
   @GetMapping("/attr-options")
   @ResponseBody
-  public List<Map<String, Object>> getAttrOptions() {
+  public List<Map<String, Object>> getAttrOptions() throws SQLException {
     Schema schema = InputService.getSchema();
     List<Map<String, Object>> tables = new ArrayList<>();
     for (Entity entity : schema.getEntityList()) {
       Map<String, Object> table = new HashMap<>();
       table.put("name", entity.getName());
-      table.put("pKey", entity.getAttributeList().stream().filter(Attribute::getIsPrimary)
-          .map(ERBaseObj::getName));
-      List<String> attributes = new ArrayList<>(
-          entity.getAttributeList().stream().filter(a -> !a.getIsPrimary())
-              .map(ERBaseObj::getName).toList());
+      List<Map<String, String>> attributes = new LinkedList<>();
+      for (Attribute attribute : entity.getAttributeList()) {
+        if (attribute.getIsPrimary()) {
+          table.put("pKey", attribute.getName());
+          continue;
+        }
+        Map<String, String> attributeInfo = new HashMap<>();
+        attributeInfo.put("name", attribute.getName());
+
+        // Perform your classification logic here
+        DataType dataType = DataTypeUtil.getDataType(entity.getName(), attribute.getName(),
+            InputService.getJdbc());
+        if (dataType == DataType.NUMERICAL || dataType == DataType.TEMPORAL) {
+          attributeInfo.put("dataType", "(#)");
+          attributes.add(attributeInfo);
+        } else {
+          attributeInfo.put("dataType", "(Abc)");
+          attributes.add(0, attributeInfo);
+        }
+      }
       // case where user don't have to select any attribute: Hierarchy Tree (one-many)
       if (entity.getEntityType() == EntityType.STRONG && ModelUtil.getParentEntity(entity,
           schema) != null) {
-        attributes.add("(select none)");
+        Map<String, String> none = new HashMap<>();
+        none.put("name", "(select none)");
+        none.put("dataType", " ");
+        attributes.add(none);
       }
       table.put("attributes", attributes);
       tables.add(table);
     }
+
     for (Relationship relationship : schema.getRelationshipList()) {
       if (relationship.getAttributeList().size() > 0) {
         Map<String, Object> table = new HashMap<>();
         table.put("name", relationship.getName());
-        table.put("pKey", relationship.getAttributeList().stream().filter(Attribute::getIsPrimary)
-            .map(ERBaseObj::getName));
-        List<String> attributes = new ArrayList<>(
-            relationship.getAttributeList().stream().filter(a -> !a.getIsPrimary())
-                .map(ERBaseObj::getName).toList());
+        List<Map<String, String>> attributes = new LinkedList<>();
+        for (Attribute attribute : relationship.getAttributeList()) {
+          if (attribute.getIsPrimary()) {
+            table.put("pKey", attribute.getName());
+            continue;
+          }
+          Map<String, String> attributeInfo = new HashMap<>();
+          attributeInfo.put("name", attribute.getName());
+          DataType dataType = DataTypeUtil.getDataType(relationship.getName(), attribute.getName(),
+              InputService.getJdbc());
+          if (dataType == DataType.NUMERICAL || dataType == DataType.TEMPORAL) {
+            attributeInfo.put("dataType", "(#)");
+            attributes.add(attributeInfo);
+          } else {
+            attributeInfo.put("dataType", "(Abc)");
+            attributes.add(0, attributeInfo);
+          }
+        }
         // cases where user don't have to select any attribute: Network Chart, Chord Diagram (reflexive)
         if (ModelUtil.getManyManyEntities(relationship).size() == 1) {
-          attributes.add("(select none)");
+          Map<String, String> none = new HashMap<>();
+          none.put("name", "(select none)");
+          none.put("dataType", " ");
+          attributes.add(none);
         }
         table.put("attributes", attributes);
         tables.add(table);
