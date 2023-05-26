@@ -8,7 +8,9 @@ import static com.example.demo.models.ModelType.UNKNOWN;
 import static com.example.demo.models.ModelType.WEAK_ENTITY;
 
 import com.example.demo.input.handler.InputService;
+import com.example.demo.visualisation.VisualService;
 import io.github.MigadaTang.Attribute;
+import io.github.MigadaTang.ERBaseObj;
 import io.github.MigadaTang.ERConnectableObj;
 import io.github.MigadaTang.Entity;
 import io.github.MigadaTang.Relationship;
@@ -16,6 +18,7 @@ import io.github.MigadaTang.RelationshipEdge;
 import io.github.MigadaTang.Schema;
 import io.github.MigadaTang.common.Cardinality;
 import io.github.MigadaTang.common.EntityType;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -49,6 +52,11 @@ public class ModelUtil {
         attrTable = table2;
         keyTable = table1;
       }
+      // default: put attrTable at index 0
+      InputService.getSelectionInfo().clear();
+      InputService.getSelectionInfo().put(attrTable, selectionInfo.get(attrTable));
+      InputService.getSelectionInfo().put(keyTable, selectionInfo.get(keyTable));
+
       if (attrTable instanceof Relationship || keyTable instanceof Relationship) {
         return UNKNOWN;
       }
@@ -110,8 +118,20 @@ public class ModelUtil {
           return ONE_MANY_RELATIONSHIP;
         }
       }
-      if (entity.getEntityType() == EntityType.SUBSET
-          || entity.getEntityType() == EntityType.UNKNOWN) {
+      // handle Subset case, treat Subset the same as Basic Entity, with extra pk from the main entity
+      if (entity.getEntityType() == EntityType.SUBSET) {
+        try {
+          String foreignKey = VisualService.getForeignKeyName(entity.getName(),
+              entity.getBelongStrongEntity().getName());
+          if (!entity.getAttributeList().stream().map(ERBaseObj::getName).toList().contains(foreignKey)) {
+            entity.addPrimaryKey(foreignKey,
+                io.github.MigadaTang.common.DataType.TEXT);
+          }
+        } catch (SQLException e) {
+          e.printStackTrace();
+        }
+      }
+      if (entity.getEntityType() == EntityType.UNKNOWN) {
         return UNKNOWN;
       }
       return BASIC_ENTITY;

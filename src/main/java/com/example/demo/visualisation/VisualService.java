@@ -31,7 +31,7 @@ public class VisualService {
   private List<Attribute> attributes;
   private Attribute tablePrimaryKey;
 
-  private Map<String, Map<String, List<String>>> filterConditions;
+  public Map<String, Map<String, List<String>>> processedFilterConditions;
 
   public void initialise(Map<ERConnectableObj, List<Attribute>> selectionInfo,
       Map<String, List<String>> filterConditions) {
@@ -51,7 +51,6 @@ public class VisualService {
       String attributeName = parts[1];
       List<String> value = entry.getValue();
 
-
       if (!processedConditions.containsKey(tableName)) {
         Map<String, List<String>> singleCondition = new HashMap<>();
         singleCondition.put(attributeName, value);
@@ -62,10 +61,10 @@ public class VisualService {
         processedConditions.put(tableName, conditions);
       }
     }
-    this.filterConditions = processedConditions;
+    this.processedFilterConditions = processedConditions;
   }
 
-  private String getForeignKeyName(String foreignKeyTableName, String primaryKeyTableName,
+  private static String getForeignKeyName(String foreignKeyTableName, String primaryKeyTableName,
       String existingKeyName)
       throws SQLException {
     DatabaseMetaData metaData = Objects.requireNonNull(InputService.getJdbc().getDataSource())
@@ -88,32 +87,46 @@ public class VisualService {
     return List.of(fk1, fk2);
   }
 
-  private String getForeignKeyName(String foreignKeyTableName, String primaryKeyTableName)
+  public static String getForeignKeyName(String foreignKeyTableName, String primaryKeyTableName)
       throws SQLException {
     return getForeignKeyName(foreignKeyTableName, primaryKeyTableName, "");
   }
 
-  public String generateSQLQuery(List<String> attributes, String tableName, String tablePrimaryKey)
-      throws SQLException {
+  public static String generateSQLQuery(List<String> attributes,
+      String attrTableName, String attrTablePrimaryKey,
+      Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
+    return generateSQLQuery(attributes, attrTableName, "", "", attrTablePrimaryKey,
+        filterConditions);
+  }
+
+  public static String generateSQLQuery(
+      List<String> attributes,
+      String attrTableName,
+      String keyTableName,
+      String keyTablePrimaryKey,
+      String attrTablePrimaryKey,
+      Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
+
     if (filterConditions.isEmpty()) {
-      return generateBasicSQLQuery(attributes, tableName);
+      return generateBasicSQLQuery(attributes, attrTableName);
     } else { // has filter conditions
-      StringBuilder fromJoins = new StringBuilder(tableName);
+      StringBuilder fromJoins = new StringBuilder(attrTableName);
       StringBuilder whereCondition = new StringBuilder();
       for (Map.Entry<String, Map<String, List<String>>> entry : filterConditions.entrySet()) {
         String joinTableName = entry.getKey();
-        if (!joinTableName.equals(tableName)) {
-          String fkName1 = getForeignKeyName(joinTableName, tableName);
-          String fkName2 = getForeignKeyName(tableName, joinTableName);
+        if (!joinTableName.equals(attrTableName)) {
+          String fkName1 = getForeignKeyName(joinTableName, attrTableName);
+          String fkName2 = getForeignKeyName(attrTableName, joinTableName);
           if (fkName1.isEmpty() && fkName2.isEmpty()) {
             // need to join three tables, including the middle relationship table
-            String middleJoinTableName = ModelUtil.getRelationshipNameBetween(tableName,
-                joinTableName,
-                InputService.getSchema());
-            String fk1 = getForeignKeyName(middleJoinTableName, tableName);
+            String middleJoinTableName = Objects.requireNonNull(
+                ModelUtil.getRelationshipBetween(attrTableName,
+                    joinTableName,
+                    InputService.getSchema())).getName();
+            String fk1 = getForeignKeyName(middleJoinTableName, attrTableName);
             fromJoins.append(" INNER JOIN ").append(middleJoinTableName);
             fromJoins.append(" ON ");
-            fromJoins.append(tableName).append(".").append(tablePrimaryKey);
+            fromJoins.append(attrTableName).append(".").append(attrTablePrimaryKey);
             fromJoins.append("=").append(middleJoinTableName).append(".").append(fk1);
 
             String fk2 = getForeignKeyName(middleJoinTableName, joinTableName);
@@ -126,12 +139,12 @@ public class VisualService {
           if (!fkName1.isEmpty()) {
             fromJoins.append(" INNER JOIN ").append(joinTableName);
             fromJoins.append(" ON ");
-            fromJoins.append(tableName).append(".").append(tablePrimaryKey);
+            fromJoins.append(attrTableName).append(".").append(attrTablePrimaryKey);
             fromJoins.append("=").append(joinTableName).append(".").append(fkName1);
           } else if (!fkName2.isEmpty()) {
             fromJoins.append(" INNER JOIN ").append(joinTableName);
             fromJoins.append(" ON ");
-            fromJoins.append(tableName).append(".").append(fkName2);
+            fromJoins.append(attrTableName).append(".").append(fkName2);
             fromJoins.append("=").append(joinTableName).append(".")
                 .append(getPrimaryKeyName(joinTableName));
           }
@@ -185,7 +198,7 @@ public class VisualService {
       whereCondition.setLength(whereCondition.length() - 5);
       StringBuilder selectAttr = new StringBuilder();
       for (String attr : attributes) {
-        selectAttr.append(tableName).append(".").append(attr);
+        selectAttr.append(attrTableName).append(".").append(attr);
         selectAttr.append(", ");
       }
       selectAttr.setLength(selectAttr.length() - 2);
@@ -200,7 +213,7 @@ public class VisualService {
     }
   }
 
-  private String getPrimaryKeyName(String tableName) throws SQLException {
+  private static String getPrimaryKeyName(String tableName) throws SQLException {
     DatabaseMetaData metaData = Objects.requireNonNull(InputService.getJdbc().getDataSource())
         .getConnection().getMetaData();
     ResultSet primaryKeys = metaData.getPrimaryKeys(null, null, tableName);
@@ -212,7 +225,7 @@ public class VisualService {
   }
 
   // helper function to generate basic SQL queries (SELECT ... FROM ...)
-  private String generateBasicSQLQuery(List<String> attributes, String tableName) {
+  private static String generateBasicSQLQuery(List<String> attributes, String tableName) {
     StringBuilder sb = new StringBuilder("SELECT ");
     Iterator<String> attrIterator = attributes.iterator();
     sb.append(attrIterator.next());
@@ -237,7 +250,9 @@ public class VisualService {
     attributeNameStrings.add(tablePrimaryKey.getName());
     attributeNameStrings.add(attribute.getName());
     return InputService.getJdbc()
-        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName()));
+        .queryForList(
+            generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
+                processedFilterConditions));
   }
 
   public List<Map<String, Object>> queryPieChart(
@@ -253,7 +268,9 @@ public class VisualService {
     attributeNameStrings.add(tablePrimaryKey.getName());
     attributeNameStrings.add(attribute.getName());
     return InputService.getJdbc()
-        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName()));
+        .queryForList(
+            generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
+                processedFilterConditions));
   }
 
   public List<Map<String, Object>> queryCalendar(
@@ -284,7 +301,9 @@ public class VisualService {
       attributeNameStrings.add(optionalAttr.getName());
     }
     return InputService.getJdbc()
-        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName()));
+        .queryForList(
+            generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
+                processedFilterConditions));
   }
 
   public List<Map<String, Object>> queryScatterDiagram(
@@ -312,7 +331,9 @@ public class VisualService {
       attributeNameStrings.add(optionalAttr.getName());
     }
     return InputService.getJdbc()
-        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName()));
+        .queryForList(
+            generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
+                processedFilterConditions));
   }
 
   public List<Map<String, Object>> queryBubbleChart(
@@ -340,7 +361,9 @@ public class VisualService {
       attributeNameStrings.add(optionalAttr.getName());
     }
     return InputService.getJdbc()
-        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName()));
+        .queryForList(
+            generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
+                processedFilterConditions));
   }
 
   public List<Map<String, Object>> queryChoroplethMap(
@@ -356,7 +379,9 @@ public class VisualService {
     attributeNameStrings.add(tablePrimaryKey.getName());
     attributeNameStrings.add(attribute.getName());
     return InputService.getJdbc()
-        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName()));
+        .queryForList(
+            generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
+                processedFilterConditions));
   }
 
   public List<Map<String, Object>> queryWordCloud(
@@ -387,7 +412,9 @@ public class VisualService {
       attributeNameStrings.add(optionalAttr.getName());
     }
     return InputService.getJdbc()
-        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName()));
+        .queryForList(
+            generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
+                processedFilterConditions));
   }
 
   public List<Map<String, Object>> queryLineChart(
@@ -422,7 +449,9 @@ public class VisualService {
       attributeNameStrings.add(optionalAttr.getName());
     }
     return InputService.getJdbc()
-        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName()));
+        .queryForList(
+            generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
+                processedFilterConditions));
   }
 
   public List<Map<String, Object>> queryStackedBarChart(
@@ -445,7 +474,9 @@ public class VisualService {
     attributeNameStrings.add(tablePrimaryKey.getName());
     attributeNameStrings.add(attribute1.getName());
     return InputService.getJdbc()
-        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName()));
+        .queryForList(
+            generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
+                processedFilterConditions));
   }
 
   public List<Map<String, Object>> queryGroupedBarChart(
@@ -468,7 +499,9 @@ public class VisualService {
     attributeNameStrings.add(tablePrimaryKey.getName());
     attributeNameStrings.add(attribute1.getName());
     return InputService.getJdbc()
-        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName()));
+        .queryForList(
+            generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
+                processedFilterConditions));
   }
 
   public List<Map<String, Object>> querySpiderChart(
@@ -491,7 +524,9 @@ public class VisualService {
     attributeNameStrings.add(tablePrimaryKey.getName());
     attributeNameStrings.add(attribute1.getName());
     return InputService.getJdbc()
-        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName()));
+        .queryForList(
+            generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
+                processedFilterConditions));
   }
 
   public List<Map<String, Object>> queryTreeMapData(
@@ -523,7 +558,9 @@ public class VisualService {
       attributeNameStrings.add(optionalAttr.getName());
     }
     return InputService.getJdbc()
-        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName()));
+        .queryForList(
+            generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
+                processedFilterConditions));
   }
 
   public List<Map<String, Object>> queryHierarchyTreeData(
@@ -545,7 +582,9 @@ public class VisualService {
       attributeNameStrings.add(optionalAttr.getName());
     }
     return InputService.getJdbc()
-        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName()));
+        .queryForList(
+            generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
+                processedFilterConditions));
   }
 
   public List<Map<String, Object>> queryCirclePacking(
@@ -577,7 +616,9 @@ public class VisualService {
       attributeNameStrings.add(optionalAttr.getName());
     }
     return InputService.getJdbc()
-        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName()));
+        .queryForList(
+            generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
+                processedFilterConditions));
   }
 
   public List<Map<String, Object>> querySankeyDiagramData(
@@ -593,13 +634,16 @@ public class VisualService {
     }
 
     Attribute optionalAttr = null;
-    for (Attribute attribute : attributes) {
+    Iterator<Attribute> attributeIterator = attributes.iterator();
+    while (attributeIterator.hasNext()) {
+      Attribute attribute = attributeIterator.next();
       if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
           == DataType.LEXICAL) {
         optionalAttr = attribute;
-        attributes.remove(attribute);
+        attributeIterator.remove();
       }
     }
+
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
     Assert.assertSame(
@@ -613,7 +657,8 @@ public class VisualService {
       attributeNameStrings.add(optionalAttr.getName());
     }
     return InputService.getJdbc()
-        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), ""));
+        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), "",
+            processedFilterConditions));
   }
 
   public List<Map<String, Object>> queryNetworkChartData(
@@ -641,7 +686,8 @@ public class VisualService {
       attributeNameStrings.add(optionalAttr.getName());
     }
     return InputService.getJdbc()
-        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), ""));
+        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), "",
+            processedFilterConditions));
   }
 
   public List<Map<String, Object>> queryChordDiagramData(
@@ -675,7 +721,8 @@ public class VisualService {
       attributeNameStrings.add(optionalAttr.getName());
     }
     return InputService.getJdbc()
-        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), ""));
+        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), "",
+            processedFilterConditions));
   }
 
   public List<Map<String, Object>> queryHeatmapData(
@@ -696,6 +743,7 @@ public class VisualService {
     List<String> attributeNameStrings = new ArrayList<>(compoundFKs);
     attributeNameStrings.add(attribute1.getName());
     return InputService.getJdbc()
-        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), ""));
+        .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), "",
+            processedFilterConditions));
   }
 }

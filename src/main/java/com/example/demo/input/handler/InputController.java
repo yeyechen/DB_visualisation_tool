@@ -188,18 +188,7 @@ public class InputController {
       }
       case UNKNOWN -> {
         //todo: handel UNKNOWN case
-        ERConnectableObj obj = InputService.getSelectionInfo().keySet().iterator().next();
-        // handle Subset case, treat Subset the same as Basic Entity, with extra pk from the main entity
-        if (obj instanceof Entity && ((Entity) obj).getEntityType() == EntityType.SUBSET) {
-          options = List.of("Bar Chart", "Calendar", "Scatter Diagram",
-              "Bubble Chart", "Choropleth Map", "Word Cloud");
-          table.put("option", options);
-          try {
-            ((Entity) obj).addPrimaryKey(((Entity) obj).getBelongStrongEntity().getName(),
-                io.github.MigadaTang.common.DataType.TEXT);
-          } catch (Exception ignored) {
-          }
-        }
+
       }
     }
     return table;
@@ -279,6 +268,8 @@ public class InputController {
     }.getType();
     Map<String, List<String>> filterConditions = new Gson().fromJson(selectedFilterJson, mapType);
     inputService.setFilterCondisions(filterConditions);
+    // todo: find foreign key and get the whole data -> check if one-many -> update
+    // todo: return something that indicates the change from many-many to one-many
     return selectedFilterJson;
   }
 

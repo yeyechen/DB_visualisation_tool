@@ -48,8 +48,10 @@ $(document).ready(function() {
       var $tableListItem = $("<tr></tr>").appendTo("#table-list tbody");
       $("<td>" + table.name + "</td>").appendTo($tableListItem);
       var $pKeyTd = $("<td></td>").appendTo($tableListItem);
-      $("<input type='checkbox' style='display: none;' name='" + table.name + "-pKey' value='" + table.name + ".pKey'>").appendTo($pKeyTd);
-      $("<u>" + table.pKey + "</u>").appendTo($pKeyTd);
+      if (typeof table.pKey !== 'undefined') {
+        $("<input type='checkbox' style='display: none;' name='" + table.name + "-pKey' value='" + table.name + ".pKey'>").appendTo($pKeyTd);
+        $("<u>" + table.pKey + "</u>").appendTo($pKeyTd);
+      }
       var $attributesTd = $("<td></td>").appendTo($tableListItem);
       $.each(table.attributes, function(index, attribute) {
         var attributeName = attribute.name;

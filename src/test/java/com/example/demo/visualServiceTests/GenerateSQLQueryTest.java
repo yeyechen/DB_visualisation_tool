@@ -44,7 +44,8 @@ public class GenerateSQLQueryTest {
     filterConditions.put("airport.iata_code", List.of("HEA", "KBL"));
     inputService.setFilterCondisions(filterConditions);
     visualService.initialise(InputService.getSelectionInfo(), InputService.getFilterConditions());
-    System.out.println(visualService.generateSQLQuery(List.of("population"), "country", "code"));
+    System.out.println(VisualService.generateSQLQuery(List.of("population"), "country", "code",
+        visualService.processedFilterConditions));
   }
 
   @Test
@@ -53,7 +54,8 @@ public class GenerateSQLQueryTest {
     filterConditions.put("country.code", List.of("CN", "UK"));
     inputService.setFilterCondisions(filterConditions);
     visualService.initialise(InputService.getSelectionInfo(), InputService.getFilterConditions());
-    System.out.println(visualService.generateSQLQuery(List.of("elevation"), "airport", "iata_code"));
+    System.out.println(VisualService.generateSQLQuery(List.of("elevation"), "airport", "iata_code",
+        visualService.processedFilterConditions));
   }
 
   @Test
@@ -62,7 +64,8 @@ public class GenerateSQLQueryTest {
     filterConditions.put("continent.name", List.of("Europe", "Asia"));
     inputService.setFilterCondisions(filterConditions);
     visualService.initialise(InputService.getSelectionInfo(), InputService.getFilterConditions());
-    System.out.println(visualService.generateSQLQuery(List.of("population"), "country", "code"));
+    System.out.println(VisualService.generateSQLQuery(List.of("population"), "country", "code",
+        visualService.processedFilterConditions));
   }
 
 }
