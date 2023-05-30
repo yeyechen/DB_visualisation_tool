@@ -1,24 +1,16 @@
 package com.example.demo.data.types;
 
-import java.sql.DatabaseMetaData;
+import com.example.demo.input.handler.InputService;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.Objects;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 public class DataTypeUtil {
 
-  private static DatabaseMetaData metaData;
-
-  public static void initialiseMetaData(JdbcTemplate jdbc) throws SQLException {
-    metaData = Objects.requireNonNull(jdbc.getDataSource())
-        .getConnection().getMetaData();
-  }
-
   public static DataType getDataType(String tableName, String attributeName, JdbcTemplate jdbc)
       throws SQLException {
-    ResultSet rs = metaData.getColumns(null, null, tableName, attributeName);
+    ResultSet rs = InputService.getMetaData().getColumns(null, null, tableName, attributeName);
     int dataType = 0; // 0 is NULL type in SQL
     if (rs.next()) {
       dataType = rs.getInt("DATA_TYPE");

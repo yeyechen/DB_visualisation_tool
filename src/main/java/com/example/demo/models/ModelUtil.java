@@ -44,22 +44,21 @@ public class ModelUtil {
       ERConnectableObj table1 = keyIterator.next();
       ERConnectableObj table2 = keyIterator.next();
 
-      // classify
-      if (selectionInfo.get(table2).isEmpty()) {
-        attrTable = table1;
-        keyTable = table2;
-      } else {
-        attrTable = table2;
-        keyTable = table1;
-      }
-      // default: put attrTable at index 0
-      InputService.getSelectionInfo().clear();
-      InputService.getSelectionInfo().put(attrTable, selectionInfo.get(attrTable));
-      InputService.getSelectionInfo().put(keyTable, selectionInfo.get(keyTable));
-
-      if (attrTable instanceof Relationship || keyTable instanceof Relationship) {
+      if (table1 instanceof Relationship || table2 instanceof Relationship) {
         return UNKNOWN;
       }
+
+      // classify
+      Iterator<Attribute> tableNameIterator = selectionInfo.get(table1).iterator();
+      if (tableNameIterator.hasNext() && tableNameIterator
+          .next().getIsPrimary()) {
+        attrTable = table2;
+        keyTable = table1;
+      } else {
+        attrTable = table1;
+        keyTable = table2;
+      }
+
       Relationship relationship = getRelationshipBetween(attrTable.getName(), keyTable.getName(),
           schema);
 

@@ -1,6 +1,5 @@
 package com.example.demo.input.handler;
 
-import com.example.demo.data.types.DataTypeUtil;
 import com.example.demo.models.ModelType;
 import com.example.demo.models.ModelUtil;
 import io.github.MigadaTang.Attribute;
@@ -13,12 +12,14 @@ import io.github.MigadaTang.exception.ParseException;
 import io.github.MigadaTang.transform.DatabaseUtil;
 import io.github.MigadaTang.transform.Reverse;
 import java.math.BigDecimal;
+import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.Getter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -34,9 +35,12 @@ public class InputService {
 
   private static Map<ERConnectableObj, List<Attribute>> selectionInfo;
 
-  private static Map<String, List<String>> filterConditions;
+  private static Map<String, Map<String, List<String>>> filterConditions;
 
   private static JdbcTemplate jdbc;
+
+  private static DatabaseMetaData metaData;
+
   public static Schema getSchema() {
     return schema;
   }
@@ -49,11 +53,33 @@ public class InputService {
     return jdbc;
   }
 
-  public void setFilterCondisions(Map<String, List<String>> filterConditions) {
-    InputService.filterConditions = filterConditions;
+  public static DatabaseMetaData getMetaData() {
+    return metaData;
   }
 
-  public static Map<String, List<String>> getFilterConditions() {
+  public void setFilterCondisions(Map<String, List<String>> filterConditions) {
+    Map<String, Map<String, List<String>>> processedConditions = new HashMap<>();
+    for (Map.Entry<String, List<String>> entry : filterConditions.entrySet()) {
+      String key = entry.getKey();
+      String[] parts = key.split("\\.");
+      String tableName = parts[0];
+      String attributeName = parts[1];
+      List<String> value = entry.getValue();
+
+      if (!processedConditions.containsKey(tableName)) {
+        Map<String, List<String>> singleCondition = new HashMap<>();
+        singleCondition.put(attributeName, value);
+        processedConditions.put(tableName, singleCondition);
+      } else {
+        Map<String, List<String>> conditions = processedConditions.get(tableName);
+        conditions.put(attributeName, value);
+        processedConditions.put(tableName, conditions);
+      }
+    }
+    InputService.filterConditions = processedConditions;
+  }
+
+  public static Map<String, Map<String, List<String>>> getFilterConditions() {
     return filterConditions;
   }
 
@@ -82,6 +108,8 @@ public class InputService {
     updateDatabaseDetails(dbTypeEnum, host, port, databaseName, username, password);
 
     selectionInfo = new HashMap<>();
+    metaData = Objects.requireNonNull(jdbc.getDataSource())
+        .getConnection().getMetaData();
   }
 
   private void updateDatabaseDetails(RDBMSType dbType, String host, String port, String databaseName, String username, String password)
@@ -95,7 +123,6 @@ public class InputService {
     dataSource.setUsername(username);
     dataSource.setPassword(password);
     jdbc = new JdbcTemplate(dataSource);
-    DataTypeUtil.initialiseMetaData(jdbc);
   }
 
   public void patternMatchBasedOnSelection(Map<ERConnectableObj, List<Attribute>> selectionInfo) {

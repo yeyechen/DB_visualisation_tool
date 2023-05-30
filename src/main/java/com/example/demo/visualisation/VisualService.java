@@ -9,7 +9,6 @@ import io.github.MigadaTang.ERBaseObj;
 import io.github.MigadaTang.ERConnectableObj;
 import io.github.MigadaTang.Entity;
 import io.github.MigadaTang.Relationship;
-import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -31,11 +30,35 @@ public class VisualService {
   private List<Attribute> attributes;
   private Attribute tablePrimaryKey;
 
-  public Map<String, Map<String, List<String>>> processedFilterConditions;
+  // for multiple tables
+  private ERConnectableObj keyTable;
+  private Attribute keyTablePrimaryKey;
+
+  public Map<String, Map<String, List<String>>> filterConditions;
 
   public void initialise(Map<ERConnectableObj, List<Attribute>> selectionInfo,
-      Map<String, List<String>> filterConditions) {
-    table = selectionInfo.keySet().iterator().next();
+      Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
+    if (selectionInfo.keySet().size() > 1) {
+      Iterator<ERConnectableObj> keyIterator = selectionInfo.keySet()
+          .iterator();
+      ERConnectableObj table1 = keyIterator.next();
+      ERConnectableObj table2 = keyIterator.next();
+      Iterator<Attribute> tableNameIterator = selectionInfo.get(table1).iterator();
+      if (tableNameIterator.hasNext() && tableNameIterator
+          .next().getIsPrimary()) {
+        table = table2;
+        keyTable = table1;
+      } else {
+        table = table1;
+        keyTable = table2;
+      }
+      Optional<Attribute> keyTableKey = ((Entity) keyTable).getAttributeList().stream()
+          .filter(Attribute::getIsPrimary).findFirst();
+      keyTableKey.ifPresent(attribute -> keyTablePrimaryKey = attribute);
+    } else {
+      table = selectionInfo.keySet().iterator().next();
+    }
+
     attributes = selectionInfo.get(table);
     Optional<Attribute> pk = table instanceof Entity ? ((Entity) table).getAttributeList().stream()
         .filter(Attribute::getIsPrimary).findFirst()
@@ -43,33 +66,14 @@ public class VisualService {
             .findFirst();
     pk.ifPresent(attribute -> tablePrimaryKey = attribute);
     // process filter conditions:
-    Map<String, Map<String, List<String>>> processedConditions = new HashMap<>();
-    for (Map.Entry<String, List<String>> entry : filterConditions.entrySet()) {
-      String key = entry.getKey();
-      String[] parts = key.split("\\.");
-      String tableName = parts[0];
-      String attributeName = parts[1];
-      List<String> value = entry.getValue();
 
-      if (!processedConditions.containsKey(tableName)) {
-        Map<String, List<String>> singleCondition = new HashMap<>();
-        singleCondition.put(attributeName, value);
-        processedConditions.put(tableName, singleCondition);
-      } else {
-        Map<String, List<String>> conditions = processedConditions.get(tableName);
-        conditions.put(attributeName, value);
-        processedConditions.put(tableName, conditions);
-      }
-    }
-    this.processedFilterConditions = processedConditions;
+    this.filterConditions = filterConditions;
   }
 
   private static String getForeignKeyName(String foreignKeyTableName, String primaryKeyTableName,
       String existingKeyName)
       throws SQLException {
-    DatabaseMetaData metaData = Objects.requireNonNull(InputService.getJdbc().getDataSource())
-        .getConnection().getMetaData();
-    ResultSet foreignKeys = metaData.getImportedKeys(null, null, foreignKeyTableName);
+    ResultSet foreignKeys = InputService.getMetaData().getImportedKeys(null, null, foreignKeyTableName);
     while (foreignKeys.next()) {
       String fkColumnName = foreignKeys.getString("FKCOLUMN_NAME");
       String pkTableName = foreignKeys.getString("PKTABLE_NAME");
@@ -92,21 +96,23 @@ public class VisualService {
     return getForeignKeyName(foreignKeyTableName, primaryKeyTableName, "");
   }
 
-  public static String generateSQLQuery(List<String> attributes,
-      String attrTableName, String attrTablePrimaryKey,
-      Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
-    return generateSQLQuery(attributes, attrTableName, "", "", attrTablePrimaryKey,
-        filterConditions);
-  }
-
   public static String generateSQLQuery(
       List<String> attributes,
       String attrTableName,
-      String keyTableName,
-      String keyTablePrimaryKey,
       String attrTablePrimaryKey,
       Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
-
+    return generateSQLQuery(attributes, attrTableName, attrTablePrimaryKey, "", "", filterConditions);
+  }
+  public static String generateSQLQuery(
+      List<String> attributes,
+      String attrTableName,
+      String attrTablePrimaryKey,
+      String keyTableName,
+      String keyTablePrimaryKey,
+      Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
+    if (!keyTableName.isEmpty() && !filterConditions.containsKey(keyTableName)) {
+      filterConditions.put(keyTableName, new HashMap<>());
+    }
     if (filterConditions.isEmpty()) {
       return generateBasicSQLQuery(attributes, attrTableName);
     } else { // has filter conditions
@@ -114,7 +120,7 @@ public class VisualService {
       StringBuilder whereCondition = new StringBuilder();
       for (Map.Entry<String, Map<String, List<String>>> entry : filterConditions.entrySet()) {
         String joinTableName = entry.getKey();
-        if (!joinTableName.equals(attrTableName)) {
+        if (!joinTableName.equals(attrTableName) && !fromJoins.toString().contains(joinTableName)) {
           String fkName1 = getForeignKeyName(joinTableName, attrTableName);
           String fkName2 = getForeignKeyName(attrTableName, joinTableName);
           if (fkName1.isEmpty() && fkName2.isEmpty()) {
@@ -195,8 +201,14 @@ public class VisualService {
           whereCondition.append(" AND ");
         }
       }
-      whereCondition.setLength(whereCondition.length() - 5);
+      if (!whereCondition.isEmpty()) {
+        whereCondition.setLength(whereCondition.length() - 5);
+      }
       StringBuilder selectAttr = new StringBuilder();
+      if (!keyTableName.isEmpty() && !keyTablePrimaryKey.isEmpty()) {
+        selectAttr.append(keyTableName).append(".").append(keyTablePrimaryKey);
+        selectAttr.append(", ");
+      }
       for (String attr : attributes) {
         selectAttr.append(attrTableName).append(".").append(attr);
         selectAttr.append(", ");
@@ -206,17 +218,17 @@ public class VisualService {
       query.append(selectAttr);
       query.append(" FROM ");
       query.append(fromJoins);
-      query.append(" WHERE ");
-      query.append(whereCondition);
+      if (!whereCondition.isEmpty()) {
+        query.append(" WHERE ");
+        query.append(whereCondition);
+      }
       System.out.println(query);
       return query.toString();
     }
   }
 
   private static String getPrimaryKeyName(String tableName) throws SQLException {
-    DatabaseMetaData metaData = Objects.requireNonNull(InputService.getJdbc().getDataSource())
-        .getConnection().getMetaData();
-    ResultSet primaryKeys = metaData.getPrimaryKeys(null, null, tableName);
+    ResultSet primaryKeys = InputService.getMetaData().getPrimaryKeys(null, null, tableName);
     if (primaryKeys.next()) {
       return primaryKeys.getString("COLUMN_NAME");
     }
@@ -239,7 +251,7 @@ public class VisualService {
 
   public List<Map<String, Object>> queryBarChart(
       Map<ERConnectableObj, List<Attribute>> selectionInfo,
-      Map<String, List<String>> filterConditions) throws SQLException {
+      Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
     initialise(selectionInfo, filterConditions);
     List<String> attributeNameStrings = new ArrayList<>();
 
@@ -252,12 +264,12 @@ public class VisualService {
     return InputService.getJdbc()
         .queryForList(
             generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
-                processedFilterConditions));
+                this.filterConditions));
   }
 
   public List<Map<String, Object>> queryPieChart(
       Map<ERConnectableObj, List<Attribute>> selectionInfo,
-      Map<String, List<String>> filterConditions) throws SQLException {
+      Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
     initialise(selectionInfo, filterConditions);
     List<String> attributeNameStrings = new ArrayList<>();
 
@@ -270,12 +282,12 @@ public class VisualService {
     return InputService.getJdbc()
         .queryForList(
             generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
-                processedFilterConditions));
+                this.filterConditions));
   }
 
   public List<Map<String, Object>> queryCalendar(
       Map<ERConnectableObj, List<Attribute>> selectionInfo,
-      Map<String, List<String>> filterConditions)
+      Map<String, Map<String, List<String>>> filterConditions)
       throws SQLException {
     initialise(selectionInfo, filterConditions);
     List<String> attributeNameStrings = new ArrayList<>();
@@ -303,12 +315,12 @@ public class VisualService {
     return InputService.getJdbc()
         .queryForList(
             generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
-                processedFilterConditions));
+                this.filterConditions));
   }
 
   public List<Map<String, Object>> queryScatterDiagram(
       Map<ERConnectableObj, List<Attribute>> selectionInfo,
-      Map<String, List<String>> filterConditions) throws SQLException {
+      Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
     initialise(selectionInfo, filterConditions);
     List<String> attributeNameStrings = new ArrayList<>();
 
@@ -333,12 +345,12 @@ public class VisualService {
     return InputService.getJdbc()
         .queryForList(
             generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
-                processedFilterConditions));
+                this.filterConditions));
   }
 
   public List<Map<String, Object>> queryBubbleChart(
       Map<ERConnectableObj, List<Attribute>> selectionInfo,
-      Map<String, List<String>> filterConditions) throws SQLException {
+      Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
     initialise(selectionInfo, filterConditions);
     List<String> attributeNameStrings = new ArrayList<>();
 
@@ -363,12 +375,12 @@ public class VisualService {
     return InputService.getJdbc()
         .queryForList(
             generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
-                processedFilterConditions));
+                this.filterConditions));
   }
 
   public List<Map<String, Object>> queryChoroplethMap(
       Map<ERConnectableObj, List<Attribute>> selectionInfo,
-      Map<String, List<String>> filterConditions) throws SQLException {
+      Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
     initialise(selectionInfo, filterConditions);
     List<String> attributeNameStrings = new ArrayList<>();
 
@@ -381,12 +393,12 @@ public class VisualService {
     return InputService.getJdbc()
         .queryForList(
             generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
-                processedFilterConditions));
+                this.filterConditions));
   }
 
   public List<Map<String, Object>> queryWordCloud(
       Map<ERConnectableObj, List<Attribute>> selectionInfo,
-      Map<String, List<String>> filterConditions) throws SQLException {
+      Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
     initialise(selectionInfo, filterConditions);
     List<String> attributeNameStrings = new ArrayList<>();
 
@@ -414,12 +426,12 @@ public class VisualService {
     return InputService.getJdbc()
         .queryForList(
             generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
-                processedFilterConditions));
+                this.filterConditions));
   }
 
   public List<Map<String, Object>> queryLineChart(
       Map<ERConnectableObj, List<Attribute>> selectionInfo,
-      Map<String, List<String>> filterConditions) throws SQLException {
+      Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
     initialise(selectionInfo, filterConditions);
     List<String> attributeNameStrings = new ArrayList<>();
 
@@ -451,12 +463,12 @@ public class VisualService {
     return InputService.getJdbc()
         .queryForList(
             generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
-                processedFilterConditions));
+                this.filterConditions));
   }
 
   public List<Map<String, Object>> queryStackedBarChart(
       Map<ERConnectableObj, List<Attribute>> selectionInfo,
-      Map<String, List<String>> filterConditions) throws SQLException {
+      Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
     initialise(selectionInfo, filterConditions);
     List<String> attributeNameStrings = new ArrayList<>();
 
@@ -476,12 +488,12 @@ public class VisualService {
     return InputService.getJdbc()
         .queryForList(
             generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
-                processedFilterConditions));
+                this.filterConditions));
   }
 
   public List<Map<String, Object>> queryGroupedBarChart(
       Map<ERConnectableObj, List<Attribute>> selectionInfo,
-      Map<String, List<String>> filterConditions) throws SQLException {
+      Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
     initialise(selectionInfo, filterConditions);
     List<String> attributeNameStrings = new ArrayList<>();
 
@@ -501,12 +513,12 @@ public class VisualService {
     return InputService.getJdbc()
         .queryForList(
             generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
-                processedFilterConditions));
+                this.filterConditions));
   }
 
   public List<Map<String, Object>> querySpiderChart(
       Map<ERConnectableObj, List<Attribute>> selectionInfo,
-      Map<String, List<String>> filterConditions) throws SQLException {
+      Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
     initialise(selectionInfo, filterConditions);
     List<String> attributeNameStrings = new ArrayList<>();
 
@@ -526,12 +538,12 @@ public class VisualService {
     return InputService.getJdbc()
         .queryForList(
             generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
-                processedFilterConditions));
+                this.filterConditions));
   }
 
   public List<Map<String, Object>> queryTreeMapData(
       Map<ERConnectableObj, List<Attribute>> selectionInfo,
-      Map<String, List<String>> filterConditions) throws SQLException {
+      Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
     initialise(selectionInfo, filterConditions);
     List<String> attributeNameStrings = new ArrayList<>();
 
@@ -547,25 +559,33 @@ public class VisualService {
     Attribute attribute1 = iterator.next();
     Assert.assertSame(DataTypeUtil.getDataType(table.getName(), attribute1.getName(),
         InputService.getJdbc()), DataType.NUMERICAL);
-    Entity parentEntity = ModelUtil.getParentEntity((Entity) table,
-        InputService.getSchema());
-    Assert.assertNotNull(parentEntity);
-    String fkParentEntity = getForeignKeyName(table.getName(), parentEntity.getName());
-    attributeNameStrings.add(fkParentEntity);
+
     attributeNameStrings.add(tablePrimaryKey.getName());
     attributeNameStrings.add(attribute1.getName());
     if (optionalAttr != null) {
       attributeNameStrings.add(optionalAttr.getName());
     }
-    return InputService.getJdbc()
-        .queryForList(
-            generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
-                processedFilterConditions));
+    Entity parentEntity;
+    if (keyTable != null) {
+      return InputService.getJdbc().queryForList(
+          generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
+              keyTable.getName(), keyTablePrimaryKey.getName(), this.filterConditions));
+    } else {
+      parentEntity = ModelUtil.getParentEntity((Entity) table,
+          InputService.getSchema());
+      String fkParentEntity = getForeignKeyName(table.getName(), parentEntity.getName());
+      attributeNameStrings.add(fkParentEntity);
+      Assert.assertNotNull(parentEntity);
+      return InputService.getJdbc()
+          .queryForList(
+              generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
+                  this.filterConditions));
+    }
   }
 
   public List<Map<String, Object>> queryHierarchyTreeData(
       Map<ERConnectableObj, List<Attribute>> selectionInfo,
-      Map<String, List<String>> filterConditions) throws SQLException {
+      Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
     initialise(selectionInfo, filterConditions);
     List<String> attributeNameStrings = new ArrayList<>();
 
@@ -573,23 +593,30 @@ public class VisualService {
     Entity parentEntity = ModelUtil.getParentEntity((Entity) table,
         InputService.getSchema());
     Assert.assertNotNull(parentEntity);
-    String fkParentEntity = getForeignKeyName(table.getName(), parentEntity.getName());
-    attributeNameStrings.add(fkParentEntity);
     attributeNameStrings.add(tablePrimaryKey.getName());
     if (optionalAttr != null) {
       Assert.assertSame(DataTypeUtil.getDataType(table.getName(), optionalAttr.getName(),
           InputService.getJdbc()), DataType.LEXICAL);
       attributeNameStrings.add(optionalAttr.getName());
     }
+    if (keyTable != null) {
+      return InputService.getJdbc()
+          .queryForList(
+              generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
+                  keyTable.getName(), keyTablePrimaryKey.getName(),
+                  this.filterConditions));
+    }
+    String fkParentEntity = getForeignKeyName(table.getName(), parentEntity.getName());
+    attributeNameStrings.add(fkParentEntity);
     return InputService.getJdbc()
         .queryForList(
             generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
-                processedFilterConditions));
+                this.filterConditions));
   }
 
   public List<Map<String, Object>> queryCirclePacking(
       Map<ERConnectableObj, List<Attribute>> selectionInfo,
-      Map<String, List<String>> filterConditions) throws SQLException {
+      Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
     initialise(selectionInfo, filterConditions);
     List<String> attributeNameStrings = new ArrayList<>();
 
@@ -605,25 +632,33 @@ public class VisualService {
     Attribute attribute1 = iterator.next();
     Assert.assertSame(DataTypeUtil.getDataType(table.getName(), attribute1.getName(),
         InputService.getJdbc()), DataType.NUMERICAL);
-    Entity parentEntity = ModelUtil.getParentEntity((Entity) table,
-        InputService.getSchema());
-    Assert.assertNotNull(parentEntity);
-    String fkParentEntity = getForeignKeyName(table.getName(), parentEntity.getName());
-    attributeNameStrings.add(fkParentEntity);
+
     attributeNameStrings.add(tablePrimaryKey.getName());
     attributeNameStrings.add(attribute1.getName());
     if (optionalAttr != null) {
       attributeNameStrings.add(optionalAttr.getName());
     }
-    return InputService.getJdbc()
-        .queryForList(
-            generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
-                processedFilterConditions));
+    Entity parentEntity;
+    if (keyTable != null) {
+      return InputService.getJdbc().queryForList(
+          generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
+              keyTable.getName(), keyTablePrimaryKey.getName(), this.filterConditions));
+    } else {
+      parentEntity = ModelUtil.getParentEntity((Entity) table,
+          InputService.getSchema());
+      String fkParentEntity = getForeignKeyName(table.getName(), parentEntity.getName());
+      attributeNameStrings.add(fkParentEntity);
+      Assert.assertNotNull(parentEntity);
+      return InputService.getJdbc()
+          .queryForList(
+              generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
+                  this.filterConditions));
+    }
   }
 
   public List<Map<String, Object>> querySankeyDiagramData(
       Map<ERConnectableObj, List<Attribute>> selectionInfo,
-      Map<String, List<String>> filterConditions) throws SQLException {
+      Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
     initialise(selectionInfo, filterConditions);
 
     Set<Entity> entities = ModelUtil.getManyManyEntities((Relationship) table);
@@ -658,12 +693,12 @@ public class VisualService {
     }
     return InputService.getJdbc()
         .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), "",
-            processedFilterConditions));
+            this.filterConditions));
   }
 
   public List<Map<String, Object>> queryNetworkChartData(
       Map<ERConnectableObj, List<Attribute>> selectionInfo,
-      Map<String, List<String>> filterConditions) throws SQLException {
+      Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
     initialise(selectionInfo, filterConditions);
 
     Attribute optionalAttr = null;
@@ -687,12 +722,12 @@ public class VisualService {
     }
     return InputService.getJdbc()
         .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), "",
-            processedFilterConditions));
+            this.filterConditions));
   }
 
   public List<Map<String, Object>> queryChordDiagramData(
       Map<ERConnectableObj, List<Attribute>> selectionInfo,
-      Map<String, List<String>> filterConditions) throws SQLException {
+      Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
     initialise(selectionInfo, filterConditions);
     Attribute optionalAttr = null;
     for (Attribute attribute : attributes) {
@@ -722,12 +757,12 @@ public class VisualService {
     }
     return InputService.getJdbc()
         .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), "",
-            processedFilterConditions));
+            this.filterConditions));
   }
 
   public List<Map<String, Object>> queryHeatmapData(
       Map<ERConnectableObj, List<Attribute>> selectionInfo,
-      Map<String, List<String>> filterConditions) throws SQLException {
+      Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
     initialise(selectionInfo, filterConditions);
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
@@ -744,6 +779,6 @@ public class VisualService {
     attributeNameStrings.add(attribute1.getName());
     return InputService.getJdbc()
         .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), "",
-            processedFilterConditions));
+            this.filterConditions));
   }
 }

@@ -49,7 +49,7 @@ $(document).ready(function() {
       $("<td>" + table.name + "</td>").appendTo($tableListItem);
       var $pKeyTd = $("<td></td>").appendTo($tableListItem);
       if (typeof table.pKey !== 'undefined') {
-        $("<input type='checkbox' style='display: none;' name='" + table.name + "-pKey' value='" + table.name + ".pKey'>").appendTo($pKeyTd);
+        $("<input type='checkbox' style='display: none;' name='" + table.name + "-pKey' value='" + table.name + "." + table.pKey + "'>").appendTo($pKeyTd);
         $("<u>" + table.pKey + "</u>").appendTo($pKeyTd);
       }
       var $attributesTd = $("<td></td>").appendTo($tableListItem);
@@ -123,7 +123,7 @@ $(document).ready(function() {
 			  if ($("#vis-form").children().length > 0) {
 			    $("#vis-form").empty();
 			  }
-				$("<script>").attr("type", "module").attr("src", "select_vis.js?v=" + new Date().getTime()).appendTo("#right");
+				$("<script>").attr("type", "module").attr("src", "select_vis.js").appendTo("#right");
         $("<script>").attr("type", "module").attr("src", "filter.js?v=" + new Date().getTime()).appendTo("#mid");
 			},
 			error: function(xhr, status, error) {

@@ -3,6 +3,7 @@ package com.example.demo.input.handler;
 import com.example.demo.data.types.DataType;
 import com.example.demo.data.types.DataTypeUtil;
 import com.example.demo.models.ModelUtil;
+import com.example.demo.visualisation.VisualService;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import io.github.MigadaTang.Attribute;
@@ -21,10 +22,13 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -128,7 +132,13 @@ public class InputController {
   public List<Map<String, Object>> getFilterOptions() {
     Schema schema = InputService.getSchema();
     List<Map<String, Object>> tables = new ArrayList<>();
-    ERConnectableObj tableObject = InputService.getSelectionInfo().keySet().iterator().next();
+
+    Iterator<ERConnectableObj> iterator = InputService.getSelectionInfo().keySet().iterator();
+    ERConnectableObj tableObject = iterator.next();
+    if (InputService.getSelectionInfo().get(tableObject).iterator().hasNext()
+        && InputService.getSelectionInfo().get(tableObject).iterator().next().getIsPrimary()) {
+      tableObject = iterator.next();
+    }
     // adding the table itself into the filter condition
     List<ERConnectableObj> relatedTables = new ArrayList<>(List.of(tableObject));
     relatedTables.addAll(ModelUtil.tablesConnectableWith(tableObject, schema));
@@ -151,7 +161,7 @@ public class InputController {
 
   @GetMapping("/vis-options")
   @ResponseBody
-  public Map<String, Object> getVisOptions() {
+  public Map<String, Object> getVisOptions() throws SQLException {
     Map<String, Object> table = new HashMap<>();
     List<String> options;
     switch (inputService.getModelType()) {
@@ -187,8 +197,59 @@ public class InputController {
         table.put("option", options);
       }
       case UNKNOWN -> {
-        //todo: handel UNKNOWN case
+        // todo: handel UNKNOWN case
 
+        // find foreign key and get the whole data -> check if one-many -> update
+        // return something that indicates the change from many-many to one-many
+
+        Map<ERConnectableObj, List<Attribute>> selectionInfo = InputService.getSelectionInfo();
+        Iterator<ERConnectableObj> keyIterator = selectionInfo.keySet()
+            .iterator();
+        Entity attrTable;
+        Entity keyTable;
+
+        ERConnectableObj table1 = keyIterator.next();
+        ERConnectableObj table2 = keyIterator.next();
+
+        // classify
+        Iterator<Attribute> tableNameIterator = selectionInfo.get(table1).iterator();
+        if (tableNameIterator.hasNext() && tableNameIterator
+            .next().getIsPrimary()) {
+          attrTable = (Entity) table2;
+          keyTable = (Entity) table1;
+        } else {
+          attrTable = (Entity) table1;
+          keyTable = (Entity) table2;
+        }
+
+        Optional<Attribute> attrTableKey = attrTable.getAttributeList().stream()
+            .filter(Attribute::getIsPrimary).findFirst();
+        Optional<Attribute> keyTableKey = keyTable.getAttributeList().stream()
+            .filter(Attribute::getIsPrimary).findFirst();
+        if (attrTableKey.isPresent() && keyTableKey.isPresent()) {
+          List<String> attributes = List.of(attrTableKey.get().getName());
+          String query = VisualService.generateSQLQuery(attributes, attrTable.getName(),
+              attrTableKey.get().getName(), keyTable.getName(), keyTableKey.get().getName(),
+              InputService.getFilterConditions());
+          List<Map<String, Object>> queryResults = InputService.getJdbc().queryForList(query);
+          // got the correct data now, check if the filtered data is one-many
+          Set<Object> uniqueCodes = new HashSet<>();
+          boolean isOneToMany = true;
+
+          for (Map<String, Object> map : queryResults) {
+            Object code = map.get(attrTableKey.get().getName());
+            if (uniqueCodes.contains(code)) {
+              isOneToMany = false;
+              break;
+            }
+            uniqueCodes.add(code);
+          }
+
+          if (isOneToMany) {
+            options = List.of("Tree Map", "Hierarchy Tree", "Circle Packing");
+            table.put("option", options);
+          }
+        }
       }
     }
     return table;
@@ -198,13 +259,14 @@ public class InputController {
   @ResponseBody
   public String processAttrSelection(@RequestBody String selectedAttrJson) {
     List<String> selectedAttributes = new Gson().fromJson(selectedAttrJson, List.class);
+    System.out.println(selectedAttributes);
 
     Schema schema = InputService.getSchema();
 
     Map<ERConnectableObj, List<Attribute>> selectionInfo = new HashMap<>();
-    List<Attribute> selectedAttrs = new ArrayList<>();
 
     for (String attribute : selectedAttributes) {
+      List<Attribute> selectedAttrs = new ArrayList<>();
       String[] parts = attribute.split("\\.");
       String tableName = parts[0];
       int hashCode = attribute.hashCode();
@@ -268,8 +330,6 @@ public class InputController {
     }.getType();
     Map<String, List<String>> filterConditions = new Gson().fromJson(selectedFilterJson, mapType);
     inputService.setFilterCondisions(filterConditions);
-    // todo: find foreign key and get the whole data -> check if one-many -> update
-    // todo: return something that indicates the change from many-many to one-many
     return selectedFilterJson;
   }
 
@@ -285,7 +345,8 @@ public class InputController {
   @ResponseBody
   public String getRelatedEntityTables(@RequestBody String selectedTableURL)
       throws UnsupportedEncodingException {
-    String selectedTableJson = URLDecoder.decode(selectedTableURL, StandardCharsets.UTF_8.toString());
+    String selectedTableJson = URLDecoder.decode(selectedTableURL,
+        StandardCharsets.UTF_8.toString());
     List<String> selectedTables = new Gson().fromJson(selectedTableJson.split("=")[0], List.class);
 
     Schema schema = InputService.getSchema();

@@ -211,6 +211,16 @@ $(document).ready(function() {
       data: JSON.stringify(options),
       success: function(data) {
         showAlert("Filter Applied!");
+        // reload visualisation options
+        if ($("#vis-form").children().length > 0) {
+          $("#vis-form").empty();
+        }
+        $("#select-vis-script").remove();
+        $("<script>")
+          .attr("type", "text/javascript")
+          .attr("src", "select_vis.js?v=" + new Date().getTime())
+          .attr("id", "select-vis-script")
+          .appendTo("body");
       },
       error: function(xhr, status, error) {
         alert(xhr.responseText);

@@ -45,7 +45,7 @@ public class GenerateSQLQueryTest {
     inputService.setFilterCondisions(filterConditions);
     visualService.initialise(InputService.getSelectionInfo(), InputService.getFilterConditions());
     System.out.println(VisualService.generateSQLQuery(List.of("population"), "country", "code",
-        visualService.processedFilterConditions));
+        visualService.filterConditions));
   }
 
   @Test
@@ -55,7 +55,7 @@ public class GenerateSQLQueryTest {
     inputService.setFilterCondisions(filterConditions);
     visualService.initialise(InputService.getSelectionInfo(), InputService.getFilterConditions());
     System.out.println(VisualService.generateSQLQuery(List.of("elevation"), "airport", "iata_code",
-        visualService.processedFilterConditions));
+        visualService.filterConditions));
   }
 
   @Test
@@ -65,7 +65,7 @@ public class GenerateSQLQueryTest {
     inputService.setFilterCondisions(filterConditions);
     visualService.initialise(InputService.getSelectionInfo(), InputService.getFilterConditions());
     System.out.println(VisualService.generateSQLQuery(List.of("population"), "country", "code",
-        visualService.processedFilterConditions));
+        visualService.filterConditions));
   }
 
 }
