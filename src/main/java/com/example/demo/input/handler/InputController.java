@@ -69,8 +69,8 @@ public class InputController {
         attributeInfo.put("name", attribute.getName());
 
         // Perform your classification logic here
-        DataType dataType = DataTypeUtil.getDataType(entity.getName(), attribute.getName(),
-            InputService.getJdbc());
+        DataType dataType = DataTypeUtil.getDataType(entity.getName(), attribute.getName()
+        );
         if (dataType == DataType.NUMERICAL || dataType == DataType.TEMPORAL) {
           attributeInfo.put("dataType", "(#)");
           attributes.add(attributeInfo);
@@ -103,8 +103,8 @@ public class InputController {
           }
           Map<String, String> attributeInfo = new HashMap<>();
           attributeInfo.put("name", attribute.getName());
-          DataType dataType = DataTypeUtil.getDataType(relationship.getName(), attribute.getName(),
-              InputService.getJdbc());
+          DataType dataType = DataTypeUtil.getDataType(relationship.getName(), attribute.getName()
+          );
           if (dataType == DataType.NUMERICAL || dataType == DataType.TEMPORAL) {
             attributeInfo.put("dataType", "(#)");
             attributes.add(attributeInfo);
@@ -312,7 +312,7 @@ public class InputController {
     String[] parts = selectedFilterJson.split("\\.");
     String tableName = parts[0];
     String attributeName = parts[1].split("=")[0];
-    DataType type = DataTypeUtil.getDataType(tableName, attributeName, InputService.getJdbc());
+    DataType type = DataTypeUtil.getDataType(tableName, attributeName);
     List<Object> result = new ArrayList<>();
     switch (type) {
       case NUMERICAL, TEMPORAL -> result.addAll(inputService.getScalarFilterOptions(tableName,

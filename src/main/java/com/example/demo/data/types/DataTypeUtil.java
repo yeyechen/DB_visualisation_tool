@@ -4,11 +4,10 @@ import com.example.demo.input.handler.InputService;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 public class DataTypeUtil {
 
-  public static DataType getDataType(String tableName, String attributeName, JdbcTemplate jdbc)
+  public static DataType getDataType(String tableName, String attributeName)
       throws SQLException {
     ResultSet rs = InputService.getMetaData().getColumns(null, null, tableName, attributeName);
     int dataType = 0; // 0 is NULL type in SQL

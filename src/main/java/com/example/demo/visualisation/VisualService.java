@@ -161,8 +161,8 @@ public class VisualService {
           String conditionAttr = singleCondition.getKey();
           List<String> conditionValues = singleCondition.getValue();
 
-          DataType type = DataTypeUtil.getDataType(joinTableName, conditionAttr,
-              InputService.getJdbc());
+          DataType type = DataTypeUtil.getDataType(joinTableName, conditionAttr
+          );
           if (type == DataType.NUMERICAL) {
             whereCondition.append("(");
             // only two element in "conditionValues" index 0 for min, index 1 for max
@@ -257,7 +257,7 @@ public class VisualService {
 
     Attribute attribute = attributes.iterator().next();
     Assert.assertSame(
-        DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc()),
+        DataTypeUtil.getDataType(table.getName(), attribute.getName()),
         DataType.NUMERICAL);
     attributeNameStrings.add(tablePrimaryKey.getName());
     attributeNameStrings.add(attribute.getName());
@@ -275,7 +275,7 @@ public class VisualService {
 
     Attribute attribute = attributes.iterator().next();
     Assert.assertSame(
-        DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc()),
+        DataTypeUtil.getDataType(table.getName(), attribute.getName()),
         DataType.NUMERICAL);
     attributeNameStrings.add(tablePrimaryKey.getName());
     attributeNameStrings.add(attribute.getName());
@@ -296,7 +296,7 @@ public class VisualService {
     Iterator<Attribute> iterator = attributes.iterator();
     while (iterator.hasNext()) {
       Attribute attribute = iterator.next();
-      if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
+      if (DataTypeUtil.getDataType(table.getName(), attribute.getName())
           == DataType.TEMPORAL) {
         temporalAttr = attribute;
         iterator.remove();
@@ -308,7 +308,7 @@ public class VisualService {
     attributeNameStrings.add(temporalAttr.getName());
     if (optionalAttr != null) {
       Assert.assertSame(
-          DataTypeUtil.getDataType(table.getName(), optionalAttr.getName(), InputService.getJdbc()),
+          DataTypeUtil.getDataType(table.getName(), optionalAttr.getName()),
           DataType.NUMERICAL);
       attributeNameStrings.add(optionalAttr.getName());
     }
@@ -326,7 +326,7 @@ public class VisualService {
 
     Attribute optionalAttr = null;
     for (Attribute attribute : attributes) {
-      if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
+      if (DataTypeUtil.getDataType(table.getName(), attribute.getName())
           == DataType.LEXICAL) {
         optionalAttr = attribute;
         attributes.remove(attribute);
@@ -334,7 +334,7 @@ public class VisualService {
     }
     for (Attribute attribute : attributes) {
       Assert.assertSame(
-          DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc()),
+          DataTypeUtil.getDataType(table.getName(), attribute.getName()),
           DataType.NUMERICAL);
     }
     attributeNameStrings.add(tablePrimaryKey.getName());
@@ -356,7 +356,7 @@ public class VisualService {
 
     Attribute optionalAttr = null;
     for (Attribute attribute : attributes) {
-      if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
+      if (DataTypeUtil.getDataType(table.getName(), attribute.getName())
           == DataType.LEXICAL) {
         optionalAttr = attribute;
         attributes.remove(attribute);
@@ -364,7 +364,7 @@ public class VisualService {
     }
     for (Attribute attribute : attributes) {
       Assert.assertSame(
-          DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc()),
+          DataTypeUtil.getDataType(table.getName(), attribute.getName()),
           DataType.NUMERICAL);
     }
     attributeNameStrings.add(tablePrimaryKey.getName());
@@ -386,7 +386,7 @@ public class VisualService {
 
     Attribute attribute = attributes.iterator().next();
     Assert.assertSame(
-        DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc()),
+        DataTypeUtil.getDataType(table.getName(), attribute.getName()),
         DataType.NUMERICAL);
     attributeNameStrings.add(tablePrimaryKey.getName());
     attributeNameStrings.add(attribute.getName());
@@ -404,7 +404,7 @@ public class VisualService {
 
     Attribute optionalAttr = null;
     for (Attribute attribute : attributes) {
-      if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
+      if (DataTypeUtil.getDataType(table.getName(), attribute.getName())
           == DataType.LEXICAL) {
         optionalAttr = attribute;
         attributes.remove(attribute);
@@ -412,11 +412,11 @@ public class VisualService {
     }
     Attribute attribute1 = attributes.iterator().next();
     Assert.assertSame(
-        DataTypeUtil.getDataType(table.getName(), tablePrimaryKey.getName(),
-            InputService.getJdbc()),
+        DataTypeUtil.getDataType(table.getName(), tablePrimaryKey.getName()
+        ),
         DataType.LEXICAL);
     Assert.assertSame(
-        DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
+        DataTypeUtil.getDataType(table.getName(), attribute1.getName()),
         DataType.NUMERICAL);
     attributeNameStrings.add(tablePrimaryKey.getName());
     attributeNameStrings.add(attribute1.getName());
@@ -445,18 +445,18 @@ public class VisualService {
     // fkStrongEntity is k1, tablePK is k2
     String fkStrongEntity = getForeignKeyName(table.getName(), strongEntity.getName());
     Assert.assertSame(
-        DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
+        DataTypeUtil.getDataType(table.getName(), attribute1.getName()),
         DataType.NUMERICAL);
     Assert.assertSame(
-        DataTypeUtil.getDataType(table.getName(), tablePrimaryKey.getName(),
-            InputService.getJdbc()),
+        DataTypeUtil.getDataType(table.getName(), tablePrimaryKey.getName()
+        ),
         DataType.NUMERICAL);
     attributeNameStrings.add(fkStrongEntity);
     attributeNameStrings.add(tablePrimaryKey.getName());
     attributeNameStrings.add(attribute1.getName());
     if (optionalAttr != null) {
       Assert.assertSame(
-          DataTypeUtil.getDataType(table.getName(), optionalAttr.getName(), InputService.getJdbc()),
+          DataTypeUtil.getDataType(table.getName(), optionalAttr.getName()),
           DataType.NUMERICAL);
       attributeNameStrings.add(optionalAttr.getName());
     }
@@ -475,7 +475,7 @@ public class VisualService {
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
     Assert.assertSame(
-        DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
+        DataTypeUtil.getDataType(table.getName(), attribute1.getName()),
         DataType.NUMERICAL);
     Entity strongEntity = ModelUtil.getRelatedStrongEntity((Entity) table,
         InputService.getSchema());
@@ -500,7 +500,7 @@ public class VisualService {
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
     Assert.assertSame(
-        DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
+        DataTypeUtil.getDataType(table.getName(), attribute1.getName()),
         DataType.NUMERICAL);
     Entity strongEntity = ModelUtil.getRelatedStrongEntity((Entity) table,
         InputService.getSchema());
@@ -525,7 +525,7 @@ public class VisualService {
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
     Assert.assertSame(
-        DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
+        DataTypeUtil.getDataType(table.getName(), attribute1.getName()),
         DataType.NUMERICAL);
     Entity strongEntity = ModelUtil.getRelatedStrongEntity((Entity) table,
         InputService.getSchema());
@@ -549,7 +549,7 @@ public class VisualService {
 
     Attribute optionalAttr = null;
     for (Attribute attribute : attributes) {
-      if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
+      if (DataTypeUtil.getDataType(table.getName(), attribute.getName())
           == DataType.LEXICAL) {
         optionalAttr = attribute;
         attributes.remove(attribute);
@@ -557,8 +557,8 @@ public class VisualService {
     }
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
-    Assert.assertSame(DataTypeUtil.getDataType(table.getName(), attribute1.getName(),
-        InputService.getJdbc()), DataType.NUMERICAL);
+    Assert.assertSame(DataTypeUtil.getDataType(table.getName(), attribute1.getName()
+    ), DataType.NUMERICAL);
 
     attributeNameStrings.add(tablePrimaryKey.getName());
     attributeNameStrings.add(attribute1.getName());
@@ -595,8 +595,8 @@ public class VisualService {
     Assert.assertNotNull(parentEntity);
     attributeNameStrings.add(tablePrimaryKey.getName());
     if (optionalAttr != null) {
-      Assert.assertSame(DataTypeUtil.getDataType(table.getName(), optionalAttr.getName(),
-          InputService.getJdbc()), DataType.LEXICAL);
+      Assert.assertSame(DataTypeUtil.getDataType(table.getName(), optionalAttr.getName()
+      ), DataType.LEXICAL);
       attributeNameStrings.add(optionalAttr.getName());
     }
     if (keyTable != null) {
@@ -622,7 +622,7 @@ public class VisualService {
 
     Attribute optionalAttr = null;
     for (Attribute attribute : attributes) {
-      if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
+      if (DataTypeUtil.getDataType(table.getName(), attribute.getName())
           == DataType.LEXICAL) {
         optionalAttr = attribute;
         attributes.remove(attribute);
@@ -630,8 +630,8 @@ public class VisualService {
     }
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
-    Assert.assertSame(DataTypeUtil.getDataType(table.getName(), attribute1.getName(),
-        InputService.getJdbc()), DataType.NUMERICAL);
+    Assert.assertSame(DataTypeUtil.getDataType(table.getName(), attribute1.getName()
+    ), DataType.NUMERICAL);
 
     attributeNameStrings.add(tablePrimaryKey.getName());
     attributeNameStrings.add(attribute1.getName());
@@ -672,7 +672,7 @@ public class VisualService {
     Iterator<Attribute> attributeIterator = attributes.iterator();
     while (attributeIterator.hasNext()) {
       Attribute attribute = attributeIterator.next();
-      if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
+      if (DataTypeUtil.getDataType(table.getName(), attribute.getName())
           == DataType.LEXICAL) {
         optionalAttr = attribute;
         attributeIterator.remove();
@@ -682,7 +682,7 @@ public class VisualService {
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
     Assert.assertSame(
-        DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
+        DataTypeUtil.getDataType(table.getName(), attribute1.getName()),
         DataType.NUMERICAL);
     Assert.assertEquals(entities.size(), 2);
     List<String> attributeNameStrings = new ArrayList<>(
@@ -703,7 +703,7 @@ public class VisualService {
 
     Attribute optionalAttr = null;
     for (Attribute attribute : attributes) {
-      if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
+      if (DataTypeUtil.getDataType(table.getName(), attribute.getName())
           == DataType.LEXICAL) {
         optionalAttr = attribute;
       }
@@ -731,7 +731,7 @@ public class VisualService {
     initialise(selectionInfo, filterConditions);
     Attribute optionalAttr = null;
     for (Attribute attribute : attributes) {
-      if (DataTypeUtil.getDataType(table.getName(), attribute.getName(), InputService.getJdbc())
+      if (DataTypeUtil.getDataType(table.getName(), attribute.getName())
           == DataType.LEXICAL) {
         optionalAttr = attribute;
         attributes.remove(attribute);
@@ -740,7 +740,7 @@ public class VisualService {
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
     Assert.assertSame(
-        DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
+        DataTypeUtil.getDataType(table.getName(), attribute1.getName()),
         DataType.NUMERICAL);
     Set<Entity> entities = ModelUtil.getManyManyEntities((Relationship) table);
     // assert reflexive
@@ -767,7 +767,7 @@ public class VisualService {
     Iterator<Attribute> iterator = attributes.iterator();
     Attribute attribute1 = iterator.next();
     Assert.assertSame(
-        DataTypeUtil.getDataType(table.getName(), attribute1.getName(), InputService.getJdbc()),
+        DataTypeUtil.getDataType(table.getName(), attribute1.getName()),
         DataType.NUMERICAL);
     Set<Entity> entities = ModelUtil.getManyManyEntities((Relationship) table);
     // assert reflexive
