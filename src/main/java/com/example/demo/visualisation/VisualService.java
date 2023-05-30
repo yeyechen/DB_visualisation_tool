@@ -14,10 +14,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.Assert;
@@ -125,10 +125,14 @@ public class VisualService {
           String fkName2 = getForeignKeyName(attrTableName, joinTableName);
           if (fkName1.isEmpty() && fkName2.isEmpty()) {
             // need to join three tables, including the middle relationship table
-            String middleJoinTableName = Objects.requireNonNull(
-                ModelUtil.getRelationshipBetween(attrTableName,
-                    joinTableName,
-                    InputService.getSchema())).getName();
+            Relationship relationshipBetween = ModelUtil.getRelationshipBetween(attrTableName,
+                joinTableName,
+                InputService.getSchema());
+            if (relationshipBetween == null) {
+              continue;
+            }
+            String middleJoinTableName =
+                relationshipBetween.getName();
             String fk1 = getForeignKeyName(middleJoinTableName, attrTableName);
             fromJoins.append(" INNER JOIN ").append(middleJoinTableName);
             fromJoins.append(" ON ");
@@ -545,7 +549,7 @@ public class VisualService {
       Map<ERConnectableObj, List<Attribute>> selectionInfo,
       Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
     initialise(selectionInfo, filterConditions);
-    List<String> attributeNameStrings = new ArrayList<>();
+    List<String> attributeNameStrings = new LinkedList<>();
 
     Attribute optionalAttr = null;
     for (Attribute attribute : attributes) {
@@ -574,7 +578,7 @@ public class VisualService {
       parentEntity = ModelUtil.getParentEntity((Entity) table,
           InputService.getSchema());
       String fkParentEntity = getForeignKeyName(table.getName(), parentEntity.getName());
-      attributeNameStrings.add(fkParentEntity);
+      attributeNameStrings.add(0, fkParentEntity);
       Assert.assertNotNull(parentEntity);
       return InputService.getJdbc()
           .queryForList(
@@ -587,7 +591,7 @@ public class VisualService {
       Map<ERConnectableObj, List<Attribute>> selectionInfo,
       Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
     initialise(selectionInfo, filterConditions);
-    List<String> attributeNameStrings = new ArrayList<>();
+    List<String> attributeNameStrings = new LinkedList<>();
 
     Attribute optionalAttr = attributes.iterator().hasNext() ? attributes.iterator().next() : null;
     Entity parentEntity = ModelUtil.getParentEntity((Entity) table,
@@ -607,7 +611,7 @@ public class VisualService {
                   this.filterConditions));
     }
     String fkParentEntity = getForeignKeyName(table.getName(), parentEntity.getName());
-    attributeNameStrings.add(fkParentEntity);
+    attributeNameStrings.add(0, fkParentEntity);
     return InputService.getJdbc()
         .queryForList(
             generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
@@ -618,7 +622,7 @@ public class VisualService {
       Map<ERConnectableObj, List<Attribute>> selectionInfo,
       Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
     initialise(selectionInfo, filterConditions);
-    List<String> attributeNameStrings = new ArrayList<>();
+    List<String> attributeNameStrings = new LinkedList<>();
 
     Attribute optionalAttr = null;
     for (Attribute attribute : attributes) {
@@ -647,7 +651,7 @@ public class VisualService {
       parentEntity = ModelUtil.getParentEntity((Entity) table,
           InputService.getSchema());
       String fkParentEntity = getForeignKeyName(table.getName(), parentEntity.getName());
-      attributeNameStrings.add(fkParentEntity);
+      attributeNameStrings.add(0, fkParentEntity);
       Assert.assertNotNull(parentEntity);
       return InputService.getJdbc()
           .queryForList(
