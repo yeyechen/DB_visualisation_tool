@@ -68,7 +68,7 @@ public class InputController {
         Map<String, String> attributeInfo = new HashMap<>();
         attributeInfo.put("name", attribute.getName());
 
-        // Perform your classification logic here
+        // Perform classification
         DataType dataType = DataTypeUtil.getDataType(entity.getName(), attribute.getName()
         );
         if (dataType == DataType.NUMERICAL || dataType == DataType.TEMPORAL) {
@@ -133,15 +133,10 @@ public class InputController {
     Schema schema = InputService.getSchema();
     List<Map<String, Object>> tables = new ArrayList<>();
 
-    Iterator<ERConnectableObj> iterator = InputService.getSelectionInfo().keySet().iterator();
-    ERConnectableObj tableObject = iterator.next();
-    if (InputService.getSelectionInfo().get(tableObject).iterator().hasNext()
-        && InputService.getSelectionInfo().get(tableObject).iterator().next().getIsPrimary()) {
-      tableObject = iterator.next();
-    }
+    ERConnectableObj attrTable = inputService.getAttrTable();
     // adding the table itself into the filter condition
-    List<ERConnectableObj> relatedTables = new ArrayList<>(List.of(tableObject));
-    relatedTables.addAll(ModelUtil.tablesConnectableWith(tableObject, schema));
+    List<ERConnectableObj> relatedTables = new ArrayList<>(List.of(attrTable));
+    relatedTables.addAll(ModelUtil.tablesConnectableWith(attrTable, schema));
     for (ERConnectableObj table : relatedTables) {
       Map<String, Object> map = new HashMap<>();
       map.put("name", table.getName());
@@ -163,18 +158,42 @@ public class InputController {
   @ResponseBody
   public Map<String, Object> getVisOptions() throws SQLException {
     Map<String, Object> table = new HashMap<>();
-    List<String> options;
+    Map<DataType, Integer> attrTypeNumbersMap = inputService.getAttrTypeNumbers();
+    int numericalNum = attrTypeNumbersMap.get(DataType.NUMERICAL);
+    int lexicalNum = attrTypeNumbersMap.get(DataType.LEXICAL);
+    int temporalNum = attrTypeNumbersMap.get(DataType.TEMPORAL);
+    List<String> options = new ArrayList<>();
     switch (inputService.getModelType()) {
       case BASIC_ENTITY -> {
-        options = List.of("Bar Chart", "Pie Chart", "Calendar", "Scatter Diagram",
-            "Bubble Chart", "Choropleth Map", "Word Cloud");
-        table.put("option", options);
+        if (temporalNum == 1 && numericalNum <= 1) {
+          options.add("Calendar");
+        }
+        if (numericalNum == 1 && lexicalNum <= 1) {
+          if (lexicalNum == 0) {
+            options.add("Bar Chart");
+            options.add("Choropleth Map");
+          }
+          options.add("Word Cloud");
+        }
+        if (numericalNum == 2 && lexicalNum <= 1) {
+          options.add("Scatter Diagram");
+        }
+        if (numericalNum == 3 && lexicalNum <= 1) {
+          options.add("Bubble Chart");
+        }
       }
       case WEAK_ENTITY -> {
-        options = List.of("Line Chart", "Stacked Bar Chart", "Grouped Bar Chart",
-            "Spider Chart");
-        table.put("option", options);
+        if (numericalNum == 1 && lexicalNum <= 1) {
+          options.add("Line Chart");
+          if (lexicalNum == 0) {
+            options.add("Stacked Bar Chart");
+            options.add("Grouped Bar Chart");
+            options.add("Spider Chart");
+          }
+        }
       }
+      // todo: further filter based on number of attribute data types, but sill care for many-many
+      //  convert to one-many
       case ONE_MANY_RELATIONSHIP -> {
         // if the user selects no mandatory attributes
         if (inputService.checkSelectNone()) {
@@ -182,11 +201,9 @@ public class InputController {
         } else {
           options = List.of("Tree Map", "Hierarchy Tree", "Circle Packing");
         }
-        table.put("option", options);
       }
       case MANY_MANY_RELATIONSHIP -> {
         options = List.of("Sankey Diagram");
-        table.put("option", options);
       }
       case REFLEXIVE_RELATIONSHIP -> {
         if (inputService.checkSelectNone()) {
@@ -194,7 +211,6 @@ public class InputController {
         } else {
           options = List.of("Sankey Diagram", "Network Chart", "Chord Diagram", "Heatmap");
         }
-        table.put("option", options);
       }
       case UNKNOWN -> {
         // todo: handel UNKNOWN case
@@ -247,11 +263,11 @@ public class InputController {
 
           if (isOneToMany) {
             options = List.of("Tree Map", "Hierarchy Tree", "Circle Packing");
-            table.put("option", options);
           }
         }
       }
     }
+    table.put("option", options);
     return table;
   }
 
@@ -329,7 +345,7 @@ public class InputController {
     Type mapType = new TypeToken<Map<String, List<String>>>() {
     }.getType();
     Map<String, List<String>> filterConditions = new Gson().fromJson(selectedFilterJson, mapType);
-    inputService.setFilterCondisions(filterConditions);
+    inputService.setFilterConditions(filterConditions);
     return selectedFilterJson;
   }
 

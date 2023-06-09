@@ -1,7 +1,7 @@
 $(document).ready(function() {
   $("#right-heading").text("Select visualisation:");
   $.get("/vis-options", function(tableData) {
-    if (Object.keys(tableData).length === 0) {
+    if (tableData.option.length === 0) {
       $("#right-heading").text("There is no visualisation suitable for your selection");
     } else {
       $.each(tableData.option, function(index, option) {

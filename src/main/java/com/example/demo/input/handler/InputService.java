@@ -1,5 +1,7 @@
 package com.example.demo.input.handler;
 
+import com.example.demo.data.types.DataType;
+import com.example.demo.data.types.DataTypeUtil;
 import com.example.demo.models.ModelType;
 import com.example.demo.models.ModelUtil;
 import io.github.MigadaTang.Attribute;
@@ -17,6 +19,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -57,7 +60,7 @@ public class InputService {
     return metaData;
   }
 
-  public void setFilterCondisions(Map<String, List<String>> filterConditions) {
+  public void setFilterConditions(Map<String, List<String>> filterConditions) {
     Map<String, Map<String, List<String>>> processedConditions = new HashMap<>();
     for (Map.Entry<String, List<String>> entry : filterConditions.entrySet()) {
       String key = entry.getKey();
@@ -178,4 +181,44 @@ public class InputService {
     return List.of(minValue, maxValue);
   }
 
+  // when multiple tables are selected, get the one with attributes
+  public ERConnectableObj getAttrTable() {
+    if (selectionInfo.keySet().size() > 1) {
+      Iterator<ERConnectableObj> iterator = selectionInfo.keySet().iterator();
+      ERConnectableObj attrTable = iterator.next();
+      if (selectionInfo.get(attrTable).iterator().hasNext()
+          && selectionInfo.get(attrTable).iterator().next().getIsPrimary()) {
+        attrTable = iterator.next();
+      }
+      return attrTable;
+    } else {
+      return selectionInfo.keySet().iterator().next();
+    }
+  }
+
+  // get the number of attributes in different types
+  // e.g. Numerical : 2, Lexical : 1
+  public Map<DataType, Integer> getAttrTypeNumbers() throws SQLException {
+    int numerical = 0;
+    int lexical = 0;
+    int temporal = 0;
+    Map<DataType, Integer> result = new HashMap<>();
+
+    ERConnectableObj attrTable = getAttrTable();
+    List<Attribute> attributeList = selectionInfo.get(attrTable);
+
+    for (Attribute attribute : attributeList) {
+      DataType dataType = DataTypeUtil.getDataType(attrTable.getName(), attribute.getName());
+      switch (dataType) {
+        case NUMERICAL -> numerical++;
+        case LEXICAL -> lexical++;
+        case TEMPORAL -> temporal++;
+      }
+    }
+    result.put(DataType.NUMERICAL, numerical);
+    result.put(DataType.LEXICAL, lexical);
+    result.put(DataType.TEMPORAL, temporal);
+
+    return result;
+  }
 }

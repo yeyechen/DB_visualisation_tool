@@ -42,7 +42,7 @@ public class GenerateSQLQueryTest {
   public void directlyJoinTest() throws SQLException {
     Map<String, List<String>> filterConditions = new HashMap<>();
     filterConditions.put("airport.iata_code", List.of("HEA", "KBL"));
-    inputService.setFilterCondisions(filterConditions);
+    inputService.setFilterConditions(filterConditions);
     visualService.initialise(InputService.getSelectionInfo(), InputService.getFilterConditions());
     System.out.println(VisualService.generateSQLQuery(List.of("population"), "country", "code",
         visualService.filterConditions));
@@ -52,7 +52,7 @@ public class GenerateSQLQueryTest {
   public void reverseDirection() throws SQLException {
     Map<String, List<String>> filterConditions = new HashMap<>();
     filterConditions.put("country.code", List.of("CN", "UK"));
-    inputService.setFilterCondisions(filterConditions);
+    inputService.setFilterConditions(filterConditions);
     visualService.initialise(InputService.getSelectionInfo(), InputService.getFilterConditions());
     System.out.println(VisualService.generateSQLQuery(List.of("elevation"), "airport", "iata_code",
         visualService.filterConditions));
@@ -62,7 +62,7 @@ public class GenerateSQLQueryTest {
   public void joinThreeTablesTest() throws SQLException {
     Map<String, List<String>> filterConditions = new HashMap<>();
     filterConditions.put("continent.name", List.of("Europe", "Asia"));
-    inputService.setFilterCondisions(filterConditions);
+    inputService.setFilterConditions(filterConditions);
     visualService.initialise(InputService.getSelectionInfo(), InputService.getFilterConditions());
     System.out.println(VisualService.generateSQLQuery(List.of("population"), "country", "code",
         visualService.filterConditions));
