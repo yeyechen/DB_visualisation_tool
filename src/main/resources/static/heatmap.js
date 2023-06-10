@@ -1,7 +1,7 @@
 function Heatmap(data, classes, {
   margin = ({top: 30, right: 20, bottom: 100, left: 120}),
-  height = 3000,
-  width = 3000,
+  height = 1100,
+  width = 1500,
   legendHeight = 20,
   valRange = [0, d3.max(data.map(d => d.value), d => d3.max(d))],
   legendBins = [...Array(9).keys()].map(x => d3.quantile(valRange, x * 0.1)),
@@ -32,8 +32,8 @@ function Heatmap(data, classes, {
   .call(d3.axisBottom(x).tickSize(0).tickPadding(4))
   .call(g => g.select(".domain").remove())
   .selectAll("text")
-    .attr("y", -9)
-    .attr("x", -9)
+//    .attr("y", -9)
+//    .attr("x", -9)
     .attr("dy", ".35em")
     .attr("transform", "rotate(270)")
     .style("text-anchor", "end")
@@ -58,7 +58,7 @@ function Heatmap(data, classes, {
     .enter().append("g")
       .attr("transform", d => `translate(0,${y(d.key) + 1})`);
 
-  const tip = d3.tip().attr('class', 'd3-tip').html(d => (100*d).toFixed(1));
+  const tip = d3.tip().attr('class', 'd3-tip').html(d => d.toFixed(1));
 
   svg.call(tip)
 
@@ -93,7 +93,7 @@ function Heatmap(data, classes, {
     .data(legendBins)
     .enter()
     .append("text")
-    .text(d => "≥ " + (100*d).toFixed(1))
+    .text(d => "≥ " + d.toFixed(1))
     .attr("x", (d, i) => legendElementWidth * i)
     .attr("y", height - (legendHeight / 2))
     .style("font-size", "9pt")
@@ -108,19 +108,22 @@ d3.json("/heatmap_data")
 
   var keys = Object.keys(data[0]); // index: 0->k_1, 1->k_2, 2->a1, 3->optional color
 
-  const classes = Array.from(new Set(data.flatMap(({ [keys[0]]: x, [keys[1]]: y }) => [x, y])));
-  const matrix = classes.reduce((acc, cur) => {
-    acc.push({ key: cur, value: new Array(classes.length).fill(0) });
-    return acc;
-  }, []);
+  const bins = Array.from(new Set(data.map(item => item[keys[0]])));
+  const classes = Array.from(new Set(data.map(item => item[keys[1]])));
 
-  data.forEach(({ [keys[0]]: x, [keys[1]]: y, [keys[2]]: value }) => {
-    const row = classes.indexOf(y);
-    const col = classes.indexOf(x);
-    matrix[row].value[col] = value;
+  const matrix = classes.map(continent => {
+    const distinctCountries = Array.from(new Set(data.map(item => item[keys[0]])));
+    const values = distinctCountries.map(country => {
+      const countryData = data.find(item => item[keys[0]] === country && item[keys[1]] === continent);
+      return countryData ? countryData[keys[2]] : 0;
+    });
+    return {
+      key: continent,
+      value: values,
+    };
   });
 
-  const svg = Heatmap(matrix, classes, {})
+  const svg = Heatmap(matrix, bins, {})
 
   d3.select("body").append(() => svg);
 })

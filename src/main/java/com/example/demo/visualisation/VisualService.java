@@ -250,6 +250,7 @@ public class VisualService {
     }
     sb.append(" FROM ");
     sb.append(tableName);
+    System.out.println(sb);
     return sb.toString();
   }
 
@@ -666,11 +667,6 @@ public class VisualService {
     initialise(selectionInfo, filterConditions);
 
     Set<Entity> entities = ModelUtil.getManyManyEntities((Relationship) table);
-    // reflexive case
-    if (entities.size() == 1) {
-      // attributes identical to chord case (see chart on paper)
-      return queryChordDiagramData(selectionInfo, filterConditions);
-    }
 
     Attribute optionalAttr = null;
     Iterator<Attribute> attributeIterator = attributes.iterator();
@@ -689,8 +685,11 @@ public class VisualService {
         DataTypeUtil.getDataType(table.getName(), attribute1.getName()),
         DataType.NUMERICAL);
     Assert.assertEquals(entities.size(), 2);
-    List<String> attributeNameStrings = new ArrayList<>(
-        entities.stream().map(ERBaseObj::getName).toList());
+
+    List<String> attributeNameStrings = new ArrayList<>();
+    for (Entity entity : entities) {
+      attributeNameStrings.add(getForeignKeyName(table.getName(), entity.getName()));
+    }
     attributeNameStrings.add(attribute1.getName());
     if (optionalAttr != null) {
       attributeNameStrings.add(optionalAttr.getName());
@@ -713,13 +712,18 @@ public class VisualService {
       }
     }
     Set<Entity> entities = ModelUtil.getManyManyEntities((Relationship) table);
-    // reflexive
-    Assert.assertEquals(entities.size(), 1);
-
-    Entity entity = entities.iterator().next();
-    // assume reflexive relationship table has two foreign keys to the same entity
-    List<String> compoundFKs = getCompoundForeignKeysName(table.getName(), entity.getName());
-    List<String> attributeNameStrings = new ArrayList<>(compoundFKs);
+    List<String> attributeNameStrings = new ArrayList<>();
+    // reflexive case
+    if (entities.size() == 1) {
+      Entity entity = entities.iterator().next();
+      // assume reflexive relationship table has two foreign keys to the same entity
+      List<String> compoundFKs = getCompoundForeignKeysName(table.getName(), entity.getName());
+      attributeNameStrings.addAll(compoundFKs);
+    } else { // many-many case
+      for (Entity entity : entities) {
+        attributeNameStrings.add(getForeignKeyName(table.getName(), entity.getName()));
+      }
+    }
 
     if (optionalAttr != null) {
       attributeNameStrings.add(optionalAttr.getName());
@@ -747,15 +751,21 @@ public class VisualService {
         DataTypeUtil.getDataType(table.getName(), attribute1.getName()),
         DataType.NUMERICAL);
     Set<Entity> entities = ModelUtil.getManyManyEntities((Relationship) table);
-    // assert reflexive
-    Assert.assertEquals(entities.size(), 1);
-    String query;
+    List<String> attributeNameStrings = new ArrayList<>();
+    // reflexive case
+    if (entities.size() == 1) {
+      Entity entity = entities.iterator().next();
+      // assume reflexive relationship table has two foreign keys to the same entity
+      List<String> compoundFKs = getCompoundForeignKeysName(table.getName(), entity.getName());
+      attributeNameStrings.addAll(compoundFKs);
+      attributeNameStrings.add(attribute1.getName());
+    } else { // many-many case
+      for (Entity entity : entities) {
+        attributeNameStrings.add(getForeignKeyName(table.getName(), entity.getName()));
+      }
+      attributeNameStrings.add(attribute1.getName());
+    }
 
-    Entity entity = entities.iterator().next();
-    // assume reflexive relationship table has two foreign keys to the same entity
-    List<String> compoundFKs = getCompoundForeignKeysName(table.getName(), entity.getName());
-    List<String> attributeNameStrings = new ArrayList<>(compoundFKs);
-    attributeNameStrings.add(attribute1.getName());
     if (optionalAttr != null) {
       attributeNameStrings.add(optionalAttr.getName());
     }
@@ -774,13 +784,24 @@ public class VisualService {
         DataTypeUtil.getDataType(table.getName(), attribute1.getName()),
         DataType.NUMERICAL);
     Set<Entity> entities = ModelUtil.getManyManyEntities((Relationship) table);
+    List<String> attributeNameStrings = new LinkedList<>();
     // assert reflexive
-    Assert.assertEquals(entities.size(), 1);
-    Entity entity = entities.iterator().next();
-    // assume reflexive relationship table has two foreign keys to the same entity
-    List<String> compoundFKs = getCompoundForeignKeysName(table.getName(), entity.getName());
-    List<String> attributeNameStrings = new ArrayList<>(compoundFKs);
-    attributeNameStrings.add(attribute1.getName());
+    if (entities.size() == 1) {
+      Entity entity = entities.iterator().next();
+      // assume reflexive relationship table has two foreign keys to the same entity
+      List<String> compoundFKs = getCompoundForeignKeysName(table.getName(), entity.getName());
+      attributeNameStrings.addAll(compoundFKs);
+      attributeNameStrings.add(attribute1.getName());
+    } else { // many-many case
+      for (Entity entity : entities) {
+        if (entity.getName().equals("country")) {
+          attributeNameStrings.add(0, getForeignKeyName(table.getName(), entity.getName()));
+          continue;
+        }
+        attributeNameStrings.add(getForeignKeyName(table.getName(), entity.getName()));
+      }
+      attributeNameStrings.add(attribute1.getName());
+    }
     return InputService.getJdbc()
         .queryForList(generateSQLQuery(attributeNameStrings, table.getName(), "",
             this.filterConditions));

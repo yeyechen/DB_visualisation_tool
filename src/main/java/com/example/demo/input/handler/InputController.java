@@ -113,8 +113,8 @@ public class InputController {
             attributes.add(0, attributeInfo);
           }
         }
-        // cases where user don't have to select any attribute: Network Chart, Chord Diagram (reflexive)
-        if (ModelUtil.getManyManyEntities(relationship).size() == 1) {
+        // cases where user don't have to select any attribute: Network Chart
+        if (!ModelUtil.getManyManyEntities(relationship).isEmpty()) {
           Map<String, String> none = new HashMap<>();
           none.put("name", "(select none)");
           none.put("dataType", " ");
@@ -203,13 +203,17 @@ public class InputController {
         }
       }
       case MANY_MANY_RELATIONSHIP -> {
-        options = List.of("Sankey Diagram");
+        if (inputService.checkSelectNone()) {
+          options = List.of("Network Chart");
+        } else {
+          options = List.of("Sankey Diagram", "Network Chart", "Chord Diagram", "Heatmap");
+        }
       }
       case REFLEXIVE_RELATIONSHIP -> {
         if (inputService.checkSelectNone()) {
           options = List.of("Network Chart");
         } else {
-          options = List.of("Sankey Diagram", "Network Chart", "Chord Diagram", "Heatmap");
+          options = List.of("Network Chart", "Chord Diagram", "Heatmap");
         }
       }
       case UNKNOWN -> {
@@ -275,7 +279,6 @@ public class InputController {
   @ResponseBody
   public String processAttrSelection(@RequestBody String selectedAttrJson) {
     List<String> selectedAttributes = new Gson().fromJson(selectedAttrJson, List.class);
-    System.out.println(selectedAttributes);
 
     Schema schema = InputService.getSchema();
 

@@ -87,16 +87,24 @@ function ChordDiagram(data, {
 
 d3.json("/chord_diagram_data")
   .then(function(data) {
-
+  console.log(data);
   var keys = Object.keys(data[0]); // index: 0->k_1, 1->k_2, 2->a1, 3->optional color
 
   const classes = Array.from(new Set(data.flatMap(({ [keys[0]]: x, [keys[1]]: y }) => [x, y])));
-  const matrix = Array.from({ [keys[2]]: classes[keys[2]] }, () => new Array(classes[keys[2]]).fill(0));
+  const matrix = Array.from({ length: classes.length }, () => new Array(classes.length).fill(0));
 
   data.forEach(({ [keys[0]]: x, [keys[1]]: y, [keys[2]]: value }) => {
     const row = classes.indexOf(y);
     const col = classes.indexOf(x);
     matrix[row][col] = value;
+
+    // Check if the reverse entry exists and fill it in if it doesn't
+    const reverseEntry = data.find(({ [keys[0]]: a, [keys[1]]: b }) => a === y && b === x);
+    if (!reverseEntry) {
+      const reverseRow = classes.indexOf(x);
+      const reverseCol = classes.indexOf(y);
+      matrix[reverseRow][reverseCol] = value;
+    }
   });
 
   const colorScale = d3.scaleOrdinal()

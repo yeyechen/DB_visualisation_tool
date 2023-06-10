@@ -3,7 +3,6 @@ $(document).ready(function() {
   // Disable all checkboxes that are in tables not related to the ones in the clicked table,
   // and also enable all checkboxes that are in tables related
   function disableUnrelatedCheckboxes(table, relatedTables) {
-    console.log(relatedTables);
     $("#table-list input[type='checkbox']").each(function() {
       var checkbox = $(this);
       var tableName = checkbox.attr("name").split("-")[0];
@@ -123,7 +122,7 @@ $(document).ready(function() {
 			  if ($("#vis-form").children().length > 0) {
 			    $("#vis-form").empty();
 			  }
-				$("<script>").attr("type", "module").attr("src", "select_vis.js").appendTo("#right");
+				$("<script>").attr("type", "module").attr("src", "select_vis.js?v=" + new Date().getTime()).appendTo("#right");
         $("<script>").attr("type", "module").attr("src", "filter.js?v=" + new Date().getTime()).appendTo("#mid");
 			},
 			error: function(xhr, status, error) {

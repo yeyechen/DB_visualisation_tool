@@ -7,6 +7,7 @@ $(document).ready(function() {
   $("#filter-form button").remove();
 
   $.get("/filter-options", function(tableData) {
+    console.log("filter-options:");
     console.log(tableData);
     if (Array.isArray(tableData) && tableData.length !== 0) {
       $("#mid-heading").text("Select filter:");
@@ -63,7 +64,6 @@ $(document).ready(function() {
           }
 
           if (typeof data[0] === "number") {
-
             var dragBarContainer = $('<div id="drag-bar-container"></div>');
             var dragBar = $('<div id="drag-bar"></div>');
             var minHandle = $('<div id="min-handle" class="handle"></div>');

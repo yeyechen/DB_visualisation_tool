@@ -124,6 +124,7 @@ function Treemap(data, { // data is either tabular (array of objects) or hierarc
         .attr("x", 3)
         .attr("y", (d, i, D) => `${(i === D.length - 1) * 0.3 + 1.1 + i * 0.9}em`)
         .attr("fill-opacity", (d, i, D) => i === D.length - 1 ? 0.7 : null)
+        .style("font-size", "15px")
         .text(d => d);
   }
 
@@ -152,7 +153,11 @@ d3.json("/tree_map_data")
     label: (d, n) => [d.name.split(/(?=[A-Z][a-z])/g), n.value.toLocaleString("en")].join("\n"),
     title: (d, n) => `${n.ancestors().reverse().map(d => d.data.name).join(".")}\n`+keys[2]+`: ${n.value.toLocaleString("en")}`,
     width: 1152,
-    height: 1152
+    height: 700
   })
+  key = swatches({
+    colour: svg.scales.color
+  })
+  d3.select("body").append(() => key);
   d3.select("body").append(() => svg);
 })
