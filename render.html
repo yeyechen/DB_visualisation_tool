@@ -12,38 +12,18 @@
 <div id ="image" style="width:50%;position:absolute;left: 50%;">123</div>
 <div id = "modelData" style="display:none" >{"schema":{
   "id" : 1,
-  "name" : "Vanilla",
+  "name" : "reverseEng",
   "entityList" : [ {
     "id" : 1,
-    "name" : "branch",
+    "name" : "phone",
     "entityType" : 1,
     "attributeList" : [ {
       "id" : 1,
-      "name" : "sortcode",
+      "name" : "name",
       "belongObjID" : 1,
       "belongObjType" : 2,
-      "dataType" : 6,
+      "dataType" : 3,
       "isPrimary" : true,
-      "attributeType" : 1,
-      "aimPort" : -1,
-      "layoutInfo" : null
-    }, {
-      "id" : 2,
-      "name" : "bname",
-      "belongObjID" : 1,
-      "belongObjType" : 2,
-      "dataType" : 2,
-      "isPrimary" : false,
-      "attributeType" : 1,
-      "aimPort" : -1,
-      "layoutInfo" : null
-    }, {
-      "id" : 3,
-      "name" : "cash",
-      "belongObjID" : 1,
-      "belongObjType" : 2,
-      "dataType" : 9,
-      "isPrimary" : false,
       "attributeType" : 1,
       "aimPort" : -1,
       "layoutInfo" : null
@@ -53,44 +33,34 @@
     "layoutInfo" : null
   }, {
     "id" : 2,
-    "name" : "account",
+    "name" : "sales",
     "entityType" : 1,
     "attributeList" : [ {
-      "id" : 4,
-      "name" : "no",
+      "id" : 2,
+      "name" : "id",
       "belongObjID" : 2,
       "belongObjType" : 2,
-      "dataType" : 6,
+      "dataType" : 3,
       "isPrimary" : true,
       "attributeType" : 1,
       "aimPort" : -1,
       "layoutInfo" : null
     }, {
-      "id" : 5,
-      "name" : "type",
+      "id" : 3,
+      "name" : "amount",
       "belongObjID" : 2,
       "belongObjType" : 2,
-      "dataType" : 1,
+      "dataType" : 3,
       "isPrimary" : false,
       "attributeType" : 1,
       "aimPort" : -1,
       "layoutInfo" : null
     }, {
-      "id" : 6,
-      "name" : "cname",
+      "id" : 4,
+      "name" : "date",
       "belongObjID" : 2,
       "belongObjType" : 2,
-      "dataType" : 2,
-      "isPrimary" : false,
-      "attributeType" : 1,
-      "aimPort" : -1,
-      "layoutInfo" : null
-    }, {
-      "id" : 7,
-      "name" : "rate",
-      "belongObjID" : 2,
-      "belongObjType" : 2,
-      "dataType" : 9,
+      "dataType" : 3,
       "isPrimary" : false,
       "attributeType" : 1,
       "aimPort" : -1,
@@ -101,36 +71,26 @@
     "layoutInfo" : null
   }, {
     "id" : 3,
-    "name" : "movement",
-    "entityType" : 1,
+    "name" : "phone_user_score",
+    "entityType" : 2,
     "attributeList" : [ {
-      "id" : 8,
-      "name" : "mid",
+      "id" : 5,
+      "name" : "aspect",
       "belongObjID" : 3,
       "belongObjType" : 2,
-      "dataType" : 6,
+      "dataType" : 3,
       "isPrimary" : true,
       "attributeType" : 1,
       "aimPort" : -1,
       "layoutInfo" : null
     }, {
-      "id" : 9,
-      "name" : "amount",
+      "id" : 6,
+      "name" : "value",
       "belongObjID" : 3,
       "belongObjType" : 2,
-      "dataType" : 9,
+      "dataType" : 3,
       "isPrimary" : false,
-      "attributeType" : 1,
-      "aimPort" : -1,
-      "layoutInfo" : null
-    }, {
-      "id" : 10,
-      "name" : "tdate",
-      "belongObjID" : 3,
-      "belongObjType" : 2,
-      "dataType" : 10,
-      "isPrimary" : false,
-      "attributeType" : 1,
+      "attributeType" : 2,
       "aimPort" : -1,
       "layoutInfo" : null
     } ],
@@ -140,15 +100,15 @@
   } ],
   "relationshipList" : [ {
     "id" : 1,
-    "name" : "holds",
+    "name" : "unknow",
     "attributeList" : [ ],
     "edgeList" : [ {
       "id" : 1,
       "relationshipID" : 1,
-      "belongObjID" : 2,
+      "belongObjID" : 3,
       "belongObjType" : 2,
-      "belongObjName" : "account",
-      "isKey" : false,
+      "belongObjName" : "phone_user_score",
+      "isKey" : true,
       "cardinality" : 3,
       "portAtRelationship" : -1,
       "portAtBelongObj" : -1
@@ -157,35 +117,9 @@
       "relationshipID" : 1,
       "belongObjID" : 1,
       "belongObjType" : 2,
-      "belongObjName" : "branch",
+      "belongObjName" : "phone",
       "isKey" : false,
       "cardinality" : 2,
-      "portAtRelationship" : -1,
-      "portAtBelongObj" : -1
-    } ],
-    "layoutInfo" : null
-  }, {
-    "id" : 2,
-    "name" : "has",
-    "attributeList" : [ ],
-    "edgeList" : [ {
-      "id" : 3,
-      "relationshipID" : 2,
-      "belongObjID" : 2,
-      "belongObjType" : 2,
-      "belongObjName" : "account",
-      "isKey" : false,
-      "cardinality" : 2,
-      "portAtRelationship" : -1,
-      "portAtBelongObj" : -1
-    }, {
-      "id" : 4,
-      "relationshipID" : 2,
-      "belongObjID" : 3,
-      "belongObjType" : 2,
-      "belongObjName" : "movement",
-      "isKey" : false,
-      "cardinality" : 3,
       "portAtRelationship" : -1,
       "portAtBelongObj" : -1
     } ],

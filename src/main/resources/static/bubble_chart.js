@@ -1,116 +1,186 @@
-const margin = { top: 20, right: 30, bottom: 30, left: 40 };
-const width = 960 - margin.left - margin.right;
-const height = 600 - margin.top - margin.bottom;
+function BubbleChart(data, {
+  x = ([x]) => x, // given d in data, returns the (quantitative) x-value
+  y = ([, y]) => y, // given d in data, returns the (quantitative) y-value
+  z = ([,,z]) => z,
+  name,
+  title, // given d in data, returns the title
+  marginTop = 20, // top margin, in pixels
+  marginRight = 30, // right margin, in pixels
+  marginBottom = 30, // bottom margin, in pixels
+  marginLeft = 100, // left margin, in pixels
+  height = 700,
+  width = 1000,
+  inset = 5, // inset the default range, in pixels
+  insetTop = inset, // inset the default y-range
+  insetRight = inset, // inset the default x-range
+  insetBottom = inset, // inset the default y-range
+  insetLeft = inset, // inset the default x-range
+  xType = d3.scaleLinear, // type of x-scale
+  xDomain, // [xmin, xmax]
+  xRange = [marginLeft + insetLeft, width - marginRight - insetRight], // [left, right]
+  yType = d3.scaleLinear, // type of y-scale
+  yDomain, // [ymin, ymax]
+  yRange = [height - marginBottom - insetBottom, marginTop + insetTop], // [bottom, top]
+  xLabel, // a label for the x-axis
+  yLabel, // a label for the y-axis
+  zLabel,
+  entityLabel,
+  xFormat, // a format specifier string for the x-axis
+  yFormat, // a format specifier string for the y-axis
+  fill = "none", // fill color for dots
+  stroke = "currentColor", // stroke color for the dots
+  strokeWidth = 1.5, // stroke width for dots
+  halo = "#fff", // color of label halo
+  haloWidth = 3, // padding around the labels
+  colorScale,
+  color,
+} = {}) {
+  // Compute values.
+  const X = d3.map(data, x);
+  const Y = d3.map(data, y);
+  const Z = d3.map(data, z);
+  const NAME = d3.map(data, name);
+  const C = d3.map(data, color);
+  const T = title == null ? null : d3.map(data, title);
+  const I = d3.range(X.length).filter(i => !isNaN(X[i]) && !isNaN(Y[i]));
 
-function createSvg() {
-  const svg = d3.select("body").append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-  return svg;
+  // Compute default domains.
+  if (xDomain === undefined) xDomain = d3.extent(X);
+  if (yDomain === undefined) yDomain = d3.extent(Y);
+
+  // Construct scales and axes.
+  const xScale = xType(xDomain, xRange);
+  const yScale = yType(yDomain, yRange);
+  const zScale = d3.scaleLinear().range([1, 20]); // set the range of the circle radius
+  zScale.domain([d3.min(data, z), d3.max(data, z)]);
+
+  const xAxis = d3.axisBottom(xScale).ticks(width / 80, xFormat);
+  const yAxis = d3.axisLeft(yScale).ticks(height / 50, yFormat);
+
+  const svg = d3.create("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .attr("viewBox", [0, 0, width, height])
+      .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
+
+  svg.append("g")
+      .attr("transform", `translate(0,${height - marginBottom})`)
+      .call(xAxis)
+      .call(g => g.select(".domain").remove())
+      .call(g => g.selectAll(".tick line").clone()
+          .attr("y2", marginTop + marginBottom - height)
+          .attr("stroke-opacity", 0.1))
+      .call(g => g.append("text")
+          .attr("x", width)
+          .attr("y", marginBottom - 4)
+          .attr("fill", "currentColor")
+          .attr("text-anchor", "end")
+          .text(xLabel));
+
+  svg.append("g")
+      .attr("transform", `translate(${marginLeft},0)`)
+      .call(yAxis)
+      .call(g => g.select(".domain").remove())
+      .call(g => g.selectAll(".tick line").clone()
+          .attr("x2", width - marginLeft - marginRight)
+          .attr("stroke-opacity", 0.1))
+      .call(g => g.append("text")
+          .attr("x", -marginLeft)
+          .attr("y", 10)
+          .attr("fill", "currentColor")
+          .attr("text-anchor", "start")
+          .text(yLabel));
+
+  if (T) svg.append("g")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", 10)
+      .attr("stroke-linejoin", "round")
+      .attr("stroke-linecap", "round")
+    .selectAll("text")
+    .data(I)
+    .join("text")
+      .attr("dx", 7)
+      .attr("dy", "0.35em")
+      .attr("x", i => xScale(X[i]))
+      .attr("y", i => yScale(Y[i]))
+      .text(i => T[i])
+      .call(text => text.clone(true))
+      .attr("fill", "none")
+      .attr("stroke", halo)
+      .attr("stroke-width", haloWidth);
+
+  svg.append("g")
+      .attr("fill", fill)
+      .attr("stroke-width", strokeWidth)
+    .selectAll("circle")
+    .data(I)
+    .join("circle")
+      .attr("cx", i => xScale(X[i]))
+      .attr("cy", i => yScale(Y[i]))
+      .attr("r", i => zScale(Z[i]))
+      .attr("fill", i => colorScale ? colorScale(C[i]): stroke)
+      .attr("opacity", 0.5);
+
+  var tooltip = d3.select("#tooltip")
+    .append("div")
+    .style("opacity", 0)
+    .attr("class", "tooltip")
+    .style("background-color", "white")
+    .style("border", "solid")
+    .style("border-radius", "1px")
+    .style("padding", "1px");
+
+  svg.selectAll("circle")
+    .on("mouseover", function(event, i) {
+      const [x, y] = d3.pointer(event, this);
+      tooltip.transition()
+        .duration(50)
+        .style("opacity", .8);
+      tooltip.html(entityLabel + ": " + NAME[i] + "<br>"
+        + xLabel + ": " +X[i] + "<br>"
+        + yLabel + ": " +Y[i] + "<br>"
+        + zLabel + ": " +Z[i])
+        .style("transform", `translate(${x + 10}px, ${y + 10}px)`);
+    })
+    .on("mousemove", function(event, i) {
+      const [x, y] = d3.pointer(event, this);
+      tooltip
+        .style("transform", `translate(${x + 10}px, ${y + 10}px)`);
+    })
+    .on("mouseout", function(event, d) {
+      tooltip.transition()
+        .duration(500)
+        .style("opacity", 0);
+    });
+
+  return svg.node();
 }
-
-const svg = createSvg();
-
-var x = d3.scaleLinear().range([0, width]);
-var y = d3.scaleLinear().range([height, 0]);
-var radius = d3.scaleLinear().range([1, 20]); // set the range of the circle radius
-
-
-var color = d3.scaleOrdinal(d3.schemeCategory10);
-
-
 d3.json("/bubble_chart_data")
   .then(function(data) {
+  var keys = Object.keys(data[0]); // index: 0->k, 1->a1, 2->a2, 3->a3, 4->optional
 
-    var keys = Object.keys(data[0]);
-
-    x.domain([0.1, d3.max(data, function(d) {return d[keys[1]];})])
-    y.domain([0.1, d3.max(data, function(d) { return d[keys[2]]; })]);
-    radius.domain([d3.min(data, function(d) { return d[keys[3]]; }), d3.max(data, function(d) { return d[keys[3]]; })]);
-
-
-    svg.selectAll("circle")
-      .data(data)
-      .enter().append("circle")
-      .attr("cx", function(d) { return x(d[keys[1]]); })
-      .attr("cy", function(d) { return y(d[keys[2]]); })
-      .attr("r", function(d) { return radius(d[keys[3]]); })
-      .style("opacity", 0.5)
-      .append("title")
-      .text(function(d) {return keys[0] + ": " + d[keys[0]] + "\n" + keys[3] +": "+ d[keys[3]];}) // corrected syntax
-      .each(function(d) {
-
-        if (d[keys[4]] !== null) {
-          d3.select(this.parentNode).style("fill", color(d[keys[4]])); //set the color of the parent circle element
-        }
-      });
-
-    svg.append("g")
-      .attr("transform", "translate(0," + height + ")")
-      .call(d3.axisBottom(x))
-      .append("text")
-      .attr("class", "axis-label")
-      .attr("x", width / 2)
-      .attr("y", margin.bottom - 10)
-      .attr("fill", "black")
-      .attr("text-anchor", "middle")
-      .text(keys[1]);
-
-    svg.append("g")
-      .call(d3.axisLeft(y))
-      .append("text")
-      .attr("class", "axis-label")
-      .attr("x", -margin.left)
-      .attr("y", 10)
-      .attr("fill", "black")
-      .attr("text-anchor", "start")
-      .text(keys[2]);
-
-    var legend = svg.selectAll(".legend")
-      .data(color.domain())
-      .enter().append("g")
-      .attr("class", "legend")
-      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
-
-    legend.append("circle")
-      .attr("cx", width - 18)
-      .attr("r", 8)
-      .style("fill", color);
-
-    legend.append("text")
-      .attr("x", width - 24)
-      .attr("y", 4)
-      .attr("dy", ".35em")
-      .style("text-anchor", "end")
-      .text(function(d) { return d; });
-
-    var tooltip = d3.select("body")
-      .append("div")
-      .style("opacity", 0)
-      .attr("class", "tooltip")
-      .style("background-color", "white")
-      .style("border", "solid")
-      .style("border-width", "2px")
-      .style("border-radius", "5px")
-      .style("padding", "5px");
-
-    svg.selectAll("circle")
-      .on("mouseover", function(event, d) {
-        tooltip.transition()
-          .duration(200)
-          .style("opacity", .9);
-        tooltip.html(keys[0] + ": " + d[keys[0]] + "<br> +"+ keys[3] + ": " + d[keys[3]])
-          .style("left", (event.pageX + 10) + "px")
-          .style("top", (event.pageY - 28) + "px");
-      })
-      .on("mouseout", function(event, d) {
-        tooltip.transition()
-          .duration(500)
-          .style("opacity", 0);
-      });
+  const optionalSet = new Set(data.map(item => item[keys[4]]));
+  const colorScale = d3.scaleOrdinal()
+    .domain(optionalSet)
+    .range(d3.schemeCategory10);
+  const svg = BubbleChart(data, {
+    x: d => d[keys[1]],
+    y: d => d[keys[2]],
+    z: d => d[keys[3]],
+    name: d => d[keys[0]],
+    xLabel: keys[1],
+    yLabel: keys[2],
+    zLabel: keys[3],
+    entityLabel: keys[0],
+    stroke: "steelblue",
+    colorScale: optionalSet.size === 1 ? null : colorScale,
+    color: d => d[keys[4]]
+  })
+  if (optionalSet.size != 1) {
+    key = swatches({
+      colour: colorScale
+    })
+    d3.select("#chart").append(() => key);
+  }
+  d3.select("#chart").append(() => svg);
 })
-  .catch(function(error) {
-    console.error(error);
-  });

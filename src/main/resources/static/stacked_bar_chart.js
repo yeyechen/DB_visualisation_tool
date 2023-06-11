@@ -132,5 +132,9 @@ d3.json("/stacked_bar_chart_data")
     colors: d3.schemeSpectral[category.length],
     height: 500
   })
+  key = swatches({
+    colour: svg.scales.color
+  })
+  d3.select("body").append(() => key);
   d3.select("body").append(() => svg);
 })

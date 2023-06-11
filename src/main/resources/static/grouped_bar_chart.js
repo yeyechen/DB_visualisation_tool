@@ -118,5 +118,9 @@ d3.json("/grouped_bar_chart_data")
     height: 800,
     width: 1000
   })
+  key = swatches({
+    colour: svg.scales.color
+  })
+  d3.select("body").append(() => key);
   d3.select("body").append(() => svg);
 })

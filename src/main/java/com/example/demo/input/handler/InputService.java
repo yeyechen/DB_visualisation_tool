@@ -325,19 +325,19 @@ public class InputService {
   // check if the data is complete for weak-entity visualisations
   public static boolean isDataComplete(List<Map<String, Object>> queryResults, String strongEntity,
       String weakEntity) {
-    Map<String, Set<String>> map = new HashMap<>();
+    Map<String, Set<Object>> map = new HashMap<>();
 
     // Build a map of country to the set of years
     for (Map<String, Object> result : queryResults) {
       String strong = (String) result.get(strongEntity);
-      String weak = (String) result.get(weakEntity);
+      Object weak = result.get(weakEntity);
 
-      Set<String> data = map.getOrDefault(strong, new HashSet<>());
+      Set<Object> data = map.getOrDefault(strong, new HashSet<>());
       data.add(weak);
       map.put(strong, data);
     }
 
-    for (Set<String> data : map.values()) {
+    for (Set<Object> data : map.values()) {
       if (data.size() != queryResults.size() / map.size()) {
         return false;
       }

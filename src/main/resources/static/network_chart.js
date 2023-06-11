@@ -137,7 +137,7 @@ function ForceGraph({
 d3.json("/network_chart_data")
   .then(function(data) {
 
-  var keys = Object.keys(data[0]); // index: 0->fk1, 1->fk2
+  var keys = Object.keys(data[0]); // index: 0->fk1, 1->fk2, 2->optional
 
   // data is of the form: [{fk1: 'AL', fk2: 'FR'}, ...]
 
@@ -152,7 +152,7 @@ d3.json("/network_chart_data")
 
   nodes = nodes.map((id, index) => ({
     id: id,
-    group: 1
+    group: keys[2] && keys[2] in data[index] ? data[index][keys[2]] : 1
   }));
 
   const links = data.map(d => {

@@ -303,13 +303,13 @@ public class VisualService {
     List<String> attributeNameStrings = new ArrayList<>();
 
     Attribute temporalAttr = null;
-    Iterator<Attribute> iterator = attributes.iterator();
-    while (iterator.hasNext()) {
-      Attribute attribute = iterator.next();
+    Iterator<Attribute> attrIter = attributes.iterator();
+    while (attrIter.hasNext()) {
+      Attribute attribute = attrIter.next();
       if (DataTypeUtil.getDataType(table.getName(), attribute.getName())
           == DataType.TEMPORAL) {
         temporalAttr = attribute;
-        iterator.remove();
+        attrIter.remove();
       }
     }
     Assert.assertNotNull(temporalAttr);
@@ -335,13 +335,16 @@ public class VisualService {
     List<String> attributeNameStrings = new ArrayList<>();
 
     Attribute optionalAttr = null;
-    for (Attribute attribute : attributes) {
+    Iterator<Attribute> attrIter = attributes.iterator();
+    while (attrIter.hasNext()) {
+      Attribute attribute = attrIter.next();
       if (DataTypeUtil.getDataType(table.getName(), attribute.getName())
           == DataType.LEXICAL) {
         optionalAttr = attribute;
-        attributes.remove(attribute);
+        attrIter.remove();
       }
     }
+
     for (Attribute attribute : attributes) {
       Assert.assertSame(
           DataTypeUtil.getDataType(table.getName(), attribute.getName()),

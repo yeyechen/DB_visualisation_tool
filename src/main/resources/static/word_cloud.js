@@ -11,7 +11,8 @@ function WordCloud(data, {
   maxFontSize = 250, // base font size
   padding = 0, // amount of padding between the words (in pixels)
   rotate = 0, // a constant or function to rotate the words
-  invalidation // when this promise resolves, stop the simulation
+  invalidation, // when this promise resolves, stop the simulation
+  colorScale
 } = {}) {
 
   const svg = d3.create("svg")
@@ -33,10 +34,11 @@ function WordCloud(data, {
       .rotate(rotate)
       .font(fontFamily)
       .fontSize(d => (d.size * fontScale))
-      .on("word", ({size, x, y, rotate, text}) => {
+      .on("word", ({size, x, y, rotate, text, color}) => {
         g.append("text")
             .attr("font-size", size)
             .attr("transform", `translate(${x},${y}) rotate(${rotate})`)
+            .attr("fill", d => (color && colorScale) ? colorScale(color) : "black")
             .text(text);
       });
 
@@ -48,13 +50,20 @@ function WordCloud(data, {
 d3.json("/word_cloud_data")
   .then(function(data) {
 
-  var keys = Object.keys(data[0]); // index: 0->k, 1->a1
+  var keys = Object.keys(data[0]); // index: 0->k, 1->a1, 2->optional
   const processedData = data.map(obj => ({
     text: obj[keys[0]],
-    size: obj[keys[1]]
+    size: obj[keys[1]],
+    color: obj[keys[2]]
   }))
   .sort((a, b) => d3.descending(a.size, b.size));
-  const svg = WordCloud(processedData)
+
+  const optionalSet = new Set(data.map(item => item[keys[2]]));
+  const colorScale = d3.scaleOrdinal()
+    .domain(optionalSet)
+    .range(d3.schemeCategory10);
+
+  const svg = WordCloud(processedData, {colorScale: optionalSet.size === 1 ? null : colorScale})
 
   d3.select("body").append(() => svg);
 })
