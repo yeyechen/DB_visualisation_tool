@@ -116,11 +116,12 @@ public class VisualService {
     if (filterConditions.isEmpty()) {
       return generateBasicSQLQuery(attributes, attrTableName);
     } else { // has filter conditions
+      List<String> joinTables = new ArrayList<>(List.of(attrTableName));
       StringBuilder fromJoins = new StringBuilder(attrTableName);
       StringBuilder whereCondition = new StringBuilder();
       for (Map.Entry<String, Map<String, List<String>>> entry : filterConditions.entrySet()) {
         String joinTableName = entry.getKey();
-        if (!joinTableName.equals(attrTableName) && !fromJoins.toString().contains(joinTableName)) {
+        if (!joinTables.contains(joinTableName)) {
           String fkName1 = getForeignKeyName(joinTableName, attrTableName);
           String fkName2 = getForeignKeyName(attrTableName, joinTableName);
           if (fkName1.isEmpty() && fkName2.isEmpty()) {
@@ -134,12 +135,14 @@ public class VisualService {
             String middleJoinTableName =
                 relationshipBetween.getName();
             String fk1 = getForeignKeyName(middleJoinTableName, attrTableName);
+            joinTables.add(middleJoinTableName);
             fromJoins.append(" INNER JOIN ").append(middleJoinTableName);
             fromJoins.append(" ON ");
             fromJoins.append(attrTableName).append(".").append(attrTablePrimaryKey);
             fromJoins.append("=").append(middleJoinTableName).append(".").append(fk1);
 
             String fk2 = getForeignKeyName(middleJoinTableName, joinTableName);
+            joinTables.add(joinTableName);
             fromJoins.append(" INNER JOIN ").append(joinTableName);
             fromJoins.append(" ON ");
             fromJoins.append(middleJoinTableName).append(".").append(fk2);
@@ -147,11 +150,13 @@ public class VisualService {
                 .append(getPrimaryKeyName(joinTableName));
           }
           if (!fkName1.isEmpty()) {
+            joinTables.add(joinTableName);
             fromJoins.append(" INNER JOIN ").append(joinTableName);
             fromJoins.append(" ON ");
             fromJoins.append(attrTableName).append(".").append(attrTablePrimaryKey);
             fromJoins.append("=").append(joinTableName).append(".").append(fkName1);
           } else if (!fkName2.isEmpty()) {
+            joinTables.add(joinTableName);
             fromJoins.append(" INNER JOIN ").append(joinTableName);
             fromJoins.append(" ON ");
             fromJoins.append(attrTableName).append(".").append(fkName2);

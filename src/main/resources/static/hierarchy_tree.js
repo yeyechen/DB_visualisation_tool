@@ -26,6 +26,7 @@ function Tree(data, { // data is either tabular (array of objects) or hierarchy 
   halo = "#fff", // color of label halo
   haloWidth = 3, // padding around the labels
   curve = d3.curveBumpX, // curve for the link
+  colorScale,
 } = {}) {
 
   // If id and parentId options are specified, or the path option, use d3.stratify
@@ -72,7 +73,6 @@ function Tree(data, { // data is either tabular (array of objects) or hierarchy 
 
   svg.append("g")
       .attr("fill", "none")
-      .attr("stroke", stroke)
       .attr("stroke-opacity", strokeOpacity)
       .attr("stroke-linecap", strokeLinecap)
       .attr("stroke-linejoin", strokeLinejoin)
@@ -82,7 +82,10 @@ function Tree(data, { // data is either tabular (array of objects) or hierarchy 
       .join("path")
         .attr("d", d3.link(curve)
             .x(d => d.y)
-            .y(d => d.x));
+            .y(d => d.x))
+        .attr("stroke", function(d) { // Modified line
+          return d.target.children ? stroke : (colorScale ? colorScale(d.target.data.value) : stroke);
+        });
 
   const node = svg.append("g")
     .selectAll("a")
@@ -93,7 +96,7 @@ function Tree(data, { // data is either tabular (array of objects) or hierarchy 
       .attr("transform", d => `translate(${d.y},${d.x})`);
 
   node.append("circle")
-      .attr("fill", d => d.children ? stroke : fill)
+      .attr("fill", d => d.children ? stroke : (colorScale ? colorScale(d.data.value) : fill))
       .attr("r", r);
 
   if (title != null) node.append("title")
@@ -113,8 +116,9 @@ function Tree(data, { // data is either tabular (array of objects) or hierarchy 
 
 d3.json("/hierarchy_tree_data")
   .then(function(data) {
+  console.log(data);
 
-  var keys = Object.keys(data[0]); // index: 0->k_p, 1->k_c, 2->a1, 3->optional
+  var keys = Object.keys(data[0]); // index: 0->k_p, 1->k_c, 2->optional
 
   const groupedData = data.reduce((acc, curr) => {
     const code = curr[keys[0]];
@@ -127,10 +131,16 @@ d3.json("/hierarchy_tree_data")
     return acc;
   }, { name: "", children: [] });
 
+  const optionalSet = new Set(data.map(item => item[keys[2]]));
+  const colorScale = d3.scaleOrdinal()
+    .domain(optionalSet)
+    .range(d3.schemeCategory10);
+
   const svg = Tree(groupedData, {
     label: d => d.name,
     title: (d, n) => `${n.ancestors().reverse().map(d => d.data.name).join(".")}`, // hover text
-    width: 1152
+    width: 1152,
+    colorScale: optionalSet.size === 1 ? null : colorScale
   })
 
   d3.select("body").append(() => svg);

@@ -25,6 +25,7 @@ function Pack(data, { // data is either tabular (array of objects) or hierarchy 
   stroke = "#bbb", // stroke for internal circles
   strokeWidth, // stroke width for internal circles
   strokeOpacity, // stroke opacity for internal circles
+  colorScale
 } = {}) {
 
   // If id and parentId options are specified, or the path option, use d3.stratify
@@ -71,7 +72,7 @@ function Pack(data, { // data is either tabular (array of objects) or hierarchy 
       .attr("transform", d => `translate(${d.x},${d.y})`);
 
   node.append("circle")
-      .attr("fill", d => d.children ? "#fff" : fill)
+      .attr("fill", d => d.children ? "#fff" : (colorScale ? colorScale(d.data.color) : fill))
       .attr("fill-opacity", d => d.children ? null : fillOpacity)
       .attr("stroke", d => d.children ? stroke : null)
       .attr("stroke-width", d => d.children ? strokeWidth : null)
@@ -108,6 +109,7 @@ function Pack(data, { // data is either tabular (array of objects) or hierarchy 
 
 d3.json("/circle_packing_data")
   .then(function(data) {
+  console.log(data)
 
   var keys = Object.keys(data[0]); // index: 0->k_p, 1->k_c, 2->a1, 3->optional
 
@@ -115,19 +117,25 @@ d3.json("/circle_packing_data")
     const code = curr[keys[0]];
     const existingGroup = acc.children.find(group => group.name === code);
     if (existingGroup) {
-      existingGroup.children.push({ "name": curr[keys[1]], "value": curr[keys[2]] });
+      existingGroup.children.push({ "name": curr[keys[1]], "value": curr[keys[2]], "color":curr[keys[3]] });
     } else {
-      acc.children.push({ "name": code, "children": [{ "name": curr[keys[1]], "value": curr[keys[2]] }] });
+      acc.children.push({ "name": code, "children": [{ "name": curr[keys[1]], "value": curr[keys[2]], "color":curr[keys[3]] }] });
     }
     return acc;
   }, { name: "", children: [] });
+
+  const optionalSet = new Set(data.map(item => item[keys[3]]));
+  const colorScale = d3.scaleOrdinal()
+    .domain(optionalSet)
+    .range(d3.schemeCategory10);
 
   const svg = Pack(groupedData, {
     value: d => d.value,
     label: (d, n) => [...d.name.split(/(?=[A-Z][a-z])/g), n.value.toLocaleString("en")].join("\n"),
     title: (d, n) => `${n.ancestors().reverse().map(({data: d}) => d.name).join(".")}\n`+keys[2]+`: ${n.value.toLocaleString("en")}`,
     width: 1152,
-    height: 1152
+    height: 1152,
+    colorScale: optionalSet.size === 1 ? null : colorScale
   })
   d3.select("body").append(() => svg);
 })

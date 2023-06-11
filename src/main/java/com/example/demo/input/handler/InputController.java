@@ -183,37 +183,55 @@ public class InputController {
         }
       }
       case WEAK_ENTITY -> {
-        if (numericalNum == 1 && lexicalNum <= 1) {
-          options.add("Line Chart");
-          if (lexicalNum == 0) {
+        if (numericalNum == 1 && lexicalNum == 0) {
+          Entity entity = (Entity) InputService.getSelectionInfo().keySet().iterator().next();
+          String weakKey = entity.getAttributeList().stream().filter(Attribute::getIsPrimary).findFirst()
+              .get().getName();
+          String strongEntityFk = VisualService.getForeignKeyName(entity.getName(),
+              ModelUtil.getRelatedStrongEntity(entity, InputService.getSchema()).getName());
+          List<String> attributes = List.of(
+              strongEntityFk, weakKey);
+          String query = VisualService.generateSQLQuery(attributes, entity.getName(),
+              weakKey,
+              InputService.getFilterConditions());
+          List<Map<String, Object>> queryResults = InputService.getJdbc().queryForList(query);
+          // check if data is complete
+          if (InputService.isDataComplete(queryResults, strongEntityFk, weakKey)) {
             options.add("Stacked Bar Chart");
-            options.add("Grouped Bar Chart");
             options.add("Spider Chart");
           }
+          options.add("Line Chart");
+          options.add("Grouped Bar Chart");
         }
       }
-      // todo: further filter based on number of attribute data types, but sill care for many-many
-      //  convert to one-many
+
       case ONE_MANY_RELATIONSHIP -> {
         // if the user selects no mandatory attributes
         if (inputService.checkSelectNone()) {
           options = List.of("Hierarchy Tree");
-        } else {
-          options = List.of("Tree Map", "Hierarchy Tree", "Circle Packing");
         }
+        if (numericalNum == 1 && lexicalNum <= 1){
+          options = List.of("Tree Map", "Circle Packing");
+        } else if (numericalNum == 0 && lexicalNum == 1) {
+          options = List.of("Hierarchy Tree");
+        }
+        // todo: further filter based on number of attribute data types, but sill care for many-many
+        //  convert to one-many
       }
       case MANY_MANY_RELATIONSHIP -> {
-        if (inputService.checkSelectNone()) {
+        if (inputService.checkSelectNone() && lexicalNum <= 0) {
           options = List.of("Network Chart");
-        } else {
-          options = List.of("Sankey Diagram", "Network Chart", "Chord Diagram", "Heatmap");
+        }
+        if (numericalNum == 1 && lexicalNum == 0) {
+          options = List.of("Sankey Diagram", "Chord Diagram", "Heatmap");
         }
       }
       case REFLEXIVE_RELATIONSHIP -> {
-        if (inputService.checkSelectNone()) {
+        if (inputService.checkSelectNone() && lexicalNum <= 0) {
           options = List.of("Network Chart");
-        } else {
-          options = List.of("Network Chart", "Chord Diagram", "Heatmap");
+        }
+        if (numericalNum == 1 && lexicalNum == 0) {
+          options = List.of("Chord Diagram", "Heatmap");
         }
       }
       case UNKNOWN -> {
@@ -302,7 +320,13 @@ public class InputController {
             break;
           }
         }
-        selectionInfo.put(entity.get(), selectedAttrs);
+        if (selectionInfo.containsKey(entity.get())) {
+          List<Attribute> prevAttrs = selectionInfo.get(entity.get());
+          prevAttrs.addAll(selectedAttrs);
+          selectionInfo.put(entity.get(), prevAttrs);
+        } else {
+          selectionInfo.put(entity.get(), selectedAttrs);
+        }
       } else {
         Optional<Relationship> relationship = schema.getRelationshipList().stream()
             .filter(e -> e.getName().equals(tableName))
@@ -314,7 +338,13 @@ public class InputController {
               break;
             }
           }
-          selectionInfo.put(relationship.get(), selectedAttrs);
+          if (selectionInfo.containsKey(relationship.get())) {
+            List<Attribute> prevAttrs = selectionInfo.get(relationship.get());
+            prevAttrs.addAll(selectedAttrs);
+            selectionInfo.put(relationship.get(), prevAttrs);
+          } else {
+            selectionInfo.put(relationship.get(), selectedAttrs);
+          }
         }
       }
     }

@@ -23,10 +23,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import javax.annotation.PostConstruct;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -196,7 +198,7 @@ public class InputService {
     String password = formData.get("password");
 
     // todo: remember to uncomment
-    // schema = getCachedSchema(dbTypeEnum, host, port, databaseName, username, password);
+    // schema = reverse(dbTypeEnum, host, port, databaseName, username, password);
     jdbc = updateDatabaseDetails(dbTypeEnum, host, port, databaseName, username, password);
 
     selectionInfo = new HashMap<>();
@@ -318,5 +320,29 @@ public class InputService {
     result.put(DataType.TEMPORAL, temporal);
 
     return result;
+  }
+
+  // check if the data is complete for weak-entity visualisations
+  public static boolean isDataComplete(List<Map<String, Object>> queryResults, String strongEntity,
+      String weakEntity) {
+    Map<String, Set<String>> map = new HashMap<>();
+
+    // Build a map of country to the set of years
+    for (Map<String, Object> result : queryResults) {
+      String strong = (String) result.get(strongEntity);
+      String weak = (String) result.get(weakEntity);
+
+      Set<String> data = map.getOrDefault(strong, new HashSet<>());
+      data.add(weak);
+      map.put(strong, data);
+    }
+
+    for (Set<String> data : map.values()) {
+      if (data.size() != queryResults.size() / map.size()) {
+        return false;
+      }
+    }
+
+    return true; // Data is complete for all countries
   }
 }

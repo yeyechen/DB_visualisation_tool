@@ -9,7 +9,7 @@ function GroupedBarChart(data, {
   marginTop = 30, // top margin, in pixels
   marginRight = 0, // right margin, in pixels
   marginBottom = 30, // bottom margin, in pixels
-  marginLeft = 40, // left margin, in pixels
+  marginLeft = 100, // left margin, in pixels
   width = 640, // outer width, in pixels
   height = 400, // outer height, in pixels
   xDomain, // array of x-values
@@ -115,7 +115,8 @@ d3.json("/grouped_bar_chart_data")
     yLabel: keys[2],
     zDomain: category,
     colors: d3.schemeSpectral[category.length],
-    height: 500
+    height: 800,
+    width: 1000
   })
   d3.select("body").append(() => svg);
 })
