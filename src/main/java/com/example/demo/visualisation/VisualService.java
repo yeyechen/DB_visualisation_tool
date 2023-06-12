@@ -313,14 +313,9 @@ public class VisualService {
       }
     }
     Assert.assertNotNull(temporalAttr);
-    Attribute optionalAttr = attributes.iterator().hasNext() ? attributes.iterator().next() : null;
-
     attributeNameStrings.add(temporalAttr.getName());
-    if (optionalAttr != null) {
-      Assert.assertSame(
-          DataTypeUtil.getDataType(table.getName(), optionalAttr.getName()),
-          DataType.NUMERICAL);
-      attributeNameStrings.add(optionalAttr.getName());
+    if (attributes.iterator().hasNext()) {
+      attributeNameStrings.add(attributes.iterator().next().getName());
     }
     return InputService.getJdbc()
         .queryForList(
@@ -368,11 +363,13 @@ public class VisualService {
     List<String> attributeNameStrings = new ArrayList<>();
 
     Attribute optionalAttr = null;
-    for (Attribute attribute : attributes) {
+    Iterator<Attribute> attrIter = attributes.iterator();
+    while (attrIter.hasNext()) {
+      Attribute attribute = attrIter.next();
       if (DataTypeUtil.getDataType(table.getName(), attribute.getName())
           == DataType.LEXICAL) {
         optionalAttr = attribute;
-        attributes.remove(attribute);
+        attrIter.remove();
       }
     }
     for (Attribute attribute : attributes) {
@@ -416,11 +413,13 @@ public class VisualService {
     List<String> attributeNameStrings = new ArrayList<>();
 
     Attribute optionalAttr = null;
-    for (Attribute attribute : attributes) {
+    Iterator<Attribute> attrIter = attributes.iterator();
+    while (attrIter.hasNext()) {
+      Attribute attribute = attrIter.next();
       if (DataTypeUtil.getDataType(table.getName(), attribute.getName())
           == DataType.LEXICAL) {
         optionalAttr = attribute;
-        attributes.remove(attribute);
+        attrIter.remove();
       }
     }
     Attribute attribute1 = attributes.iterator().next();

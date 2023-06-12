@@ -5,10 +5,23 @@
   <meta charset="UTF-8">
   <title>calendar</title>
 </head>
+<style>
+  .chart-container {
+    position: absolute;
+  }
+  #chart {
+    position: relative;
+  }
+  #tooltip {
+    position: absolute;
+    pointer-events: none;
+  }
+</style>
 <body>
 <script src = "calendar.js"></script>
 <script src = "legend.js"></script>
-<script>
-</script>
+<div id="chart">
+  <div id="tooltip"></div>
+</div>
 </body>
 </html>

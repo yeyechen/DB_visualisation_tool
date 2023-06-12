@@ -17,6 +17,8 @@ function PieChart(data, {
   strokeWidth = 1, // width of stroke separating wedges
   strokeLinejoin = "round", // line join of stroke separating wedges
   padAngle = stroke === "none" ? 1 / outerRadius : 0, // angular separation between wedges
+  nameTitle,
+  valueTitle,
 } = {}) {
   // Compute values.
   const N = d3.map(data, name);
@@ -67,24 +69,58 @@ function PieChart(data, {
     .append("title")
       .text(d => title(d.data));
 
-  svg.append("g")
-      .attr("font-family", "sans-serif")
-      .attr("font-size", 10)
-      .attr("text-anchor", "middle")
-    .selectAll("text")
-    .data(arcs)
-    .join("text")
-      .attr("transform", d => `translate(${arcLabel.centroid(d)})`)
-    .selectAll("tspan")
-    .data(d => {
-      const lines = `${title(d.data)}`.split(/\n/);
-      return (d.endAngle - d.startAngle) > 0.25 ? lines : lines.slice(0, 1);
+  if (data.length < 20) {
+    svg.append("g")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", 10)
+        .attr("text-anchor", "middle")
+      .selectAll("text")
+      .data(arcs)
+      .join("text")
+        .attr("transform", d => `translate(${arcLabel.centroid(d)})`)
+      .selectAll("tspan")
+      .data(d => {
+        const lines = `${title(d.data)}`.split(/\n/);
+        return (d.endAngle - d.startAngle) > 0.25 ? lines : lines.slice(0, 1);
+      })
+      .join("tspan")
+        .attr("x", 0)
+        .attr("y", (_, i) => `${i * 1.1}em`)
+        .attr("font-weight", (_, i) => i ? null : "bold")
+        .text(d => d);
+  }
+
+  var tooltip = d3.select("#tooltip")
+    .append("div")
+    .style("opacity", 0)
+    .attr("class", "tooltip")
+    .style("background-color", "white")
+    .style("border", "solid")
+    .style("border-radius", "1px")
+    .style("padding", "1px");
+
+  const chartElement = d3.select("#chart").node();
+
+  svg.selectAll("path")
+    .on("mouseover", function(event, d) {
+      const [x, y] = d3.pointer(event, chartElement);
+      tooltip.transition()
+        .duration(50)
+        .style("opacity", .8);
+      tooltip.html(nameTitle + ": " + N[d.data] + "<br>"
+        + valueTitle + ": " + V[d.data] + "<br>")
+        .style("transform", `translate(${x + 10}px, ${y + 10}px)`);
     })
-    .join("tspan")
-      .attr("x", 0)
-      .attr("y", (_, i) => `${i * 1.1}em`)
-      .attr("font-weight", (_, i) => i ? null : "bold")
-      .text(d => d);
+    .on("mousemove", function(event, i) {
+      const [x, y] = d3.pointer(event, chartElement);
+      tooltip
+        .style("transform", `translate(${x + 10}px, ${y + 10}px)`);
+    })
+    .on("mouseout", function(event, d) {
+      tooltip.transition()
+        .duration(500)
+        .style("opacity", 0);
+    });
 
   return Object.assign(svg.node(), {scales: {color}});
 }
@@ -97,8 +133,10 @@ d3.json("/pie_chart_data")
   const svg = PieChart(data, {
     name: d => d[keys[0]],
     value: d => d[keys[1]],
-    height: 500
+    nameTitle: keys[0],
+    valueTitle: keys[1],
+    height: 640
   });
-  d3.select("body").append(() => svg);
 
+  d3.select("#chart").append(() => svg);
 });

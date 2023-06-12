@@ -5,7 +5,23 @@
   <meta charset="UTF-8">
   <title>pie chart</title>
 </head>
+<style>
+  .chart-container {
+    position: absolute;
+  }
+  #chart {
+    position: relative;
+  }
+  #tooltip {
+    position: absolute;
+    pointer-events: none;
+  }
+</style>
 <body>
 <script src = "pie_chart.js"></script>
+<script src = "swatches.js"></script>
+<div id="chart">
+  <div id="tooltip"></div>
+</div>
 </body>
 </html>

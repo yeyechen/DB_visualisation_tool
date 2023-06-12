@@ -167,11 +167,22 @@ public class InputController {
       case BASIC_ENTITY -> {
         if (temporalNum == 1 && numericalNum <= 1) {
           options.add("Calendar");
+          break;
         }
         if (numericalNum == 1 && lexicalNum <= 1) {
           if (lexicalNum == 0) {
+            Entity entity = (Entity) InputService.getSelectionInfo().keySet().iterator().next();
+            String key = entity.getAttributeList().stream().filter(Attribute::getIsPrimary).findFirst()
+                .get().getName();
+            String query = VisualService.generateSQLQuery(List.of(key), entity.getName(),
+                key,
+                InputService.getFilterConditions());
+            List<Map<String, Object>> queryResults = InputService.getJdbc().queryForList(query);
+            if (inputService.containGeographicalData(queryResults, key)) {
+              options.add("Choropleth Map");
+            }
             options.add("Bar Chart");
-            options.add("Choropleth Map");
+            options.add("Pie Chart");
           }
           options.add("Word Cloud");
         }

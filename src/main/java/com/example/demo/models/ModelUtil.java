@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.Assert;
 
 public class ModelUtil {
@@ -263,7 +264,8 @@ public class ModelUtil {
     Set<ERConnectableObj> result = new HashSet<>();
     for (Relationship relationship : schema.getRelationshipList()) {
       if (relationship == table) {
-        return relationship.getEdgeList().stream().map(RelationshipEdge::getConnObj).toList();
+        return new ArrayList<>(relationship.getEdgeList().stream().map(RelationshipEdge::getConnObj)
+            .collect(Collectors.toSet()));
       }
       boolean flag = false;
       Entity tempEntity = null;

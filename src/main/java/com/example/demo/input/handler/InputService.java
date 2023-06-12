@@ -4,6 +4,8 @@ import com.example.demo.data.types.DataType;
 import com.example.demo.data.types.DataTypeUtil;
 import com.example.demo.models.ModelType;
 import com.example.demo.models.ModelUtil;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import io.github.MigadaTang.Attribute;
 import io.github.MigadaTang.ER;
 import io.github.MigadaTang.ERConnectableObj;
@@ -17,6 +19,9 @@ import io.github.MigadaTang.exception.DBConnectionException;
 import io.github.MigadaTang.exception.ParseException;
 import io.github.MigadaTang.transform.DatabaseUtil;
 import io.github.MigadaTang.transform.Reverse;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
@@ -32,6 +37,9 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.stereotype.Service;
@@ -67,6 +75,9 @@ public class InputService {
   public static DatabaseMetaData getMetaData() {
     return metaData;
   }
+
+  @Autowired
+  ResourceLoader resourceLoader;
 
   //todo: delete cache
   @PostConstruct
@@ -344,5 +355,33 @@ public class InputService {
     }
 
     return true; // Data is complete for all countries
+  }
+
+  public boolean containGeographicalData(List<Map<String, Object>> queryResults, String key) {
+    try {
+      Resource resource = resourceLoader.getResource("classpath:static/country_code_name_map.json");
+      Reader reader = new InputStreamReader(resource.getInputStream());
+      Type listType = new TypeToken<List<Map<String, String>>>() {}.getType();
+
+      Gson gson = new Gson();
+      List<Map<String, String>> countryList = gson.fromJson(reader, listType);
+
+      Map<String, String> countryMap = new HashMap<>();
+      for (Map<String, String> country : countryList) {
+        countryMap.put(country.get("code"), country.get("name"));
+      }
+      for (Map<String, Object> result : queryResults) {
+        if (!(result.get(key) instanceof String country)) {
+          return false;
+        }
+        if (countryMap.containsKey(country) || countryMap.containsValue(country)) {
+          return true;
+        }
+      }
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return false;
   }
 }

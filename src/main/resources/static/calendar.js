@@ -11,7 +11,8 @@ function Calendar(data, {
   formatDay = i => "SMTWTFS"[i], // given a day number in [0, 6], the day-of-week label
   formatMonth = "%b", // format specifier string for months (above the chart)
   yFormat, // format specifier string for values (in the title)
-  colors = d3.interpolatePiYG
+  colors = d3.interpolatePiYG,
+  valueTitle
 } = {}) {
   // Compute values.
   const X = d3.map(data, x).map(data => new Date(data));
@@ -32,8 +33,8 @@ function Calendar(data, {
   formatMonth = d3.utcFormat(formatMonth);
 
   // Compute titles.
+  const formatDate = d3.utcFormat("%B %-d, %Y");
   if (title === undefined) {
-    const formatDate = d3.utcFormat("%B %-d, %Y");
     const formatValue = color.tickFormat(100, yFormat);
     title = i => `${formatDate(X[i])}\n${formatValue(Y[i])}`;
   } else if (title !== null) {
@@ -114,6 +115,37 @@ function Calendar(data, {
       .attr("y", -5)
       .text(formatMonth);
 
+  var tooltip = d3.select("#tooltip")
+    .append("div")
+    .style("opacity", 0)
+    .attr("class", "tooltip")
+    .style("background-color", "white")
+    .style("border", "solid")
+    .style("border-radius", "1px")
+    .style("padding", "1px");
+
+  const chartElement = d3.select("#chart").node();
+
+  svg.selectAll("rect")
+    .on("mouseover", function(event, i) {
+      const [x, y] = d3.pointer(event, chartElement);
+      tooltip.transition()
+        .duration(50)
+        .style("opacity", .8);
+      tooltip.html(formatDate(X[i]) + "<br>" + valueTitle + ": " +Y[i] + "<br>")
+        .style("transform", `translate(${x + 10}px, ${y + 10}px)`);
+    })
+    .on("mousemove", function(event, i) {
+      const [x, y] = d3.pointer(event, chartElement);
+      tooltip
+        .style("transform", `translate(${x + 10}px, ${y + 10}px)`);
+    })
+    .on("mouseout", function(event, d) {
+      tooltip.transition()
+        .duration(500)
+        .style("opacity", 0);
+    });
+
   return Object.assign(svg.node(), {scales: {color}});
 }
 
@@ -130,12 +162,13 @@ d3.json("/calendar_data")
   const svg = Calendar(processedData, {
     x: d => d.date,
     y: d => d.value,
+    valueTitle: keys[1],
     width: 700
   })
   key = Legend(svg.scales.color, {title: keys[1], marginLeft: 40})
 
-  d3.select("body").append(() => key);
-  d3.select("body").append(() => svg);
+  d3.select("#chart").append(() => key);
+  d3.select("#chart").append(() => svg);
 
 })
 

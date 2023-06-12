@@ -5,8 +5,20 @@
   <meta charset="UTF-8">
   <title>bar chart</title>
 </head>
+<style>
+  .chart-container {
+    position: absolute;
+  }
+  #chart {
+    position: relative;
+  }
+  #tooltip {
+    position: absolute;
+    pointer-events: none;
+  }
+</style>
 <body>
-  <div id="chart"></div>
+<script src = "bar_chart.js"></script>
   <div id="sort-container">
     <label for="sort">Sort by:</label>
     <select id="sort">
@@ -15,6 +27,8 @@
       <option value="desc">Descending</option>
     </select>
   </div>
-<script src = "bar_chart.js"></script>
+  <div id="chart">
+    <div id="tooltip"></div>
+  </div>
 </body>
 </html>
