@@ -83,11 +83,12 @@ function StackedBarChart(data, {
           .attr("x2", width - marginLeft - marginRight)
           .attr("stroke-opacity", 0.1))
       .call(g => g.append("text")
-          .attr("x", -marginLeft)
-          .attr("y", 10)
+          .attr("x", -marginLeft/2)
+          .attr("y", 12)
           .attr("fill", "currentColor")
           .attr("text-anchor", "start")
-          .text(yLabel));
+          .text(yLabel))
+          .style("font-size", "11px");
 
   const bar = svg.append("g")
     .selectAll("g")
@@ -107,7 +108,9 @@ function StackedBarChart(data, {
 
   svg.append("g")
       .attr("transform", `translate(0,${yScale(0)})`)
-      .call(xAxis);
+      .call(xAxis)
+      .selectAll("text")
+      .style("font-size", "11px");;
 
   return Object.assign(svg.node(), {scales: {color}});
 }

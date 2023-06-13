@@ -2,6 +2,7 @@ package com.example.demo.input.handler;
 
 import com.example.demo.data.types.DataType;
 import com.example.demo.data.types.DataTypeUtil;
+import com.example.demo.models.ModelType;
 import com.example.demo.models.ModelUtil;
 import com.example.demo.visualisation.VisualService;
 import com.google.gson.Gson;
@@ -11,7 +12,9 @@ import io.github.MigadaTang.ERBaseObj;
 import io.github.MigadaTang.ERConnectableObj;
 import io.github.MigadaTang.Entity;
 import io.github.MigadaTang.Relationship;
+import io.github.MigadaTang.RelationshipEdge;
 import io.github.MigadaTang.Schema;
+import io.github.MigadaTang.common.Cardinality;
 import io.github.MigadaTang.common.EntityType;
 import io.github.MigadaTang.exception.DBConnectionException;
 import io.github.MigadaTang.exception.ParseException;
@@ -164,13 +167,17 @@ public class InputController {
     int temporalNum = attrTypeNumbersMap.get(DataType.TEMPORAL);
     List<String> options = new ArrayList<>();
     switch (inputService.getModelType()) {
-      case BASIC_ENTITY -> {
+      case BASIC_ENTITY, ONE_MANY_RELATIONSHIP -> {
         if (temporalNum == 1 && numericalNum <= 1) {
           options.add("Calendar");
           break;
         }
         if (numericalNum == 1 && lexicalNum <= 1) {
           if (lexicalNum == 0) {
+            options.add("Bar Chart");
+            options.add("Pie Chart");
+
+            // checking if the key is geographical to suggest choropleth map
             Entity entity = (Entity) InputService.getSelectionInfo().keySet().iterator().next();
             String key = entity.getAttributeList().stream().filter(Attribute::getIsPrimary).findFirst()
                 .get().getName();
@@ -181,8 +188,7 @@ public class InputController {
             if (inputService.containGeographicalData(queryResults, key)) {
               options.add("Choropleth Map");
             }
-            options.add("Bar Chart");
-            options.add("Pie Chart");
+
           }
           options.add("Word Cloud");
         }
@@ -191,6 +197,18 @@ public class InputController {
         }
         if (numericalNum == 3 && lexicalNum <= 1) {
           options.add("Bubble Chart");
+        }
+        if (inputService.getModelType() == ModelType.ONE_MANY_RELATIONSHIP) {
+          // if the user selects no mandatory attributes
+          if (inputService.checkSelectNone()) {
+            options.add("Hierarchy Tree");
+          }
+          if (numericalNum == 1 && lexicalNum <= 1){
+            options.add("Tree Map");
+            options.add("Circle Packing");
+          } else if (numericalNum == 0 && lexicalNum == 1) {
+            options.add("Hierarchy Tree");
+          }
         }
       }
       case WEAK_ENTITY -> {
@@ -215,20 +233,6 @@ public class InputController {
           options.add("Grouped Bar Chart");
         }
       }
-
-      case ONE_MANY_RELATIONSHIP -> {
-        // if the user selects no mandatory attributes
-        if (inputService.checkSelectNone()) {
-          options = List.of("Hierarchy Tree");
-        }
-        if (numericalNum == 1 && lexicalNum <= 1){
-          options = List.of("Tree Map", "Circle Packing");
-        } else if (numericalNum == 0 && lexicalNum == 1) {
-          options = List.of("Hierarchy Tree");
-        }
-        // todo: further filter based on number of attribute data types, but sill care for many-many
-        //  convert to one-many
-      }
       case MANY_MANY_RELATIONSHIP -> {
         if (inputService.checkSelectNone() && lexicalNum <= 0) {
           options = List.of("Network Chart");
@@ -246,7 +250,6 @@ public class InputController {
         }
       }
       case UNKNOWN -> {
-        // todo: handel UNKNOWN case
 
         // find foreign key and get the whole data -> check if one-many -> update
         // return something that indicates the change from many-many to one-many
@@ -302,6 +305,46 @@ public class InputController {
     }
     table.put("option", options);
     return table;
+  }
+
+  @GetMapping("/error-message")
+  @ResponseBody
+  public String getNoVisOptionErrorMessage() {
+    StringBuilder message = new StringBuilder();
+    Map<ERConnectableObj, List<Attribute>> selectionInfo = InputService.getSelectionInfo();
+    Iterator<ERConnectableObj> keyIterator = selectionInfo.keySet()
+        .iterator();
+    ERConnectableObj table1 = keyIterator.next();
+    ERConnectableObj table2 = keyIterator.next();
+
+    Relationship relationship = ModelUtil.getRelationshipBetween(table1.getName(), table2.getName(),
+        InputService.getSchema());
+    boolean isOneMany = false;
+    ERConnectableObj childEntity = null;
+    if (relationship != null) {
+      for (RelationshipEdge edge : relationship.getEdgeList()) {
+        if (edge.getCardinality() == Cardinality.OneToOne
+            || edge.getCardinality() == Cardinality.ZeroToOne) {
+          isOneMany = true;
+          childEntity = edge.getConnObj();
+          break;
+        }
+      }
+      if (isOneMany) {
+        message.append(
+            "The relationship is One-Many, please choose attributes from the child entity");
+        message.append(": ");
+        message.append(childEntity.getName()).append(".");
+      } else {
+        message.append(
+            "The relationship is Many-Many, please choose attributes from the relationship table");
+        message.append(": ");
+        message.append(relationship.getName());
+        message.append(".\n");
+        message.append("Or apply filters to make the data One-Many");
+      }
+    }
+    return message.toString();
   }
 
   @PostMapping("/process-attr-selection")

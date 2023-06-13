@@ -62,20 +62,22 @@ function BarChart(data, {
     .style("border-radius", "1px")
     .style("padding", "1px");
 
+  const chartElement = d3.select("#chart").node();
+
   svg.selectAll("rect")
     .on("mouseover", function(event, d) {
-      const [x, y] = d3.pointer(event, this);
+      const [x, y] = d3.pointer(event, chartElement);
       tooltip.transition()
         .duration(50)
         .style("opacity", .8);
       tooltip.html(keys[0] + ": " + d[keys[0]] + "<br>"
         + yLabel + ": " +d[keys[1]] + "<br>")
-        .style("transform", `translate(${x + 40}px, ${y + 50}px)`);
+        .style("transform", `translate(${x + 10}px, ${y + 10}px)`);
     })
     .on("mousemove", function(event, i) {
-      const [x, y] = d3.pointer(event, this);
+      const [x, y] = d3.pointer(event, chartElement);
       tooltip
-        .style("transform", `translate(${x + 40}px, ${y + 50}px)`);
+        .style("transform", `translate(${x + 10}px, ${y + 10}px)`);
     })
     .on("mouseout", function(event, d) {
       tooltip.transition()

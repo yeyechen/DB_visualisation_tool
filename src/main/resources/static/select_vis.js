@@ -2,7 +2,9 @@ $(document).ready(function() {
   $("#right-heading").text("Select visualisation:");
   $.get("/vis-options", function(tableData) {
     if (tableData.option.length === 0) {
-      $("#right-heading").text("There is no visualisation suitable for your selection");
+      $.get("/error-message", function(message) {
+        $("#right-heading").text(message);
+      })
     } else {
       $.each(tableData.option, function(index, option) {
         $("<label><input type='radio' name='options' value='" + option + "'> " + option + "</label><br>").appendTo("#vis-form");

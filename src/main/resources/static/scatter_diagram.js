@@ -70,7 +70,8 @@ function Scatterplot(data, {
           .attr("y", marginBottom - 4)
           .attr("fill", "currentColor")
           .attr("text-anchor", "end")
-          .text(xLabel));
+          .text(xLabel)
+          .attr("font-size", "13px"));
 
   svg.append("g")
       .attr("transform", `translate(${marginLeft},0)`)
@@ -80,11 +81,12 @@ function Scatterplot(data, {
           .attr("x2", width - marginLeft - marginRight)
           .attr("stroke-opacity", 0.1))
       .call(g => g.append("text")
-          .attr("x", -marginLeft)
-          .attr("y", 10)
+          .attr("x", -marginLeft/2)
+          .attr("y", 13)
           .attr("fill", "currentColor")
           .attr("text-anchor", "start")
-          .text(yLabel));
+          .text(yLabel)
+          .attr("font-size", "13px"));
 
   if (T) svg.append("g")
       .attr("font-family", "sans-serif")
