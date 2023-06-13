@@ -115,6 +115,13 @@ public class VisualController {
         InputService.getFilterConditions());
   }
 
+  @GetMapping("sunburst_data")
+  @ResponseBody
+  public List<Map<String, Object>> sunburstData() throws SQLException {
+    return visualService.queryTreeMapData(InputService.getSelectionInfo(),
+        InputService.getFilterConditions());
+  }
+
   @GetMapping("sankey_diagram_data")
   @ResponseBody
   public List<Map<String, Object>> sankeyDiagramData() throws SQLException {
@@ -218,6 +225,11 @@ public class VisualController {
   @GetMapping("/circle_packing")
   public String circlePackingPage() {
     return "circle_packing";
+  }
+
+  @GetMapping("/sunburst")
+  public String sunburstPage() {
+    return "sunburst";
   }
 
   @GetMapping("/sankey_diagram")

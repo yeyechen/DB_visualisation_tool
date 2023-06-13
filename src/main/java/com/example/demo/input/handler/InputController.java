@@ -206,6 +206,9 @@ public class InputController {
           if (numericalNum == 1 && lexicalNum <= 1){
             options.add("Tree Map");
             options.add("Circle Packing");
+            if (lexicalNum == 0) {
+              options.add("Sunburst");
+            }
           } else if (numericalNum == 0 && lexicalNum == 1) {
             options.add("Hierarchy Tree");
           }
@@ -298,7 +301,18 @@ public class InputController {
           }
 
           if (isOneToMany) {
-            options = List.of("Tree Map", "Hierarchy Tree", "Circle Packing");
+            if (inputService.checkSelectNone()) {
+              options.add("Hierarchy Tree");
+            }
+            if (numericalNum == 1 && lexicalNum <= 1){
+              options.add("Tree Map");
+              options.add("Circle Packing");
+              if (lexicalNum == 0) {
+                options.add("Sunburst");
+              }
+            } else if (numericalNum == 0 && lexicalNum == 1) {
+              options.add("Hierarchy Tree");
+            }
           }
         }
       }

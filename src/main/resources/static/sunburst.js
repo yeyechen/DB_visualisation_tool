@@ -1,17 +1,17 @@
 // Copyright 2021 Observable, Inc.
 // Released under the ISC license.
-// https://observablehq.com/@d3/pack
-function Pack(data, { // data is either tabular (array of objects) or hierarchy (nested objects)
+// https://observablehq.com/@d3/sunburst
+function Sunburst(data, { // data is either tabular (array of objects) or hierarchy (nested objects)
   path, // as an alternative to id and parentId, returns an array identifier, imputing internal nodes
   id = Array.isArray(data) ? d => d.id : null, // if tabular data, given a d in data, returns a unique identifier (string)
   parentId = Array.isArray(data) ? d => d.parentId : null, // if tabular data, given a node d, returns its parent’s identifier
   children, // if hierarchical data, given a d in data, returns its children
   value, // given a node d, returns a quantitative value (for area encoding; null for count)
   sort = (a, b) => d3.descending(a.value, b.value), // how to sort nodes prior to layout
-  label, // given a leaf node d, returns the display name
+  label, // given a node d, returns the name to display on the rectangle
   title, // given a node d, returns its hover text
   link, // given a node d, its link (if any)
-  linkTarget = "_blank", // the target attribute for links, if any
+  linkTarget = "_blank", // the target attribute for links (if any)
   width = 640, // outer width, in pixels
   height = 400, // outer height, in pixels
   margin = 1, // shorthand for margins
@@ -19,13 +19,11 @@ function Pack(data, { // data is either tabular (array of objects) or hierarchy 
   marginRight = margin, // right margin, in pixels
   marginBottom = margin, // bottom margin, in pixels
   marginLeft = margin, // left margin, in pixels
-  padding = 3, // separation between circles
-  fill = "#ddd", // fill for leaf circles
-  fillOpacity, // fill opacity for leaf circles
-  stroke = "#bbb", // stroke for internal circles
-  strokeWidth, // stroke width for internal circles
-  strokeOpacity, // stroke opacity for internal circles
-  colorScale
+  padding = 1, // separation between arcs
+  radius = Math.min(width - marginLeft - marginRight, height - marginTop - marginBottom) / 2, // outer radius
+  color = d3.interpolateRainbow, // color scheme, if any
+  fill = "#ccc", // fill for arcs (if no color encoding)
+  fillOpacity = 0.6, // fill opacity for arcs
 } = {}) {
 
   // If id and parentId options are specified, or the path option, use d3.stratify
@@ -39,24 +37,34 @@ function Pack(data, { // data is either tabular (array of objects) or hierarchy 
   // Compute the values of internal nodes by aggregating from the leaves.
   value == null ? root.count() : root.sum(d => Math.max(0, value(d)));
 
-  // Compute labels and titles.
-  const descendants = root.descendants();
-  const leaves = descendants.filter(d => !d.children);
-  leaves.forEach((d, i) => d.index = i);
-  const L = label == null ? null : leaves.map(d => label(d.data, d));
-  const T = title == null ? null : descendants.map(d => title(d.data, d));
-
   // Sort the leaves (typically by descending value for a pleasing layout).
   if (sort != null) root.sort(sort);
 
-  // Compute the layout.
-  d3.pack()
-      .size([width - marginLeft - marginRight, height - marginTop - marginBottom])
-      .padding(padding)
-    (root);
+  // Compute the partition layout. Note polar coordinates: x is angle and y is radius.
+  d3.partition().size([2 * Math.PI, radius])(root);
+
+  // Construct a color scale.
+  if (color != null) {
+    color = d3.scaleSequential([0, root.children.length - 1], color).unknown(fill);
+    root.children.forEach((child, i) => child.index = i);
+  }
+
+  // Construct an arc generator.
+  const arc = d3.arc()
+      .startAngle(d => d.x0)
+      .endAngle(d => d.x1)
+      .padAngle(d => Math.min((d.x1 - d.x0) / 2, 2 * padding / radius))
+      .padRadius(radius / 2)
+      .innerRadius(d => d.y0)
+      .outerRadius(d => d.y1 - padding);
 
   const svg = d3.create("svg")
-      .attr("viewBox", [-marginLeft, -marginTop, width, height])
+      .attr("viewBox", [
+        marginRight - marginLeft - width / 2,
+        marginBottom - marginTop - height / 2,
+        width,
+        height
+      ])
       .attr("width", width)
       .attr("height", height)
       .attr("style", "max-width: 100%; height: auto; height: intrinsic;")
@@ -64,45 +72,32 @@ function Pack(data, { // data is either tabular (array of objects) or hierarchy 
       .attr("font-size", 10)
       .attr("text-anchor", "middle");
 
-  const node = svg.selectAll("a")
-    .data(descendants)
+  const cell = svg
+    .selectAll("a")
+    .data(root.descendants())
     .join("a")
-      .attr("xlink:href", link == null ? null : (d, i) => link(d.data, d))
-      .attr("target", link == null ? null : linkTarget)
-      .attr("transform", d => `translate(${d.x},${d.y})`);
+      .attr("xlink:href", link == null ? null : d => link(d.data, d))
+      .attr("target", link == null ? null : linkTarget);
 
-  node.append("circle")
-      .attr("fill", d => d.children ? "#fff" : (colorScale ? colorScale(d.data.color) : fill))
-      .attr("fill-opacity", d => d.children ? null : fillOpacity)
-      .attr("stroke", d => d.children ? stroke : null)
-      .attr("stroke-width", d => d.children ? strokeWidth : null)
-      .attr("stroke-opacity", d => d.children ? strokeOpacity : null)
-      .attr("r", d => d.r);
+  cell.append("path")
+      .attr("d", arc)
+      .attr("fill", color ? d => color(d.ancestors().reverse()[1]?.index) : fill)
+      .attr("fill-opacity", fillOpacity);
 
-  if (T) node.append("title").text((d, i) => T[i]);
+  if (label != null) cell
+    .filter(d => (d.y0 + d.y1) / 2 * (d.x1 - d.x0) > 10)
+    .append("text")
+      .attr("transform", d => {
+        if (!d.depth) return;
+        const x = (d.x0 + d.x1) / 2 * 180 / Math.PI;
+        const y = (d.y0 + d.y1) / 2;
+        return `rotate(${x - 90}) translate(${y},0) rotate(${x < 180 ? 0 : 180})`;
+      })
+      .attr("dy", "0.32em")
+      .text(d => label(d.data, d));
 
-  if (L) {
-    // A unique identifier for clip paths (to avoid conflicts).
-    const uid = `O-${Math.random().toString(16).slice(2)}`;
-
-    const leaf = node
-      .filter(d => !d.children && d.r > 10 && L[d.index] != null);
-
-    leaf.append("clipPath")
-        .attr("id", d => `${uid}-clip-${d.index}`)
-      .append("circle")
-        .attr("r", d => d.r);
-
-    leaf.append("text")
-        .attr("clip-path", d => `url(${new URL(`#${uid}-clip-${d.index}`, location)})`)
-      .selectAll("tspan")
-      .data(d => `${L[d.index]}`.split(/\n/g))
-      .join("tspan")
-        .attr("x", 0)
-        .attr("y", (d, i, D) => `${(i - D.length / 2) + 0.85}em`)
-        .attr("fill-opacity", (d, i, D) => i === D.length - 1 ? 0.7 : null)
-        .text(d => d);
-  }
+  if (title != null) cell.append("title")
+      .text(d => title(d.data, d));
 
   var tooltip = d3.select("#tooltip")
     .append("div")
@@ -115,13 +110,13 @@ function Pack(data, { // data is either tabular (array of objects) or hierarchy 
 
   const chartElement = d3.select("#chart").node();
 
-  svg.selectAll("circle")
-    .on("mouseover", function(event, d, i) {
+  svg.selectAll("path")
+    .on("mouseover", function(event, d) {
       const [x, y] = d3.pointer(event, chartElement);
       tooltip.transition()
         .duration(50)
         .style("opacity", .8);
-      tooltip.html(L[d.index] ? L[d.index].split(/\n/g).join("<br>") : "")
+      tooltip.html(label(d.data, d) + "<br>" + title(d.data, d))
         .style("transform", `translate(${x + 10}px, ${y + 10}px)`);
     })
     .on("mousemove", function(event, i) {
@@ -154,25 +149,13 @@ d3.json("/circle_packing_data")
     return acc;
   }, { name: "", children: [] });
 
-  const optionalSet = new Set(data.map(item => item[keys[3]]));
-  const colorScale = d3.scaleOrdinal()
-    .domain(optionalSet)
-    .range(d3.schemeCategory10);
-
-  const svg = Pack(groupedData, {
+  const svg = Sunburst(groupedData, {
     value: d => d.value,
-    label: (d, n) => [...d.name.split(/(?=[A-Z][a-z])/g), n.value.toLocaleString("en")].join("\n"),
-    title: (d, n) => `${n.ancestors().reverse().map(({data: d}) => d.name).join(".")}\n`+keys[2]+`: ${n.value.toLocaleString("en")}`,
+    label: d => d.name,
+    title: (d, n) => keys[2]+`: ${n.value.toLocaleString("en")}`,
     width: 1152,
     height: 1152,
-    colorScale: optionalSet.size === 1 ? null : colorScale
   })
 
-  if (optionalSet.size != 1) {
-    key = swatches({
-      colour: colorScale
-    })
-    d3.select("#chart").append(() => key);
-  }
   d3.select("#chart").append(() => svg);
 })
