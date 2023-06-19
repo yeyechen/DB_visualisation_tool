@@ -1,7 +1,7 @@
 function ChordDiagram(data, {
   names = data.names === undefined ? d3.range(data.length) : data.names,
   colors = data.colors === undefined ? d3.quantize(d3.interpolateRainbow, names.length) : data.colors,
-  width = 1600,
+  width = 1000,
   height = width,
   outerRadius = Math.min(width, height) * 0.5 - 60,
   innerRadius = outerRadius - 10,

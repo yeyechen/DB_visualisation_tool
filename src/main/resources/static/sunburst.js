@@ -153,8 +153,8 @@ d3.json("/circle_packing_data")
     value: d => d.value,
     label: d => d.name,
     title: (d, n) => keys[2]+`: ${n.value.toLocaleString("en")}`,
-    width: 1152,
-    height: 1152,
+    width: 800,
+    height: 600,
   })
 
   d3.select("#chart").append(() => svg);

@@ -166,8 +166,8 @@ d3.json("/sankey_diagram_data")
   }, {
     nodeGroup: d => d.id.split(/\W/)[0], // take first word for color
     format: (f => d => `${f(d)}`)(d3.format(",.1~f")),
-    width: 1200,
-    height: 2400
+    width: 600,
+    height: 800
   })
   d3.select("body").append(() => svg);
 })

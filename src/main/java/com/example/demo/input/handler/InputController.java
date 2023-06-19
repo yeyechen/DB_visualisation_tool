@@ -18,6 +18,7 @@ import io.github.MigadaTang.common.Cardinality;
 import io.github.MigadaTang.common.EntityType;
 import io.github.MigadaTang.exception.DBConnectionException;
 import io.github.MigadaTang.exception.ParseException;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.net.URLDecoder;
@@ -49,7 +50,7 @@ public class InputController {
 
   @PostMapping("/database-info")
   public String processDatabaseInfo(@RequestBody Map<String, String> formData)
-      throws DBConnectionException, ParseException, SQLException {
+      throws DBConnectionException, ParseException, SQLException, IOException {
     inputService.initialise(formData);
     return "redirect:/selection";
   }

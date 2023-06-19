@@ -9,16 +9,13 @@ import com.google.gson.reflect.TypeToken;
 import io.github.MigadaTang.Attribute;
 import io.github.MigadaTang.ER;
 import io.github.MigadaTang.ERConnectableObj;
-import io.github.MigadaTang.Entity;
-import io.github.MigadaTang.Relationship;
 import io.github.MigadaTang.Schema;
-import io.github.MigadaTang.common.AttributeType;
-import io.github.MigadaTang.common.Cardinality;
 import io.github.MigadaTang.common.RDBMSType;
 import io.github.MigadaTang.exception.DBConnectionException;
 import io.github.MigadaTang.exception.ParseException;
 import io.github.MigadaTang.transform.DatabaseUtil;
 import io.github.MigadaTang.transform.Reverse;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Type;
@@ -34,9 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import javax.annotation.PostConstruct;
 import lombok.Getter;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -79,91 +74,6 @@ public class InputService {
   @Autowired
   ResourceLoader resourceLoader;
 
-  //todo: delete cache
-  @PostConstruct
-  public void init() throws SQLException, DBConnectionException, ParseException {
-    ER.initialize();
-    Schema mondialSchema = ER.createSchema("Mondial_Test");
-
-    Entity country = mondialSchema.addEntity("country");
-    country.addPrimaryKey("code", io.github.MigadaTang.common.DataType.VARCHAR);
-    country.addAttribute("population", io.github.MigadaTang.common.DataType.INT, AttributeType.Mandatory);
-    country.addAttribute("area", io.github.MigadaTang.common.DataType.DOUBLE, AttributeType.Mandatory);
-    country.addAttribute("province", io.github.MigadaTang.common.DataType.VARCHAR, AttributeType.Mandatory);
-    country.addAttribute("capital", io.github.MigadaTang.common.DataType.VARCHAR, AttributeType.Mandatory);
-    country.addAttribute("name", io.github.MigadaTang.common.DataType.VARCHAR, AttributeType.Mandatory);
-
-    Entity economy = mondialSchema.addSubset("economy", country);
-    economy.addAttribute("gdp", io.github.MigadaTang.common.DataType.DOUBLE,
-        AttributeType.Optional);
-    economy.addAttribute("agriculture", io.github.MigadaTang.common.DataType.DOUBLE,
-        AttributeType.Optional);
-    economy.addAttribute("service", io.github.MigadaTang.common.DataType.DOUBLE,
-        AttributeType.Optional);
-    economy.addAttribute("industry", io.github.MigadaTang.common.DataType.DOUBLE,
-        AttributeType.Optional);
-    economy.addAttribute("inflation", io.github.MigadaTang.common.DataType.DOUBLE,
-        AttributeType.Optional);
-    economy.addAttribute("unemployment", io.github.MigadaTang.common.DataType.DOUBLE,
-        AttributeType.Optional);
-
-    // Reflexive Relationship
-    Relationship borders = mondialSchema.createRelationship("borders", country,
-        country, Cardinality.OneToMany, Cardinality.OneToMany);
-    borders.addAttribute("length", io.github.MigadaTang.common.DataType.DOUBLE, AttributeType.Mandatory);
-
-    // Weak Entities
-    ImmutablePair<Entity, Relationship> provincePartOfPair = mondialSchema.addWeakEntity("province",
-        country, "partOf", Cardinality.OneToOne, Cardinality.ZeroToMany);
-    Entity province = provincePartOfPair.left;
-    Relationship provincePartOf = provincePartOfPair.right;
-    province.addPrimaryKey("name", io.github.MigadaTang.common.DataType.VARCHAR);
-    province.addAttribute("population", io.github.MigadaTang.common.DataType.INT, AttributeType.Mandatory);
-    province.addAttribute("area", io.github.MigadaTang.common.DataType.DOUBLE, AttributeType.Mandatory);
-    province.addAttribute("capital_province", io.github.MigadaTang.common.DataType.VARCHAR, AttributeType.Mandatory);
-    province.addAttribute("capital", io.github.MigadaTang.common.DataType.VARCHAR, AttributeType.Mandatory);
-
-    ImmutablePair<Entity, Relationship> countryPopPartOfPair = mondialSchema.addWeakEntity("country_population",
-        country, "partOf", Cardinality.OneToOne, Cardinality.ZeroToMany);
-    Entity countryPop = countryPopPartOfPair.left;
-    Relationship countryPopPartOf = countryPopPartOfPair.right;
-    countryPop.addPrimaryKey("year", io.github.MigadaTang.common.DataType.VARCHAR);
-    countryPop.addAttribute("population", io.github.MigadaTang.common.DataType.INT,
-        AttributeType.Mandatory);
-
-    Entity continent = mondialSchema.addEntity("continent");
-    continent.addPrimaryKey("name", io.github.MigadaTang.common.DataType.DOUBLE);
-    continent.addAttribute("area", io.github.MigadaTang.common.DataType.DOUBLE,
-        AttributeType.Mandatory);
-    Relationship encompasses = mondialSchema.createRelationship("encompasses", continent, country,
-        Cardinality.ZeroToMany, Cardinality.ZeroToMany); // should be (1:2), but for test purposes
-    encompasses.addAttribute("percentage", io.github.MigadaTang.common.DataType.DOUBLE, AttributeType.Mandatory);
-
-    Entity airport = mondialSchema.addEntity("airport");
-    Relationship in = mondialSchema.createRelationship("in", airport, country, Cardinality.OneToOne,
-        Cardinality.ZeroToMany);
-    airport.addPrimaryKey("iata_code", io.github.MigadaTang.common.DataType.VARCHAR);
-    airport.addAttribute("name", io.github.MigadaTang.common.DataType.VARCHAR, AttributeType.Mandatory);
-    airport.addAttribute("island", io.github.MigadaTang.common.DataType.VARCHAR, AttributeType.Mandatory);
-    airport.addAttribute("province", io.github.MigadaTang.common.DataType.VARCHAR, AttributeType.Mandatory);
-    airport.addAttribute("city", io.github.MigadaTang.common.DataType.VARCHAR, AttributeType.Mandatory);
-    airport.addAttribute("latitude", io.github.MigadaTang.common.DataType.DOUBLE, AttributeType.Mandatory);
-    airport.addAttribute("longitude", io.github.MigadaTang.common.DataType.DOUBLE, AttributeType.Mandatory);
-    airport.addAttribute("elevation", io.github.MigadaTang.common.DataType.DOUBLE, AttributeType.Mandatory);
-    airport.addAttribute("gmt_offset", io.github.MigadaTang.common.DataType.DOUBLE, AttributeType.Mandatory);
-
-    schema = mondialSchema;
-
-    Map<String, String> formData = new HashMap<>();
-    formData.put("dbType", "postgresql");
-    formData.put("host", "localhost");
-    formData.put("port", "5432");
-    formData.put("databaseName", "sub_mondial");
-    formData.put("username", "Mikeee");
-    formData.put("password", "");
-    initialise(formData);
-  }
-
   public void setFilterConditions(Map<String, List<String>> filterConditions) {
     Map<String, Map<String, List<String>>> processedConditions = new HashMap<>();
     for (Map.Entry<String, List<String>> entry : filterConditions.entrySet()) {
@@ -191,7 +101,7 @@ public class InputService {
   }
 
   public void initialise(Map<String, String> formData)
-      throws SQLException, ParseException, DBConnectionException {
+      throws SQLException, ParseException, DBConnectionException, IOException {
     String dbTypeString = formData.get("dbType");
     RDBMSType dbTypeEnum = switch (dbTypeString) {
       case "postgresql" -> RDBMSType.POSTGRESQL;
@@ -208,8 +118,7 @@ public class InputService {
     String username = formData.get("username");
     String password = formData.get("password");
 
-    // todo: remember to uncomment
-    // schema = reverse(dbTypeEnum, host, port, databaseName, username, password);
+    schema = reverse(dbTypeEnum, host, port, databaseName, username, password);
     jdbc = updateDatabaseDetails(dbTypeEnum, host, port, databaseName, username, password);
 
     selectionInfo = new HashMap<>();
@@ -218,7 +127,8 @@ public class InputService {
   }
 
   public Schema reverse(RDBMSType dbTypeEnum, String host, String port, String databaseName,
-      String username, String password) throws ParseException, DBConnectionException, SQLException {
+      String username, String password)
+      throws ParseException, DBConnectionException, SQLException, IOException {
     ER.initialize();
     Reverse reverse = new Reverse();
     Schema schema = reverse.relationSchemasToERModel(dbTypeEnum, host, port, databaseName, username,

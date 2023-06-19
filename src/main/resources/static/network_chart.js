@@ -13,7 +13,7 @@ function ForceGraph({
   nodeStroke = "#fff", // node stroke color
   nodeStrokeWidth = 1.5, // node stroke width, in pixels
   nodeStrokeOpacity = 1, // node stroke opacity
-  nodeRadius = 5, // node radius, in pixels
+  nodeRadius = 8, // node radius, in pixels
   nodeStrength,
   linkSource = ({source}) => source, // given d in links, returns a node identifier string
   linkTarget = ({target}) => target, // given d in links, returns a node identifier string
@@ -169,7 +169,7 @@ d3.json("/network_chart_data")
     nodeTitle: d => `${d.id}\n${d.group}`,
     linkStrokeWidth: l => Math.sqrt(l.value),
     width: 2400,
-    height: 1600
+    height: 2400
   })
 
   d3.select("body").append(() => svg);

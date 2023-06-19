@@ -84,11 +84,12 @@ function LineChart(data, {
           .attr("x2", width - marginLeft - marginRight)
           .attr("stroke-opacity", 0.1))
       .call(g => g.append("text")
-          .attr("x", -marginLeft)
+          .attr("x", -marginLeft/2)
           .attr("y", 10)
           .attr("fill", "currentColor")
           .attr("text-anchor", "start")
-          .text(yLabel));
+          .text(yLabel)
+          .attr("font-size", "13px"));
 
   const path = svg.append("g")
       .attr("fill", "none")
@@ -149,8 +150,8 @@ d3.json("/line_chart_data")
     y: d => d[keys[2]],
     z: d => d[keys[0]],
     yLabel: keys[2],
-    width: 1800,
-    height: 1000,
+    width: 1000,
+    height: 800,
     color: "steelblue"
   })
   d3.select("body").append(() => svg);

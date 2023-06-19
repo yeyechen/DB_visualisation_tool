@@ -71,11 +71,12 @@ function GroupedBarChart(data, {
           .attr("x2", width - marginLeft - marginRight)
           .attr("stroke-opacity", 0.1))
       .call(g => g.append("text")
-          .attr("x", -marginLeft)
+          .attr("x", -marginLeft/2)
           .attr("y", 10)
           .attr("fill", "currentColor")
           .attr("text-anchor", "start")
-          .text(yLabel));
+          .text(yLabel)
+          .attr("font-size", "13px"));
 
   const bar = svg.append("g")
     .selectAll("rect")
@@ -88,7 +89,8 @@ function GroupedBarChart(data, {
       .attr("fill", i => zScale(Z[i]));
 
   if (title) bar.append("title")
-      .text(title);
+      .text(title)
+      .attr("font-size", "13px");
 
   svg.append("g")
       .attr("transform", `translate(0,${height - marginBottom})`)
@@ -115,8 +117,8 @@ d3.json("/grouped_bar_chart_data")
     yLabel: keys[2],
     zDomain: category,
     colors: d3.schemeSpectral[category.length],
-    height: 800,
-    width: 1000
+    height: 600,
+    width: 800
   })
   key = swatches({
     colour: svg.scales.color

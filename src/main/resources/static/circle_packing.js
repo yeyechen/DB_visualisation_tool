@@ -164,7 +164,7 @@ d3.json("/circle_packing_data")
     label: (d, n) => [...d.name.split(/(?=[A-Z][a-z])/g), n.value.toLocaleString("en")].join("\n"),
     title: (d, n) => `${n.ancestors().reverse().map(({data: d}) => d.name).join(".")}\n`+keys[2]+`: ${n.value.toLocaleString("en")}`,
     width: 1152,
-    height: 1152,
+    height: 780,
     colorScale: optionalSet.size === 1 ? null : colorScale
   })
 

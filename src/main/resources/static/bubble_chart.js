@@ -75,7 +75,8 @@ function BubbleChart(data, {
           .attr("y", marginBottom - 4)
           .attr("fill", "currentColor")
           .attr("text-anchor", "end")
-          .text(xLabel));
+          .text(xLabel)
+          .attr("font-size", "13px"));
 
   svg.append("g")
       .attr("transform", `translate(${marginLeft},0)`)
@@ -85,11 +86,12 @@ function BubbleChart(data, {
           .attr("x2", width - marginLeft - marginRight)
           .attr("stroke-opacity", 0.1))
       .call(g => g.append("text")
-          .attr("x", -marginLeft)
+          .attr("x", -marginLeft/2)
           .attr("y", 10)
           .attr("fill", "currentColor")
           .attr("text-anchor", "start")
-          .text(yLabel));
+          .text(yLabel)
+          .attr("font-size", "13px"));
 
   if (T) svg.append("g")
       .attr("font-family", "sans-serif")
@@ -164,13 +166,13 @@ d3.json("/bubble_chart_data")
     .domain(optionalSet)
     .range(d3.schemeCategory10);
   const svg = BubbleChart(data, {
-    x: d => d[keys[1]],
+    x: d => d[keys[3]],
     y: d => d[keys[2]],
-    z: d => d[keys[3]],
+    z: d => d[keys[1]],
     name: d => d[keys[0]],
-    xLabel: keys[1],
+    xLabel: keys[3],
     yLabel: keys[2],
-    zLabel: keys[3],
+    zLabel: keys[1],
     entityLabel: keys[0],
     stroke: "steelblue",
     colorScale: optionalSet.size === 1 ? null : colorScale,
