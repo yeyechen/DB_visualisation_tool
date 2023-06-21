@@ -26,7 +26,8 @@ function LineChart(data, {
   strokeWidth = 1.5, // stroke width of line
   strokeOpacity, // stroke opacity of line
   mixBlendMode = "multiply", // blend mode of lines
-  voronoi // show a Voronoi overlay? (for debugging)
+  voronoi, // show a Voronoi overlay? (for debugging)
+  colorScale,
 } = {}) {
   // Compute values.
   const X = d3.map(data, x);
@@ -93,7 +94,6 @@ function LineChart(data, {
 
   const path = svg.append("g")
       .attr("fill", "none")
-      .attr("stroke", typeof color === "string" ? color : null)
       .attr("stroke-linecap", strokeLinecap)
       .attr("stroke-linejoin", strokeLinejoin)
       .attr("stroke-width", strokeWidth)
@@ -102,8 +102,8 @@ function LineChart(data, {
     .data(d3.group(I, i => Z[i]))
     .join("path")
       .style("mix-blend-mode", mixBlendMode)
-      .attr("stroke", typeof color === "function" ? ([z]) => color(z) : null)
-      .attr("d", ([, I]) => line(I));
+      .attr("d", ([, I]) => line(I))
+      .style("stroke", ([, I]) => colorScale(Z[I[0]]));
 
   const dot = svg.append("g")
       .attr("display", "none");
@@ -120,19 +120,16 @@ function LineChart(data, {
   function pointermoved(event) {
     const [xm, ym] = d3.pointer(event);
     const i = d3.least(I, i => Math.hypot(xScale(X[i]) - xm, yScale(Y[i]) - ym)); // closest point
-    path.style("stroke", ([z]) => Z[i] === z ? null : "#ddd").filter(([z]) => Z[i] === z).raise();
     dot.attr("transform", `translate(${xScale(X[i])},${yScale(Y[i])})`);
-    if (T) dot.select("text").text(T[i]);
+    if (T) dot.select("text").text(T[i]+": "+Y[i]);
     svg.property("value", O[i]).dispatch("input", {bubbles: true});
   }
 
   function pointerentered() {
-    path.style("mix-blend-mode", null).style("stroke", "#ddd");
     dot.attr("display", null);
   }
 
   function pointerleft() {
-    path.style("mix-blend-mode", mixBlendMode).style("stroke", null);
     dot.attr("display", "none");
     svg.node().value = null;
     svg.dispatch("input", {bubbles: true});
@@ -145,6 +142,13 @@ d3.json("/line_chart_data")
   .then(function(data) {
 
   var keys = Object.keys(data[0]); // index: 0->k1, 1->k2, 2->a1, 3->optional a2
+
+  const optionalSet = new Set(data.map(item => item[keys[0]]));
+  const orderedArray = Array.from(optionalSet).sort();
+  const colorScale = d3.scaleOrdinal()
+    .domain(orderedArray)
+    .range(d3.schemeCategory10);
+
   const svg = LineChart(data, {
     x: d => d[keys[1]],
     y: d => d[keys[2]],
@@ -152,7 +156,14 @@ d3.json("/line_chart_data")
     yLabel: keys[2],
     width: 1000,
     height: 800,
-    color: "steelblue"
+    color: "steelblue",
+    colorScale: optionalSet.size === 1 ? null : colorScale
   })
+  if (optionalSet.size != 1) {
+    key = swatches({
+      colour: colorScale
+    })
+    d3.select("body").append(() => key);
+  }
   d3.select("body").append(() => svg);
 })

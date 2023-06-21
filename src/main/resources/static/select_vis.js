@@ -3,8 +3,9 @@ $(document).ready(function() {
   $.get("/vis-options", function(tableData) {
     if (tableData.option.length === 0) {
       $.get("/error-message", function(message) {
-        $("#right-heading").text(message);
-      })
+        message = message.replace(/\n/g, "<br>");
+        $("#right-heading").html(message);
+      });
     } else {
       $.each(tableData.option, function(index, option) {
         $("<label><input type='radio' name='options' value='" + option + "'> " + option + "</label><br>").appendTo("#vis-form");

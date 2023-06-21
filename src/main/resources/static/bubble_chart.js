@@ -171,8 +171,9 @@ d3.json("/bubble_chart_data")
   d3.select("#z3").text(keys[3]);
 
   const optionalSet = new Set(data.map(item => item[keys[4]]));
+  const orderedArray = Array.from(optionalSet).sort();
   const colorScale = d3.scaleOrdinal()
-    .domain(optionalSet)
+    .domain(orderedArray)
     .range(d3.schemeCategory10);
 
   const svg = BubbleChart(data, {
@@ -241,6 +242,12 @@ d3.json("/bubble_chart_data")
       colorScale: optionalSet.size === 1 ? null : colorScale,
       color: d => d[keys[4]]
     })
+    if (optionalSet.size != 1) {
+      key = swatches({
+        colour: colorScale
+      })
+      d3.select("#chart").append(() => key);
+    }
 
     d3.select("#chart").append(() => chart);
 

@@ -159,8 +159,9 @@ d3.json("/scatter_diagram_data")
     .text("x-axis: " + keys[2] + ", y-axis: " + keys[1]);
 
   const optionalSet = new Set(data.map(item => item[keys[3]]));
+  const orderedArray = Array.from(optionalSet).sort();
   const colorScale = d3.scaleOrdinal()
-    .domain(optionalSet)
+    .domain(orderedArray)
     .range(d3.schemeCategory10);
 
   var svg = Scatterplot(data, {
@@ -211,6 +212,12 @@ d3.json("/scatter_diagram_data")
         colorScale: optionalSet.size === 1 ? null : colorScale,
         color: d => d[keys[3]]
       })
+    }
+    if (optionalSet.size != 1) {
+      key = swatches({
+        colour: colorScale
+      })
+      d3.select("#chart").append(() => key);
     }
     d3.select("#chart").append(() => chart);
   });

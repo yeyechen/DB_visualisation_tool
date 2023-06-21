@@ -155,8 +155,9 @@ d3.json("/circle_packing_data")
   }, { name: "", children: [] });
 
   const optionalSet = new Set(data.map(item => item[keys[3]]));
+  const orderedArray = Array.from(optionalSet).sort();
   const colorScale = d3.scaleOrdinal()
-    .domain(optionalSet)
+    .domain(orderedArray)
     .range(d3.schemeCategory10);
 
   const svg = Pack(groupedData, {

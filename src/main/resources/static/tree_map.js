@@ -37,6 +37,7 @@ function Treemap(data, { // data is either tabular (array of objects) or hierarc
   strokeWidth, // stroke width for node rects
   strokeOpacity, // stroke opacity for node rects
   strokeLinejoin, // stroke line join for node rects
+  valueLabel,
 } = {}) {
 
   // If id and parentId options are specified, or the path option, use d3.stratify
@@ -55,8 +56,6 @@ function Treemap(data, { // data is either tabular (array of objects) or hierarc
   zDomain = new d3.InternSet(zDomain);
 
   const color = group == null ? null : d3.scaleOrdinal(zDomain, colors);
-  // set color to a single color for now (fill= #ccc), group not working properly
-//  const color = null;
 
   // Compute labels and titles.
   const L = label == null ? null : leaves.map(d => label(d.data, d));
@@ -102,10 +101,6 @@ function Treemap(data, { // data is either tabular (array of objects) or hierarc
       .attr("width", d => d.x1 - d.x0)
       .attr("height", d => d.y1 - d.y0);
 
-  if (T) {
-    node.append("title").text((d, i) => T[i]);
-  }
-
   if (L) {
     // A unique identifier for clip paths (to avoid conflicts).
     const uid = `O-${Math.random().toString(16).slice(2)}`;
@@ -127,6 +122,37 @@ function Treemap(data, { // data is either tabular (array of objects) or hierarc
         .style("font-size", "15px")
         .text(d => d);
   }
+
+  var tooltip = d3.select("#tooltip")
+    .append("div")
+    .style("opacity", 0)
+    .attr("class", "tooltip")
+    .style("background-color", "white")
+    .style("border", "solid")
+    .style("border-radius", "1px")
+    .style("padding", "1px");
+
+  const chartElement = d3.select("#chart").node();
+
+  svg.selectAll("rect")
+    .on("mouseover", function(event, d) {
+      const [x, y] = d3.pointer(event, chartElement);
+      tooltip.transition()
+        .duration(50)
+        .style("opacity", .8);
+      tooltip.html(`${d.parent.data.name}<br>${d.data.name}<br>${valueLabel}: ${d.value.toLocaleString("en")}`)
+        .style("transform", `translate(${x + 10}px, ${y + 10}px)`);
+    })
+    .on("mousemove", function(event, i) {
+      const [x, y] = d3.pointer(event, chartElement);
+      tooltip
+        .style("transform", `translate(${x + 10}px, ${y + 10}px)`);
+    })
+    .on("mouseout", function(event, d) {
+      tooltip.transition()
+        .duration(500)
+        .style("opacity", 0);
+    });
 
   return Object.assign(svg.node(), {scales: {color}});
 }
@@ -151,13 +177,14 @@ d3.json("/tree_map_data")
     value: d => d.value, // size of each node (file); null for internal nodes (folders)
     group: (d, n) => n.ancestors().slice(-2)[0].data.name, // e.g., "animate" in flare/animate/Easing; color
     label: (d, n) => [d.name.split(/(?=[A-Z][a-z])/g), n.value.toLocaleString("en")].join("\n"),
-    title: (d, n) => `${n.ancestors().reverse().map(d => d.data.name).join(".")}\n`+keys[2]+`: ${n.value.toLocaleString("en")}`,
+    title: (d, n) => `${n.parent.data.name}\n${n.data.name}\n`+keys[2]+`: ${n.value.toLocaleString("en")}`,
+    valueLabel: keys[2],
     width: 1152,
     height: 700
   })
   key = swatches({
     colour: svg.scales.color
   })
-  d3.select("body").append(() => key);
-  d3.select("body").append(() => svg);
+  d3.select("#chart").append(() => key);
+  d3.select("#chart").append(() => svg);
 })

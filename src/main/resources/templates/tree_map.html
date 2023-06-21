@@ -5,8 +5,25 @@
   <meta charset="UTF-8">
   <title>tree map</title>
 </head>
+<style>
+  .chart-container {
+    position: absolute;
+  }
+  #chart {
+    position: relative;
+  }
+  #tooltip {
+    position: absolute;
+    pointer-events: none;
+  }
+</style>
 <body>
 <script src = "tree_map.js"></script>
 <script src = "swatches.js"></script>
+<div class="chart-container">
+  <div id="chart">
+    <div id="tooltip"></div>
+  </div>
+</div>
 </body>
 </html>

@@ -12,6 +12,7 @@ function GroupedBarChart(data, {
   marginLeft = 100, // left margin, in pixels
   width = 640, // outer width, in pixels
   height = 400, // outer height, in pixels
+  xLabel,
   xDomain, // array of x-values
   xRange = [marginLeft, width - marginRight], // [xmin, xmax]
   xPadding = 0.1, // amount of x-range to reserve to separate groups
@@ -23,6 +24,7 @@ function GroupedBarChart(data, {
   yFormat, // a format specifier string for the y-axis
   yLabel, // a label for the y-axis
   colors = d3.schemeTableau10, // array of colors
+  entityLabel,
 } = {}) {
   // Compute values.
   const X = d3.map(data, x);
@@ -47,15 +49,6 @@ function GroupedBarChart(data, {
   const xAxis = d3.axisBottom(xScale).tickSizeOuter(0);
   const yAxis = d3.axisLeft(yScale).ticks(height / 60, yFormat);
 
-  // Compute titles.
-  if (title === undefined) {
-    const formatValue = yScale.tickFormat(100, yFormat);
-    title = i => `${X[i]}\n${Z[i]}\n${formatValue(Y[i])}`;
-  } else {
-    const O = d3.map(data, d => d);
-    const T = title;
-    title = i => T(O[i], i, data);
-  }
 
   const svg = d3.create("svg")
       .attr("width", width)
@@ -96,6 +89,37 @@ function GroupedBarChart(data, {
       .attr("transform", `translate(0,${height - marginBottom})`)
       .call(xAxis);
 
+  var tooltip = d3.select("#tooltip")
+    .append("div")
+    .style("opacity", 0)
+    .attr("class", "tooltip")
+    .style("background-color", "white")
+    .style("border", "solid")
+    .style("border-radius", "1px")
+    .style("padding", "1px");
+
+  svg.selectAll("rect")
+    .on("mouseover", function(event, i) {
+      const [x, y] = d3.pointer(event, this);
+      tooltip.transition()
+        .duration(50)
+        .style("opacity", .8);
+      tooltip.html(entityLabel + ": " + X[i] + "<br>"
+        + xLabel + ": " + Z[i] + "<br>"
+        + yLabel + ": " + Y[i])
+        .style("transform", `translate(${x + 10}px, ${y + 10}px)`);
+    })
+    .on("mousemove", function(event, i) {
+      const [x, y] = d3.pointer(event, this);
+      tooltip
+        .style("transform", `translate(${x + 10}px, ${y + 10}px)`);
+    })
+    .on("mouseout", function(event, d) {
+      tooltip.transition()
+        .duration(500)
+        .style("opacity", 0);
+    });
+
   return Object.assign(svg.node(), {scales: {color: zScale}});
 }
 
@@ -107,22 +131,24 @@ d3.json("/grouped_bar_chart_data")
   for (let i = 1; i < data.length; i++) {
     category.add(data[i][keys[1]])
   }
-  category = Array.from(category);
+  category = Array.from(category).sort();
 
   const svg = GroupedBarChart(data, {
     x: d => d[keys[0]],
     y: d => d[keys[2]],
     z: d => d[keys[1]],
-    xDomain: d3.groupSort(data, D => d3.sum(D, d => -d[keys[2]]), d => d[keys[0]]).slice(0, 6), // top 6
+    entityLabel: keys[0],
+    xLabel: keys[1],
     yLabel: keys[2],
+    xDomain: d3.groupSort(data, D => d3.sum(D, d => -d[keys[2]]), d => d[keys[0]]).slice(0, 6), // top 6
     zDomain: category,
     colors: d3.schemeSpectral[category.length],
     height: 600,
-    width: 800
+    width: 1000
   })
   key = swatches({
     colour: svg.scales.color
   })
-  d3.select("body").append(() => key);
-  d3.select("body").append(() => svg);
+  d3.select("#chart").append(() => key);
+  d3.select("#chart").append(() => svg);
 })
