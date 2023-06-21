@@ -151,15 +151,19 @@ function Scatterplot(data, {
 }
 d3.json("/scatter_diagram_data")
   .then(function(data) {
-  console.log(data);
+
   var keys = Object.keys(data[0]); // index: 0->k, 1->a1, 2->a2, 3->optional
+  d3.select("#axis1")
+    .text("x-axis: " + keys[1] + ", y-axis: " + keys[2]);
+  d3.select("#axis2")
+    .text("x-axis: " + keys[2] + ", y-axis: " + keys[1]);
 
   const optionalSet = new Set(data.map(item => item[keys[3]]));
   const colorScale = d3.scaleOrdinal()
     .domain(optionalSet)
     .range(d3.schemeCategory10);
-  console.log(optionalSet);
-  const svg = Scatterplot(data, {
+
+  var svg = Scatterplot(data, {
     x: d => d[keys[1]],
     y: d => d[keys[2]],
     xLabel: keys[1],
@@ -177,4 +181,38 @@ d3.json("/scatter_diagram_data")
     d3.select("#chart").append(() => key);
   }
   d3.select("#chart").append(() => svg);
+
+  d3.select("#axis").on("change", function() {
+    d3.select("#chart").selectAll("*").remove();
+    d3.select("#chart").append("div").attr("id", "tooltip");
+
+    var axisValue = d3.select("#axis").property("value");
+    chart = Scatterplot(data, {
+      x: d => d[keys[1]],
+      y: d => d[keys[2]],
+      xLabel: keys[1],
+      yLabel: keys[2],
+      name: d => d[keys[0]],
+      entityLabel: keys[0],
+      stroke: "steelblue",
+      colorScale: optionalSet.size === 1 ? null : colorScale,
+      color: d => d[keys[3]]
+    });
+
+    if (axisValue == "2") {
+      chart = Scatterplot(data, {
+        x: d => d[keys[2]],
+        y: d => d[keys[1]],
+        xLabel: keys[2],
+        yLabel: keys[1],
+        name: d => d[keys[0]],
+        entityLabel: keys[0],
+        stroke: "steelblue",
+        colorScale: optionalSet.size === 1 ? null : colorScale,
+        color: d => d[keys[3]]
+      })
+    }
+    d3.select("#chart").append(() => chart);
+  });
+
 })

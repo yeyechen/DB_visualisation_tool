@@ -261,6 +261,12 @@ public class ModelUtil {
     if (table instanceof Entity && ((Entity) table).getEntityType() == EntityType.WEAK) {
       return List.of(Objects.requireNonNull(getRelatedStrongEntity((Entity) table, schema)));
     }
+    if (table instanceof Entity && ((Entity) table).getEntityType() == EntityType.SUBSET) {
+      List<ERConnectableObj> result = new ArrayList<>(
+          List.of(((Entity) table).getBelongStrongEntity()));
+      result.addAll(tablesConnectableWith(((Entity) table).getBelongStrongEntity(), schema));
+      return result;
+    }
     Set<ERConnectableObj> result = new HashSet<>();
     for (Relationship relationship : schema.getRelationshipList()) {
       if (relationship == table) {

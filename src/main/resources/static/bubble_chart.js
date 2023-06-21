@@ -160,24 +160,35 @@ function BubbleChart(data, {
 d3.json("/bubble_chart_data")
   .then(function(data) {
   var keys = Object.keys(data[0]); // index: 0->k, 1->a1, 2->a2, 3->a3, 4->optional
+  d3.select("#x1").text(keys[1]);
+  d3.select("#x2").text(keys[2]);
+  d3.select("#x3").text(keys[3]);
+  d3.select("#y1").text(keys[1]);
+  d3.select("#y2").text(keys[2]);
+  d3.select("#y3").text(keys[3]);
+  d3.select("#z1").text(keys[1]);
+  d3.select("#z2").text(keys[2]);
+  d3.select("#z3").text(keys[3]);
 
   const optionalSet = new Set(data.map(item => item[keys[4]]));
   const colorScale = d3.scaleOrdinal()
     .domain(optionalSet)
     .range(d3.schemeCategory10);
+
   const svg = BubbleChart(data, {
-    x: d => d[keys[3]],
+    x: d => d[keys[1]],
     y: d => d[keys[2]],
-    z: d => d[keys[1]],
+    z: d => d[keys[3]],
     name: d => d[keys[0]],
-    xLabel: keys[3],
+    xLabel: keys[1],
     yLabel: keys[2],
-    zLabel: keys[1],
+    zLabel: keys[3],
     entityLabel: keys[0],
     stroke: "steelblue",
     colorScale: optionalSet.size === 1 ? null : colorScale,
     color: d => d[keys[4]]
   })
+
   if (optionalSet.size != 1) {
     key = swatches({
       colour: colorScale
@@ -185,4 +196,53 @@ d3.json("/bubble_chart_data")
     d3.select("#chart").append(() => key);
   }
   d3.select("#chart").append(() => svg);
+
+  var xAxis = d3.select("#x-axis");
+  var yAxis = d3.select("#y-axis");
+  var zAxis = d3.select("#z-axis");
+
+  xAxis.on("change", handleAxisChange);
+  yAxis.on("change", handleAxisChange);
+  zAxis.on("change", handleAxisChange);
+
+  function handleAxisChange() {
+    var xAxis = d3.select("#x-axis").property("value") == "1" ? function(d) {return d[keys[1]];}
+      : d3.select("#x-axis").property("value") == "2" ? function(d) {return d[keys[2]];}
+      : function(d) {return d[keys[3]];};
+    var xLabel = d3.select("#x-axis").property("value") == "1" ? keys[1]
+      : d3.select("#x-axis").property("value") == "2" ? keys[2]
+      : keys[3];
+    var yAxis = d3.select("#y-axis").property("value") == "1" ? function(d) {return d[keys[1]];}
+      : d3.select("#y-axis").property("value") == "2" ? function(d) {return d[keys[2]];}
+      : function(d) {return d[keys[3]];};
+    var yLabel = d3.select("#y-axis").property("value") == "1" ? keys[1]
+      : d3.select("#y-axis").property("value") == "2" ? keys[2]
+      : keys[3];
+    var zAxis = d3.select("#z-axis").property("value") == "1" ? function(d) {return d[keys[1]];}
+      : d3.select("#y-axis").property("value") == "2" ? function(d) {return d[keys[2]];}
+      : function(d) {return d[keys[3]];};
+    var zLabel = d3.select("#z-axis").property("value") == "1" ? keys[1]
+      : d3.select("#y-axis").property("value") == "2" ? keys[2]
+      : keys[3];
+
+    d3.select("#chart").selectAll("*").remove();
+    d3.select("#chart").append("div").attr("id", "tooltip");
+
+    var chart = BubbleChart(data, {
+      x: xAxis,
+      y: yAxis,
+      z: zAxis,
+      name: d => d[keys[0]],
+      xLabel: xLabel,
+      yLabel: yLabel,
+      zLabel: zLabel,
+      entityLabel: keys[0],
+      stroke: "steelblue",
+      colorScale: optionalSet.size === 1 ? null : colorScale,
+      color: d => d[keys[4]]
+    })
+
+    d3.select("#chart").append(() => chart);
+
+  }
 })

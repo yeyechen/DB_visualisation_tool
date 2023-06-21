@@ -259,6 +259,18 @@ public class VisualService {
     return sb.toString();
   }
 
+  private List<Map<String, Object>> filterNullValues(List<Map<String, Object>> resultList) {
+    List<Map<String, Object>> filteredList = new ArrayList<>();
+
+    for (Map<String, Object> result : resultList) {
+      boolean hasNullValues = result.values().stream().anyMatch(value -> value == null);
+      if (!hasNullValues) {
+        filteredList.add(result);
+      }
+    }
+    return filteredList;
+  }
+
   public List<Map<String, Object>> queryBarChart(
       Map<ERConnectableObj, List<Attribute>> selectionInfo,
       Map<String, Map<String, List<String>>> filterConditions) throws SQLException {
@@ -350,10 +362,11 @@ public class VisualService {
     if (optionalAttr != null) {
       attributeNameStrings.add(optionalAttr.getName());
     }
-    return InputService.getJdbc()
+    List<Map<String, Object>> queryResult = InputService.getJdbc()
         .queryForList(
             generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
                 this.filterConditions));
+    return filterNullValues(queryResult);
   }
 
   public List<Map<String, Object>> queryBubbleChart(
@@ -382,10 +395,11 @@ public class VisualService {
     if (optionalAttr != null) {
       attributeNameStrings.add(optionalAttr.getName());
     }
-    return InputService.getJdbc()
+    List<Map<String, Object>> queryResult = InputService.getJdbc()
         .queryForList(
             generateSQLQuery(attributeNameStrings, table.getName(), tablePrimaryKey.getName(),
                 this.filterConditions));
+    return filterNullValues(queryResult);
   }
 
   public List<Map<String, Object>> queryChoroplethMap(

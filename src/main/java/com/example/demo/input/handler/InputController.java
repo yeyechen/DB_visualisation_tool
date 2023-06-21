@@ -233,7 +233,9 @@ public class InputController {
             options.add("Stacked Bar Chart");
             options.add("Spider Chart");
           }
-          options.add("Line Chart");
+          if (DataTypeUtil.getDataType(entity.getName(), weakKey) == DataType.NUMERICAL) {
+            options.add("Line Chart");
+          }
           options.add("Grouped Bar Chart");
         }
       }
@@ -330,33 +332,66 @@ public class InputController {
     Iterator<ERConnectableObj> keyIterator = selectionInfo.keySet()
         .iterator();
     ERConnectableObj table1 = keyIterator.next();
-    ERConnectableObj table2 = keyIterator.next();
 
-    Relationship relationship = ModelUtil.getRelationshipBetween(table1.getName(), table2.getName(),
-        InputService.getSchema());
-    boolean isOneMany = false;
-    ERConnectableObj childEntity = null;
-    if (relationship != null) {
-      for (RelationshipEdge edge : relationship.getEdgeList()) {
-        if (edge.getCardinality() == Cardinality.OneToOne
-            || edge.getCardinality() == Cardinality.ZeroToOne) {
-          isOneMany = true;
-          childEntity = edge.getConnObj();
-          break;
+    if (keyIterator.hasNext()) {
+      ERConnectableObj table2 = keyIterator.next();
+
+      Relationship relationship = ModelUtil.getRelationshipBetween(table1.getName(),
+          table2.getName(),
+          InputService.getSchema());
+      boolean isOneMany = false;
+      ERConnectableObj childEntity = null;
+      if (relationship != null) {
+        for (RelationshipEdge edge : relationship.getEdgeList()) {
+          if (edge.getCardinality() == Cardinality.OneToOne
+              || edge.getCardinality() == Cardinality.ZeroToOne) {
+            isOneMany = true;
+            childEntity = edge.getConnObj();
+            break;
+          }
+        }
+        if (isOneMany) {
+          message.append(
+              "The relationship is One-Many, please choose attributes from the child entity");
+          message.append(": ");
+          message.append(childEntity.getName()).append(".");
+        } else {
+          message.append(
+              "The relationship is Many-Many, please choose attributes from the relationship table");
+          message.append(": ");
+          message.append(relationship.getName());
+          message.append(".\n");
+          message.append("Or apply filters to make the data One-Many");
         }
       }
-      if (isOneMany) {
-        message.append(
-            "The relationship is One-Many, please choose attributes from the child entity");
-        message.append(": ");
-        message.append(childEntity.getName()).append(".");
+    } else {
+      message.append("There is no visualisation suitable for your current selection.\n");
+      message.append("You have selected a ");
+      if (table1 instanceof Entity) {
+        if (((Entity) table1).getEntityType() == EntityType.WEAK) {
+          message.append("weak entity: ");
+          message.append(table1.getName());
+          message.append(" with parent entity: ");
+          message.append(
+              ModelUtil.getRelatedStrongEntity((Entity) table1, InputService.getSchema()).getName());
+          message.append("\n");
+          message.append("please select at most one scalar attribute.");
+        } else {
+          message.append("basic entity ");
+          message.append(table1.getName());
+          message.append("\n please select other attribute combinations");
+        }
+      } else if (((Entity) table1).getEntityType() == EntityType.SUBSET) {
+        message.append("subset entity: ");
+        message.append(table1.getName());
+        message.append(" of the entity: ");
+        message.append(((Entity) table1).getBelongStrongEntity().getName());
+        message.append("\n");
+        message.append("\n please select other attribute combinations");
       } else {
-        message.append(
-            "The relationship is Many-Many, please choose attributes from the relationship table");
-        message.append(": ");
-        message.append(relationship.getName());
-        message.append(".\n");
-        message.append("Or apply filters to make the data One-Many");
+        message.append(" relationship");
+        message.append(table1.getName());
+        message.append("\n please select other attribute combinations");
       }
     }
     return message.toString();
