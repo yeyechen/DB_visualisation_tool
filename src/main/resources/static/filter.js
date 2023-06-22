@@ -30,6 +30,16 @@ $(document).ready(function() {
 
     $("#filter-list input[type='checkbox']").click(function() {
       var checkboxValue = $(this).val();
+      if ($(this).is(":checked")) {
+        if (!options[checkboxValue]) {
+          options[checkboxValue] = [];
+        }
+      } else {
+        if (options[checkboxValue]) {
+          delete options[checkboxValue];
+        }
+      }
+      console.log(options);
 
       $.ajax({
         url: "/filter-click",
@@ -198,7 +208,7 @@ $(document).ready(function() {
         }
       }
     }
-
+    console.log(options);
   });
 
   $(document).on("click", "#filter-list button[type='submit']", function(event) {

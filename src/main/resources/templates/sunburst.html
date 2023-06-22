@@ -4,22 +4,14 @@
 <head>
   <meta charset="UTF-8">
   <title>Sunburst</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
-<style>
-  .chart-container {
-    position: absolute;
-  }
-  #chart {
-    position: relative;
-  }
-  #tooltip {
-    position: absolute;
-    pointer-events: none;
-  }
-</style>
 <body>
 <script src = "sunburst.js"></script>
 <div class="chart-container">
+  <div>
+    <button class="button-go-back" onclick="history.back()">Go Back</button>
+  </div>
   <div id="chart">
     <div id="tooltip"></div>
   </div>

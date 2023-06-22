@@ -4,23 +4,15 @@
 <head>
   <meta charset="UTF-8">
   <title>bubble chart</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
-<style>
-  .chart-container {
-    position: absolute;
-  }
-  #chart {
-    position: relative;
-  }
-  #tooltip {
-    position: absolute;
-    pointer-events: none;
-  }
-</style>
 <body>
 <script src = "bubble_chart.js"></script>
 <script src = "swatches.js"></script>
 <div class="chart-container">
+  <div>
+    <button class="button-go-back" onclick="history.back()">Go Back</button>
+  </div>
   <div id="axis-container">
     <label for="x-axis">  x-axis:
       <select id="x-axis">

@@ -26,8 +26,7 @@ $(document).ready(function() {
       contentType: "application/json",
       data: JSON.stringify(selectedVis),
       success: function(data) {
-				window.history.pushState(null, null, data);
-				location.reload();
+        window.location.href = data;
       },
       error: function(xhr, status, error) {
         alert(xhr.responseText);

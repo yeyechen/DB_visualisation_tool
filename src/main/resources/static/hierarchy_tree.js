@@ -132,8 +132,9 @@ d3.json("/hierarchy_tree_data")
   }, { name: "", children: [] });
 
   const optionalSet = new Set(data.map(item => item[keys[2]]));
+  const orderedArray = Array.from(optionalSet).sort();
   const colorScale = d3.scaleOrdinal()
-    .domain(optionalSet)
+    .domain(orderedArray)
     .range(d3.schemeCategory10);
 
   const svg = Tree(groupedData, {

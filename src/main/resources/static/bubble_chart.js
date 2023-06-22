@@ -105,7 +105,6 @@ function BubbleChart(data, {
       .attr("dy", "0.35em")
       .attr("x", i => xScale(X[i]))
       .attr("y", i => yScale(Y[i]))
-      .text(i => T[i])
       .call(text => text.clone(true))
       .attr("fill", "none")
       .attr("stroke", halo)
