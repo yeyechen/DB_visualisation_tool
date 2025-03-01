@@ -45,4 +45,6 @@ To run this Java Spring framework project in IntelliJ, follow these steps:
 6. Click on the "Run" button or use the keyboard shortcut to start the Spring application.
 7. Once the application is running, you can access it at the specified URL or endpoint.
 
+## Project report
+check out the project report here: https://1drv.ms/b/c/74b258e9559a58d7/EbK12zNjAjxAuI2oBIUpftgBsiEvkZldCc4p0yEwxkTMuQ
 
